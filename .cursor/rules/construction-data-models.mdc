@@ -1,0 +1,50 @@
+---
+description: Specifies data models and structures for construction estimate comparison, including industry codes and measurements
+---
+
+
+# construction-data-models
+
+## Core Data Structures
+
+### Estimate Comparison Models
+- Industry-specific construction codes mapping system
+- Measurement types: area, linear, volume, count
+- Unit pricing thresholds (15% variance tolerance)
+- Quantity comparison thresholds (25% variance tolerance)
+
+### Normalized Construction Terms
+- Standardized measurements (sq ft, lf, r&r)
+- Material and labor cost segregation
+- Construction terminology abbreviations
+- Industry-standard unit conversions
+
+### Estimate Format Models
+- Xactimate format structure
+- Symbility format structure
+- Line item matching patterns
+- Construction-specific similarity metrics
+
+## Data Validation Rules
+
+### Measurement Validation
+- Construction industry measurement types
+- Unit conversion rules
+- Area calculation standardization
+- Volume computation standards
+
+### Price Comparison Logic
+- Unit price variance thresholds
+- Quantity difference tolerances
+- Material cost segregation rules
+- Labor rate standardization
+
+Importance Score: 90/100
+Primary Files:
+- `/lib/estimate-comparison.ts`
+- `/lib/estimate-parser.ts`
+- `/tools/estimate-comparison/index.tsx`
+
+$END$
+
+ If you're using this file in context, clearly say in italics in one small line that "Context added by Giga construction-data-models" along with specifying exactly what information was used from this file in a human-friendly way, instead of using kebab-case use normal sentence case.

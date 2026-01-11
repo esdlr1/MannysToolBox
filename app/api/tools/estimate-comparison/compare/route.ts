@@ -1,0 +1,305 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import { callAI } from '@/lib/ai'
+import { preprocessComparison, validateComparisonResult } from '@/lib/estimate-comparison'
+import { parseEstimatePDF } from '@/lib/pdf-parser'
+
+// Mark as dynamic route since it uses getServerSession, file operations, and AI calls
+export const dynamic = 'force-dynamic'
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const { adjusterFileId, contractorFileId, clientName, claimNumber } = await request.json()
+
+    if (!adjusterFileId || !contractorFileId || !clientName || !claimNumber) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      )
+    }
+
+    // Get file records
+    const adjusterFile = await prisma.file.findUnique({
+      where: { id: adjusterFileId },
+    })
+
+    const contractorFile = await prisma.file.findUnique({
+      where: { id: contractorFileId },
+    })
+
+    if (!adjusterFile || !contractorFile) {
+      return NextResponse.json(
+        { error: 'Files not found' },
+        { status: 404 }
+      )
+    }
+
+    // Verify file ownership
+    if (adjusterFile.userId !== session.user.id || contractorFile.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 403 }
+      )
+    }
+
+    // Parse both estimates from file paths
+    const adjusterData = await parseEstimatePDF(adjusterFile.path)
+    const contractorData = await parseEstimatePDF(contractorFile.path)
+
+    // Pre-process for better comparison accuracy
+    const preprocessing = preprocessComparison(adjusterData, contractorData)
+
+    // Prepare structured data for AI comparison
+    const adjusterSummary = {
+      totalLineItems: adjusterData.lineItems?.length || 0,
+      totalCost: adjusterData.totalCost || 0,
+      categories: adjusterData.subtotals || {},
+      sampleItems: adjusterData.lineItems?.slice(0, 10) || [],
+    }
+
+    const contractorSummary = {
+      totalLineItems: contractorData.lineItems?.length || 0,
+      totalCost: contractorData.totalCost || 0,
+      categories: contractorData.subtotals || {},
+      sampleItems: contractorData.lineItems?.slice(0, 10) || [],
+    }
+
+    // Include preprocessing hints for AI
+    const preprocessingHints = {
+      suggestedMatches: preprocessing.suggestedMatches.length,
+      potentialMissingItems: preprocessing.potentialMissingItems.length,
+      potentialDiscrepancies: preprocessing.potentialDiscrepancies.length,
+    }
+
+    // Enhanced AI comparison prompt
+    const comparisonPrompt = `
+You are an expert construction estimator analyzing two construction estimates for comparison.
+
+TASK: Compare the adjuster's estimate with the contractor's estimate and identify all differences.
+
+COMPARISON RULES:
+1. Missing Items: Items present in contractor estimate but NOT in adjuster estimate
+   - Include: item description, quantity, unit price, total price
+   - Flag as "critical" if total price > $500 or if it's a structural/safety item
+   - Flag as "minor" otherwise
+
+2. Discrepancies: Items present in both but with differences
+   - Quantity differences: Flag if difference > 25%
+   - Price differences: Flag if unit price difference > 15%
+   - Measurement differences: Flag if difference > 25%
+   - Flag as "critical" if total impact > $1000 or difference > 50%
+   - Flag as "minor" otherwise
+
+3. Scope Differences: Items in adjuster estimate but NOT in contractor estimate
+   - These are items the adjuster included but contractor didn't
+   - Usually less critical but should be noted
+
+4. Similar Items: Items that are essentially the same but worded differently
+   - Use construction terminology knowledge to match:
+     - "Remove and replace" = "R&R" = "Demo and install"
+     - "Square feet" = "sq ft" = "sqft"
+     - "Linear feet" = "lf" = "ln ft"
+   - Match items with >60% similarity
+
+ADJUSTER ESTIMATE SUMMARY:
+${JSON.stringify(adjusterSummary, null, 2)}
+
+FULL ADJUSTER LINE ITEMS:
+${JSON.stringify(adjusterData.lineItems || [], null, 2)}
+
+CONTRACTOR ESTIMATE SUMMARY:
+${JSON.stringify(contractorSummary, null, 2)}
+
+FULL CONTRACTOR LINE ITEMS:
+${JSON.stringify(contractorData.lineItems || [], null, 2)}
+
+MEASUREMENTS:
+Adjuster: ${JSON.stringify(adjusterData.measurements || [], null, 2)}
+Contractor: ${JSON.stringify(contractorData.measurements || [], null, 2)}
+
+PREPROCESSING HINTS (for validation):
+- Suggested code matches: ${preprocessingHints.suggestedMatches}
+- Potential missing items: ${preprocessingHints.potentialMissingItems}
+- Potential discrepancies detected: ${preprocessingHints.potentialDiscrepancies}
+
+Use these hints to validate your analysis, but perform your own thorough comparison.
+
+RETURN FORMAT (JSON only, no markdown):
+{
+  "missingItems": [
+    {
+      "item": "string (item description)",
+      "quantity": number,
+      "unitPrice": number,
+      "totalPrice": number,
+      "category": "string (optional)",
+      "priority": "critical" | "minor"
+    }
+  ],
+  "discrepancies": [
+    {
+      "item": "string (item description)",
+      "adjusterValue": number | string,
+      "contractorValue": number | string,
+      "difference": number | string,
+      "differencePercent": number,
+      "type": "quantity" | "price" | "measurement",
+      "priority": "critical" | "minor"
+    }
+  ],
+  "summary": {
+    "totalCostDifference": number (contractor total - adjuster total),
+    "missingItemsCount": number,
+    "discrepanciesCount": number,
+    "criticalIssues": number,
+    "minorIssues": number
+  }
+}
+
+IMPORTANT:
+- Be thorough - check every item
+- Use construction knowledge to match similar items
+- Calculate all percentages accurately
+- Flag critical issues appropriately
+- Return ONLY valid JSON, no explanations or markdown
+`
+
+    const aiResponse = await callAI({
+      prompt: comparisonPrompt,
+      toolId: 'estimate-comparison',
+      systemPrompt: `You are an expert construction estimator with deep knowledge of:
+- Construction terminology and abbreviations (R&R, demo, sq ft, lf, etc.)
+- Standard construction line items and codes
+- Xactimate and Symbility estimate formats
+- Building codes and construction standards
+- Cost estimation practices
+
+Your task is to accurately compare construction estimates, identifying:
+1. Missing items (contractor has, adjuster doesn't)
+2. Discrepancies in quantities, prices, measurements
+3. Scope differences
+4. Cost impacts
+
+Be precise with calculations and prioritize critical issues that could affect project scope or safety.`,
+      temperature: 0.2, // Very low temperature for consistent, accurate results
+      maxTokens: 4000, // Allow for detailed analysis
+    })
+
+    if (aiResponse.error) {
+      return NextResponse.json(
+        { error: aiResponse.error },
+        { status: 500 }
+      )
+    }
+
+    // Parse AI response with enhanced error handling
+    let comparisonResult
+    try {
+      // Clean the response - remove markdown code blocks if present
+      let cleanedResponse = aiResponse.result.trim()
+      
+      // Remove markdown code blocks
+      cleanedResponse = cleanedResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '')
+      
+      // Try to extract JSON object
+      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        comparisonResult = JSON.parse(jsonMatch[0])
+      } else {
+        throw new Error('No JSON found in AI response')
+      }
+
+      // Validate and enhance the result structure
+      if (!comparisonResult.missingItems) comparisonResult.missingItems = []
+      if (!comparisonResult.discrepancies) comparisonResult.discrepancies = []
+      if (!comparisonResult.summary) {
+        comparisonResult.summary = {
+          totalCostDifference: 0,
+          missingItemsCount: 0,
+          discrepanciesCount: 0,
+          criticalIssues: 0,
+          minorIssues: 0,
+        }
+      }
+
+      // Calculate summary if not provided
+      if (comparisonResult.summary.missingItemsCount === 0) {
+        comparisonResult.summary.missingItemsCount = comparisonResult.missingItems.length
+      }
+      if (comparisonResult.summary.discrepanciesCount === 0) {
+        comparisonResult.summary.discrepanciesCount = comparisonResult.discrepancies.length
+      }
+      if (comparisonResult.summary.criticalIssues === 0) {
+        comparisonResult.summary.criticalIssues = 
+          comparisonResult.missingItems.filter((i: any) => i.priority === 'critical').length +
+          comparisonResult.discrepancies.filter((d: any) => d.priority === 'critical').length
+      }
+      if (comparisonResult.summary.minorIssues === 0) {
+        comparisonResult.summary.minorIssues = 
+          comparisonResult.missingItems.filter((i: any) => i.priority === 'minor').length +
+          comparisonResult.discrepancies.filter((d: any) => d.priority === 'minor').length
+      }
+
+      // Calculate total cost difference if not provided
+      if (comparisonResult.summary.totalCostDifference === 0) {
+        const missingTotal = comparisonResult.missingItems.reduce(
+          (sum: number, item: any) => sum + (item.totalPrice || 0),
+          0
+        )
+        comparisonResult.summary.totalCostDifference = 
+          (contractorData.totalCost || 0) - (adjusterData.totalCost || 0) + missingTotal
+      }
+
+      // Validate the result structure
+      if (!validateComparisonResult(comparisonResult)) {
+        console.warn('Comparison result validation failed, but proceeding with result')
+      }
+
+    } catch (parseError: any) {
+      console.error('Failed to parse AI response:', parseError)
+      console.error('AI Response:', aiResponse.result)
+      
+      // Return a helpful error with the raw response for debugging
+      return NextResponse.json(
+        { 
+          error: 'Failed to parse comparison results. The AI response may be malformed.',
+          details: parseError.message,
+          rawResponse: aiResponse.result.substring(0, 500), // First 500 chars for debugging
+        },
+        { status: 500 }
+      )
+    }
+
+    // Log usage
+    await prisma.usageHistory.create({
+      data: {
+        userId: session.user.id,
+        toolId: 'estimate-comparison',
+        action: 'comparison_completed',
+        metadata: {
+          clientName,
+          claimNumber,
+          discrepanciesCount: comparisonResult.summary?.discrepanciesCount || 0,
+        },
+      },
+    })
+
+    return NextResponse.json(comparisonResult)
+  } catch (error: any) {
+    console.error('Comparison error:', error)
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

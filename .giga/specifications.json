@@ -1,0 +1,22 @@
+[
+  {
+    "fileName": "main-overview.mdc",
+    "description": "Complete system overview documenting the construction estimate comparison system architecture, key components, and their interactions"
+  },
+  {
+    "fileName": "estimate-comparison-algorithm.mdc",
+    "description": "Detailed documentation of the custom construction estimate comparison algorithm, including matching rules, thresholds, and prioritization logic"
+  },
+  {
+    "fileName": "construction-data-models.mdc",
+    "description": "Comprehensive documentation of data structures used for estimate comparison, including industry-specific codes, measurements, and pricing models"
+  },
+  {
+    "fileName": "estimate-parsing-flow.mdc",
+    "description": "Documentation of the PDF parsing logic, terminology normalization, and construction-specific item matching process"
+  },
+  {
+    "fileName": "domain-routing-architecture.mdc",
+    "description": "Detailed documentation of the subdomain-based routing system, including access control rules and tool isolation implementation"
+  }
+]

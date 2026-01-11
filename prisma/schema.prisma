@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          String?   // Super Admin, Owner, Manager, Employee
+  isApproved    Boolean   @default(false) // Approval status for Owner/Manager
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  profile       Profile?
+  savedWork     SavedWork[]
+  usageHistory  UsageHistory[]
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  bio       String?
+  avatar    String?
+  preferences Json?  // Store user preferences as JSON
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model SavedWork {
+  id          String   @id @default(cuid())
+  userId      String
+  toolId      String
+  title       String
+  description String?
+  data        Json     // Store tool-specific data as JSON
+  files       String[] // Array of file paths/URLs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([toolId])
+  @@map("saved_work")
+}
+
+model UsageHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  toolId      String
+  action      String   // e.g., "tool_used", "ai_request", "file_uploaded"
+  metadata    Json?    // Additional context about the action
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([toolId])
+  @@index([createdAt])
+  @@map("usage_history")
+}
+
+model File {
+  id          String   @id @default(cuid())
+  userId      String
+  toolId      String?
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int
+  path        String   // Path to file in storage
+  url         String?  // Public URL if applicable
+  savedWorkId String?  // If associated with saved work
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([toolId])
+  @@map("files")
+}
