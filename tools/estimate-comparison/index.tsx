@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { FileUpload } from '@/components/FileUpload'
 import { logUsage } from '@/lib/utils'
 import { ComparisonResult } from '@/types/estimate-comparison'
-import { Upload, FileText, User, CheckCircle2, Loader2, AlertCircle, DollarSign, TrendingUp, FileCheck, Download, Save, Eye, Search, Filter, ArrowUpDown, X, Calendar, Clock, Info, FileBarChart } from 'lucide-react'
+import { Upload, FileText, User, CheckCircle2, Loader2, AlertCircle, DollarSign, TrendingUp, FileCheck, Download, Save, Eye, Search, Filter, ArrowUpDown, X, Calendar, Clock, Info, FileBarChart, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 
 // Sample data for preview
@@ -110,6 +110,15 @@ export default function EstimateComparisonTool() {
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'critical' | 'minor'>('all')
   const [sortBy, setSortBy] = useState<'priority' | 'cost' | 'name'>('priority')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  
+  // Pagination state
+  const [discrepanciesPage, setDiscrepanciesPage] = useState(1)
+  const [missingItemsPage, setMissingItemsPage] = useState(1)
+  const itemsPerPage = 20
+  
+  // Room grouping and collapse state
+  const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set())
+  const [groupByRoom, setGroupByRoom] = useState(true)
 
   const handleAdjusterUpload = (file: { id: string; filename: string; originalName: string; url: string }) => {
     setAdjusterFile(file)
@@ -259,6 +268,81 @@ export default function EstimateComparisonTool() {
     }
   }
 
+  // Helper function to extract room from item name
+  const extractRoom = (itemName: string): string => {
+    // Common patterns: "Kitchen - Floor", "Kit - Floor", "Living Room - Paint", etc.
+    // First try to match "Room - Item" pattern
+    const dashMatch = itemName.match(/^([^-]+?)\s*-\s*/i)
+    if (dashMatch) {
+      const room = dashMatch[1].trim()
+      // Normalize common abbreviations
+      const normalized = room.toLowerCase()
+      if (normalized.includes('kit') && !normalized.includes('bath')) return 'Kitchen'
+      if (normalized.includes('living') || normalized === 'lr') return 'Living Room'
+      if ((normalized.includes('bedroom') || normalized === 'br') && !normalized.includes('bath')) return 'Bedroom'
+      if (normalized.includes('bath')) return 'Bathroom'
+      if (normalized.includes('dining') || normalized === 'dr') return 'Dining Room'
+      if (normalized.includes('master')) return 'Master Bedroom'
+      if (normalized.includes('garage')) return 'Garage'
+      if (normalized.includes('basement')) return 'Basement'
+      if (normalized.includes('attic')) return 'Attic'
+      if (normalized.includes('hall')) return 'Hallway'
+      if (normalized.includes('office')) return 'Office'
+      return room
+    }
+    
+    // Try to match common room names at the start
+    const roomMatch = itemName.match(/^(Kitchen|Kit|K|Living Room|LR|Bedroom|BR|Bathroom|Bath|Master Bedroom|Master BR|Dining Room|DR|Office|Garage|Basement|Attic|Hallway|Hall)\b/i)
+    if (roomMatch) {
+      const room = roomMatch[1].trim()
+      const normalized = room.toLowerCase()
+      if (normalized.includes('kit') || normalized === 'k') return 'Kitchen'
+      if (normalized.includes('living') || normalized === 'lr') return 'Living Room'
+      if (normalized.includes('bedroom') || normalized === 'br') return 'Bedroom'
+      if (normalized.includes('bath')) return 'Bathroom'
+      if (normalized.includes('dining') || normalized === 'dr') return 'Dining Room'
+      if (normalized.includes('master')) return 'Master Bedroom'
+      if (normalized.includes('garage')) return 'Garage'
+      if (normalized.includes('basement')) return 'Basement'
+      if (normalized.includes('attic')) return 'Attic'
+      if (normalized.includes('hall')) return 'Hallway'
+      if (normalized.includes('office')) return 'Office'
+      return room
+    }
+    
+    return 'General'
+  }
+
+  // Toggle room expansion
+  const toggleRoom = (room: string) => {
+    setExpandedRooms(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(room)) {
+        newSet.delete(room)
+      } else {
+        newSet.add(room)
+      }
+      return newSet
+    })
+  }
+
+  // Expand all rooms by default on initial load
+  useEffect(() => {
+    if (comparisonResult && groupByRoom) {
+      const rooms = new Set<string>()
+      comparisonResult.discrepancies.forEach(disc => {
+        rooms.add(extractRoom(disc.item))
+      })
+      setExpandedRooms(rooms)
+    }
+  }, [comparisonResult, groupByRoom])
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setMissingItemsPage(1)
+    setDiscrepanciesPage(1)
+  }, [searchQuery, priorityFilter, sortBy, sortOrder])
+
   // Filter and sort missing items
   const filteredAndSortedMissingItems = useMemo(() => {
     if (!comparisonResult) return []
@@ -334,6 +418,63 @@ export default function EstimateComparisonTool() {
     
     return items
   }, [comparisonResult, searchQuery, priorityFilter, sortBy, sortOrder])
+
+  // Group discrepancies by room
+  const groupedDiscrepancies = useMemo(() => {
+    if (!groupByRoom || !filteredAndSortedDiscrepancies.length) {
+      return { 'All Items': filteredAndSortedDiscrepancies }
+    }
+    
+    const groups: Record<string, typeof filteredAndSortedDiscrepancies> = {}
+    filteredAndSortedDiscrepancies.forEach(item => {
+      const room = extractRoom(item.item)
+      if (!groups[room]) {
+        groups[room] = []
+      }
+      groups[room].push(item)
+    })
+    
+    // Sort rooms by name, but put "General" last
+    const sortedRooms = Object.keys(groups).sort((a, b) => {
+      if (a === 'General') return 1
+      if (b === 'General') return -1
+      return a.localeCompare(b)
+    })
+    
+    const sortedGroups: Record<string, typeof filteredAndSortedDiscrepancies> = {}
+    sortedRooms.forEach(room => {
+      sortedGroups[room] = groups[room]
+    })
+    
+    return sortedGroups
+  }, [filteredAndSortedDiscrepancies, groupByRoom])
+
+  // Paginated discrepancies
+  const paginatedDiscrepancies = useMemo(() => {
+    if (!groupByRoom) {
+      const start = (discrepanciesPage - 1) * itemsPerPage
+      const end = start + itemsPerPage
+      return {
+        paginatedItems: filteredAndSortedDiscrepancies.slice(start, end),
+        totalPages: Math.ceil(filteredAndSortedDiscrepancies.length / itemsPerPage)
+      }
+    }
+    // When grouped, pagination is per room (all items in expanded rooms are shown)
+    return {
+      paginatedItems: filteredAndSortedDiscrepancies,
+      totalPages: 1
+    }
+  }, [filteredAndSortedDiscrepancies, discrepanciesPage, itemsPerPage, groupByRoom])
+
+  // Paginated missing items
+  const paginatedMissingItems = useMemo(() => {
+    const start = (missingItemsPage - 1) * itemsPerPage
+    const end = start + itemsPerPage
+    return {
+      paginatedItems: filteredAndSortedMissingItems.slice(start, end),
+      totalPages: Math.ceil(filteredAndSortedMissingItems.length / itemsPerPage)
+    }
+  }, [filteredAndSortedMissingItems, missingItemsPage, itemsPerPage])
 
   // Calculate totals and revenue opportunities
   const missingItemsTotal = useMemo(() => {
@@ -870,8 +1011,8 @@ export default function EstimateComparisonTool() {
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
-                              {filteredAndSortedMissingItems.length > 0 ? (
-                                filteredAndSortedMissingItems.map((item, idx) => (
+                              {paginatedMissingItems.paginatedItems.length > 0 ? (
+                                paginatedMissingItems.paginatedItems.map((item, idx) => (
                                 <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                   <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{item.item}</td>
                                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{item.quantity}</td>
@@ -900,6 +1041,36 @@ export default function EstimateComparisonTool() {
                             </tbody>
                           </table>
                         </div>
+
+                        {/* Pagination Controls for Missing Items */}
+                        {paginatedMissingItems.totalPages > 1 && (
+                          <div className="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <div className="text-sm text-gray-700 dark:text-gray-300">
+                              Showing {(missingItemsPage - 1) * itemsPerPage + 1} to {Math.min(missingItemsPage * itemsPerPage, filteredAndSortedMissingItems.length)} of {filteredAndSortedMissingItems.length} items
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setMissingItemsPage(prev => Math.max(1, prev - 1))}
+                                disabled={missingItemsPage === 1}
+                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                                Previous
+                              </button>
+                              <div className="text-sm text-gray-700 dark:text-gray-300">
+                                Page {missingItemsPage} of {paginatedMissingItems.totalPages}
+                              </div>
+                              <button
+                                onClick={() => setMissingItemsPage(prev => Math.min(paginatedMissingItems.totalPages, prev + 1))}
+                                disabled={missingItemsPage === paginatedMissingItems.totalPages}
+                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                              >
+                                Next
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
                     </div>
                   )}
 
@@ -978,55 +1149,178 @@ export default function EstimateComparisonTool() {
                               {sortOrder === 'desc' ? '↓' : '↑'}
                             </button>
                           </div>
+
+                          {/* Group by Room Toggle */}
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id="groupByRoom"
+                              checked={groupByRoom}
+                              onChange={(e) => {
+                                setGroupByRoom(e.target.checked)
+                                setDiscrepanciesPage(1)
+                              }}
+                              className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                            />
+                            <label htmlFor="groupByRoom" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                              Group by Room
+                            </label>
+                          </div>
                         </div>
 
                         <div className="space-y-4">
                           {filteredAndSortedDiscrepancies.length > 0 ? (
-                            filteredAndSortedDiscrepancies.map((disc, idx) => (
-                            <div
-                              key={idx}
-                              className={`p-6 rounded-lg border transition-all ${
-                                disc.priority === 'critical'
-                                  ? 'border-red-300 bg-red-50/30 dark:border-red-800 dark:bg-red-900/10'
-                                  : 'border-yellow-300 bg-yellow-50/30 dark:border-yellow-800 dark:bg-yellow-900/10'
-                              }`}
-                            >
-                              <div className="flex justify-between items-start mb-4">
-                                <h4 className="font-semibold text-gray-900 dark:text-white text-base">{disc.item}</h4>
-                                <span
-                                  className={`inline-flex px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wide ${
+                            groupByRoom ? (
+                              // Grouped by room with collapsible sections
+                              Object.entries(groupedDiscrepancies).map(([room, items]) => {
+                                const isExpanded = expandedRooms.has(room)
+                                const criticalCount = items.filter(item => item.priority === 'critical').length
+                                return (
+                                  <div key={room} className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                                    {/* Room Header - Collapsible */}
+                                    <button
+                                      onClick={() => toggleRoom(room)}
+                                      className="w-full px-6 py-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        {isExpanded ? (
+                                          <ChevronUp className="w-5 h-5 text-gray-500" />
+                                        ) : (
+                                          <ChevronDown className="w-5 h-5 text-gray-500" />
+                                        )}
+                                        <h4 className="font-semibold text-gray-900 dark:text-white text-lg">{room}</h4>
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                          ({items.length} item{items.length !== 1 ? 's' : ''}
+                                          {criticalCount > 0 && `, ${criticalCount} critical`})
+                                        </span>
+                                      </div>
+                                    </button>
+                                    
+                                    {/* Room Items - Collapsible Content */}
+                                    {isExpanded && (
+                                      <div className="p-4 space-y-4 bg-white dark:bg-gray-900">
+                                        {items.map((disc, idx) => (
+                                          <div
+                                            key={idx}
+                                            className={`p-5 rounded-lg border transition-all ${
+                                              disc.priority === 'critical'
+                                                ? 'border-red-300 bg-red-50/30 dark:border-red-800 dark:bg-red-900/10'
+                                                : 'border-yellow-300 bg-yellow-50/30 dark:border-yellow-800 dark:bg-yellow-900/10'
+                                            }`}
+                                          >
+                                            <div className="flex justify-between items-start mb-4">
+                                              <h5 className="font-semibold text-gray-900 dark:text-white text-base">{disc.item}</h5>
+                                              <span
+                                                className={`inline-flex px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wide ${
+                                                  disc.priority === 'critical'
+                                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                                                    : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                                }`}
+                                              >
+                                                {disc.priority}
+                                              </span>
+                                            </div>
+                                            <div className="grid md:grid-cols-3 gap-4">
+                                              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Adjuster Value</p>
+                                                <p className="font-semibold text-gray-900 dark:text-white text-base">{disc.adjusterValue}</p>
+                                              </div>
+                                              <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Contractor Value</p>
+                                                <p className="font-semibold text-gray-900 dark:text-white text-base">{disc.contractorValue}</p>
+                                              </div>
+                                              <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                                                <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide mb-2">Difference</p>
+                                                <p className="font-bold text-red-600 dark:text-red-400 text-base">
+                                                  {disc.difference} ({disc.differencePercent > 0 ? '+' : ''}{disc.differencePercent.toFixed(1)}%)
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })
+                            ) : (
+                              // Flat list with pagination
+                              paginatedDiscrepancies.paginatedItems.map((disc, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`p-6 rounded-lg border transition-all ${
                                     disc.priority === 'critical'
-                                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                                      : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                      ? 'border-red-300 bg-red-50/30 dark:border-red-800 dark:bg-red-900/10'
+                                      : 'border-yellow-300 bg-yellow-50/30 dark:border-yellow-800 dark:bg-yellow-900/10'
                                   }`}
                                 >
-                                  {disc.priority}
-                                </span>
-                              </div>
-                              <div className="grid md:grid-cols-3 gap-4">
-                                <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Adjuster Value</p>
-                                  <p className="font-semibold text-gray-900 dark:text-white text-base">{disc.adjusterValue}</p>
+                                  <div className="flex justify-between items-start mb-4">
+                                    <h4 className="font-semibold text-gray-900 dark:text-white text-base">{disc.item}</h4>
+                                    <span
+                                      className={`inline-flex px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wide ${
+                                        disc.priority === 'critical'
+                                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                                          : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                      }`}
+                                    >
+                                      {disc.priority}
+                                    </span>
+                                  </div>
+                                  <div className="grid md:grid-cols-3 gap-4">
+                                    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Adjuster Value</p>
+                                      <p className="font-semibold text-gray-900 dark:text-white text-base">{disc.adjusterValue}</p>
+                                    </div>
+                                    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Contractor Value</p>
+                                      <p className="font-semibold text-gray-900 dark:text-white text-base">{disc.contractorValue}</p>
+                                    </div>
+                                    <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                                      <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide mb-2">Difference</p>
+                                      <p className="font-bold text-red-600 dark:text-red-400 text-base">
+                                        {disc.difference} ({disc.differencePercent > 0 ? '+' : ''}{disc.differencePercent.toFixed(1)}%)
+                                      </p>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Contractor Value</p>
-                                  <p className="font-semibold text-gray-900 dark:text-white text-base">{disc.contractorValue}</p>
-                                </div>
-                                <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                                  <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide mb-2">Difference</p>
-                                  <p className="font-bold text-red-600 dark:text-red-400 text-base">
-                                    {disc.difference} ({disc.differencePercent > 0 ? '+' : ''}{disc.differencePercent.toFixed(1)}%)
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                            ))
+                              ))
+                            )
                           ) : (
                             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                               No discrepancies match your filters
                             </div>
                           )}
                         </div>
+
+                        {/* Pagination Controls for Discrepancies (only when not grouped) */}
+                        {!groupByRoom && paginatedDiscrepancies.totalPages > 1 && (
+                          <div className="mt-6 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <div className="text-sm text-gray-700 dark:text-gray-300">
+                              Showing {(discrepanciesPage - 1) * itemsPerPage + 1} to {Math.min(discrepanciesPage * itemsPerPage, filteredAndSortedDiscrepancies.length)} of {filteredAndSortedDiscrepancies.length} items
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setDiscrepanciesPage(prev => Math.max(1, prev - 1))}
+                                disabled={discrepanciesPage === 1}
+                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                              >
+                                <ChevronLeft className="w-4 h-4" />
+                                Previous
+                              </button>
+                              <div className="text-sm text-gray-700 dark:text-gray-300">
+                                Page {discrepanciesPage} of {paginatedDiscrepancies.totalPages}
+                              </div>
+                              <button
+                                onClick={() => setDiscrepanciesPage(prev => Math.min(paginatedDiscrepancies.totalPages, prev + 1))}
+                                disabled={discrepanciesPage === paginatedDiscrepancies.totalPages}
+                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                              >
+                                Next
+                                <ChevronRight className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
                     </div>
                   )}
 
