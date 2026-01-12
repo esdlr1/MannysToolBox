@@ -90,38 +90,43 @@ export function FileUpload({
     <div className="space-y-4">
       <div
         {...getRootProps()}
-        className={`p-8 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+        className={`p-10 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 ${
           isDragActive
-            ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-            : 'border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-600'
+            ? 'border-red-500 bg-red-50/80 dark:bg-red-900/30 shadow-lg shadow-red-500/20 scale-[1.02]'
+            : 'border-gray-300 dark:border-gray-600 hover:border-red-400 dark:hover:border-red-600 hover:bg-gray-50/50 dark:hover:bg-gray-700/30'
         } ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <input {...getInputProps()} />
         <div className="text-center">
           {uploading ? (
             <div className="flex flex-col items-center">
-              <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin mb-2"></div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Uploading...</p>
+              <div className="w-10 h-10 border-2 border-red-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Uploading...</p>
             </div>
           ) : (
             <>
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                stroke="currentColor"
-                fill="none"
-                viewBox="0 0 48 48"
-              >
-                <path
-                  d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                {isDragActive ? 'Drop files here' : 'Drag and drop files here, or click to select'}
+              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 rounded-2xl flex items-center justify-center mb-4">
+                <svg
+                  className="w-8 h-8 text-gray-500 dark:text-gray-400"
+                  stroke="currentColor"
+                  fill="none"
+                  viewBox="0 0 48 48"
+                >
+                  <path
+                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+              <p className="text-base font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {isDragActive ? 'Drop files here' : 'Drag and drop files here'}
               </p>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                or <span className="text-red-600 dark:text-red-400 font-medium">click to select</span>
+              </p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">
                 Max size: {(maxSize / 1024 / 1024).toFixed(0)}MB
               </p>
             </>

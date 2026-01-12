@@ -111,6 +111,14 @@ COMPARISON RULES:
      - "Linear feet" = "lf" = "ln ft"
    - Match items with >60% similarity
 
+5. Room/Sketch Variations: Handle differences in room naming and sketch layouts
+   - Room names may vary: "Kitchen" = "Kit" = "K" = "Kitchen Area"
+   - Sketch differences are common - focus on matching items by description and code
+   - If room/location is specified, use it for context but don't require exact match
+   - Match items across different room names if description and code match
+   - Examples: "Kitchen - Floor" matches "Kit - Floor", "Living Room" matches "LR"
+   - Prioritize matching by item code and description over room name
+
 ADJUSTER ESTIMATE SUMMARY:
 ${JSON.stringify(adjusterSummary, null, 2)}
 
@@ -183,12 +191,20 @@ IMPORTANT:
 - Xactimate and Symbility estimate formats
 - Building codes and construction standards
 - Cost estimation practices
+- Room naming variations (Kitchen/Kit/K, Living Room/LR, Bedroom/BR, etc.)
+- Sketch layout differences and how to match items across different room naming conventions
 
 Your task is to accurately compare construction estimates, identifying:
 1. Missing items (contractor has, adjuster doesn't)
 2. Discrepancies in quantities, prices, measurements
 3. Scope differences
 4. Cost impacts
+
+IMPORTANT: Handle room name and sketch variations intelligently:
+- Match items by code and description even if room names differ
+- "Kitchen" = "Kit" = "K" = "Kitchen Area" are the same room
+- Focus on item matching, not exact room name matching
+- Sketch differences are expected - prioritize item codes and descriptions
 
 Be precise with calculations and prioritize critical issues that could affect project scope or safety.`,
       temperature: 0.2, // Very low temperature for consistent, accurate results
