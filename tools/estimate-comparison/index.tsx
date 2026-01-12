@@ -900,7 +900,6 @@ export default function EstimateComparisonTool() {
                             </tbody>
                           </table>
                         </div>
-                      </div>
                     </div>
                   )}
 
@@ -1028,7 +1027,6 @@ export default function EstimateComparisonTool() {
                             </div>
                           )}
                         </div>
-                      </div>
                     </div>
                   )}
 
