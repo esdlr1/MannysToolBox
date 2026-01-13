@@ -14,6 +14,17 @@ const tools: Tool[] = [
     usesAI: true,
     supportsFileUpload: true,
   },
+  {
+    id: 'daily-notepad',
+    name: 'Daily Yellow Notepad',
+    description: 'Submit daily notepad photos for tracking. Employees upload their daily planner photos by 9 AM. Managers can view all submissions and send reminders.',
+    category: 'Productivity',
+    subdomain: 'daily-notepad',
+    component: 'tools/daily-notepad/index',
+    requiresAuth: true,
+    usesAI: false,
+    supportsFileUpload: true,
+  },
 ]
 
 // Helper function to ensure tool properties

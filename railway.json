@@ -5,7 +5,7 @@
     "buildCommand": "prisma generate && next build"
   },
   "deploy": {
-    "startCommand": "prisma db push && next start",
+    "startCommand": "next start",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }

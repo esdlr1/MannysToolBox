@@ -1,5 +1,5 @@
 // This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// learn more about it: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -23,11 +23,15 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  profile       Profile?
-  savedWork     SavedWork[]
-  usageHistory  UsageHistory[]
-  sessions      Session[]
-  accounts      Account[]
+  profile                Profile?
+  savedWork              SavedWork[]
+  usageHistory           UsageHistory[]
+  sessions               Session[]
+  accounts               Account[]
+  dailyNotepadSubmissions DailyNotepadSubmission[]
+  teamMemberships        TeamMember[]
+  notifications          Notification[]
+  submissionComments     SubmissionComment[]
 
   @@map("users")
 }
@@ -135,4 +139,92 @@ model File {
   @@index([userId])
   @@index([toolId])
   @@map("files")
+}
+
+model DailyNotepadSubmission {
+  id            String   @id @default(cuid())
+  userId        String
+  date          DateTime @db.Date  // Date of submission (day)
+  imageUrl      String   // Path/URL to uploaded image
+  thumbnailUrl  String?  // Path/URL to thumbnail image
+  fileSize      Int?     // Original file size in bytes
+  optimizedSize Int?     // Optimized file size in bytes
+  imageOptimized Boolean @default(false)  // Optimization status
+  ocrText       String?  @db.Text  // Extracted text from image (for search)
+  submittedAt   DateTime @default(now())  // Timestamp of submission
+  isOnTime      Boolean  // Submitted before 9 AM deadline
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments  SubmissionComment[]
+
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+  @@index([submittedAt])
+  @@map("daily_notepad_submissions")
+}
+
+model SubmissionComment {
+  id            String   @id @default(cuid())
+  submissionId  String
+  userId        String
+  comment       String   @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  submission DailyNotepadSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  user       User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId])
+  @@index([userId])
+  @@map("submission_comments")
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members TeamMember[]
+
+  @@unique([name])
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@index([teamId])
+  @@map("team_members")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "submission", "reminder", "confirmation", "summary", etc.
+  title     String
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  metadata  Json?    // Additional data (submissionId, employeeId, etc.)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, read])
+  @@index([createdAt])
+  @@index([type])
+  @@map("notifications")
 }
