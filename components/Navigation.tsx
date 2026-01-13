@@ -135,7 +135,7 @@ export default function Navigation() {
                 </button>
 
                 {isToolMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto">
+                  <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-scroll overscroll-contain" style={{ scrollbarWidth: 'thin', scrollbarColor: '#dc2626 #f1f1f1' }}>
                     <div className="py-2">
                       {categories.length > 0 ? (
                         categories.map((category) => (
