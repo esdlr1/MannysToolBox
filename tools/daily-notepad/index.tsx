@@ -747,10 +747,10 @@ export default function DailyNotepadTool() {
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {format(new Date(submission.submittedAt), 'p')}
                     </p>
-                    {submission.commentsCount > 0 && (
+                    {(submission.commentsCount ?? 0) > 0 && (
                       <div className="mt-2 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                         <MessageSquare className="w-3 h-3" />
-                        {submission.commentsCount} comment{submission.commentsCount !== 1 ? 's' : ''}
+                        {submission.commentsCount ?? 0} comment{(submission.commentsCount ?? 0) !== 1 ? 's' : ''}
                       </div>
                     )}
                   </div>
