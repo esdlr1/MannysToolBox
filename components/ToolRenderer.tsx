@@ -22,9 +22,22 @@ const EstimateComparisonTool = dynamic(
   }
 )
 
+const DailyNotepadTool = dynamic(
+  () => import('@/tools/daily-notepad'),
+  { 
+    loading: () => (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      </div>
+    ),
+    ssr: false 
+  }
+)
+
 // Tool component registry
 const toolComponents: Record<string, React.ComponentType> = {
   'estimate-comparison': EstimateComparisonTool,
+  'daily-notepad': DailyNotepadTool,
 }
 
 export function ToolRenderer({ toolId }: ToolRendererProps) {
