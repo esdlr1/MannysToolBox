@@ -25,7 +25,7 @@ export async function createNotification(params: CreateNotificationParams) {
       type: params.type,
       title: params.title,
       message: params.message,
-      metadata: params.metadata || null,
+      metadata: params.metadata || undefined,
     },
   })
 }
