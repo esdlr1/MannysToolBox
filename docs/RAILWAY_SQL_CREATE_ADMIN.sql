@@ -10,20 +10,22 @@ FROM users
 WHERE email = 'enmaeladio@gmail.com';
 
 -- Create or update Super Admin user
+-- IMPORTANT: Email must be lowercase, role must be exactly 'Super Admin' (with space)
 INSERT INTO users (id, email, name, password, role, "isApproved", "createdAt", "updatedAt")
 VALUES (
     gen_random_uuid()::text,
-    'enmaeladio@gmail.com',
+    'enmaeladio@gmail.com',  -- Lowercase email (required)
     'Emmanuel Suero',
-    '$2a$12$bEC4obigA8U5XcXm9lnZj.DU0u.a.9MCyK6dKjGgQJsvTxZyatbia',
-    'Super Admin',
+    '$2a$12$bEC4obigA8U5XcXm9lnZj.DU0u.a.9MCyK6dKjGgQJsvTxZyatbia',  -- Hash for password: En220193
+    'Super Admin',  -- Exact role with space (required)
     true,
     NOW(),
     NOW()
 )
 ON CONFLICT (email) DO UPDATE
 SET 
-    role = 'Super Admin',
+    email = 'enmaeladio@gmail.com',  -- Ensure lowercase
+    role = 'Super Admin',  -- Exact role with space
     password = '$2a$12$bEC4obigA8U5XcXm9lnZj.DU0u.a.9MCyK6dKjGgQJsvTxZyatbia',
     "isApproved" = true,
     name = 'Emmanuel Suero',
