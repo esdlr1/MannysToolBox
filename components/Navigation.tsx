@@ -209,6 +209,13 @@ export default function Navigation() {
                         </Link>
                       )}
                       <Link
+                        href="/announcements"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Announcements
+                      </Link>
+                      <Link
                         href="/history"
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors"
                         onClick={() => setIsUserMenuOpen(false)}

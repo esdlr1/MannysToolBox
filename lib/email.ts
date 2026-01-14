@@ -289,3 +289,91 @@ export async function sendEndOfDaySummary(
     throw error
   }
 }
+
+/**
+ * Send announcement email to employees
+ */
+export async function sendAnnouncementEmail(params: {
+  to: string
+  name: string
+  announcementTitle: string
+  announcementMessage: string
+  priority: 'low' | 'normal' | 'high' | 'urgent'
+  authorName: string
+}): Promise<void> {
+  const priorityColors: Record<string, { bg: string; text: string; label: string }> = {
+    urgent: { bg: '#fee2e2', text: '#991b1b', label: 'Urgent' },
+    high: { bg: '#fef3c7', text: '#92400e', label: 'High Priority' },
+    normal: { bg: '#dbeafe', text: '#1e40af', label: 'Normal' },
+    low: { bg: '#f3f4f6', text: '#374151', label: 'Low Priority' },
+  }
+
+  const priorityStyle = priorityColors[params.priority] || priorityColors.normal
+
+  const subject = `New Announcement: ${params.announcementTitle}`
+  
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #dc2626; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background-color: #f9fafb; }
+        .priority-badge { 
+          display: inline-block; 
+          padding: 6px 12px; 
+          border-radius: 4px; 
+          font-size: 12px; 
+          font-weight: bold;
+          background-color: ${priorityStyle.bg};
+          color: ${priorityStyle.text};
+          margin: 10px 0;
+        }
+        .announcement-box { 
+          background-color: white; 
+          padding: 20px; 
+          border-radius: 5px; 
+          margin: 20px 0;
+          border-left: 4px solid #dc2626;
+        }
+        .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>New Company Announcement</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${params.name},</p>
+          <p>A new announcement has been posted by <strong>${params.authorName}</strong>:</p>
+          <div class="announcement-box">
+            <div class="priority-badge">${priorityStyle.label}</div>
+            <h2 style="margin-top: 10px; color: #dc2626;">${params.announcementTitle}</h2>
+            <div style="margin-top: 15px; white-space: pre-wrap;">${params.announcementMessage}</div>
+          </div>
+          <p>Please review this announcement in Manny's ToolBox.</p>
+        </div>
+        <div class="footer">
+          <p>This is an automated email from Manny's ToolBox</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.to,
+      subject,
+      html,
+    })
+  } catch (error) {
+    console.error('Error sending announcement email:', error)
+    throw error
+  }
+}
