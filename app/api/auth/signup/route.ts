@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password, role } = await request.json()
+    const { name, email, password, role, departmentId } = await request.json()
 
     if (!email || !password) {
       return NextResponse.json(
@@ -28,6 +28,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate department if provided
+    if (departmentId) {
+      const department = await prisma.department.findUnique({
+        where: { id: departmentId },
+      })
+      if (!department) {
+        return NextResponse.json(
+          { error: 'Invalid department' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
@@ -44,6 +57,7 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         role: role || null,
         isApproved,
+        departmentId: departmentId || null,
       }
     })
 

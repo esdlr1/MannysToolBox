@@ -36,6 +36,7 @@ model User {
   department             Department?     @relation(fields: [departmentId], references: [id])
   announcements          Announcement[]  // Announcements created by this user
   activities             Activity[]       // Activities performed by this user
+  createdEvents         CalendarEvent[] @relation("EventCreator") // Calendar events created by this user
 
   @@index([departmentId])
   @@map("users")

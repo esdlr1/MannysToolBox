@@ -7,6 +7,7 @@ import { getTodayDate, isBeforeDeadline, isWorkday } from '@/lib/daily-notepad'
 import { sendSubmissionConfirmation } from '@/lib/email'
 import { notifyManagersOnSubmission, createNotification } from '@/lib/notifications'
 import { extractTextFromImage } from '@/lib/ocr'
+import { createActivity } from '@/lib/activities'
 import { randomUUID } from 'crypto'
 import path from 'path'
 
@@ -135,6 +136,23 @@ export async function POST(request: NextRequest) {
       })
     } catch (error) {
       console.error('Error creating notification:', error)
+    }
+
+    // Log activity
+    try {
+      await createActivity({
+        userId: user.id,
+        type: 'notepad_submitted',
+        action: 'Daily notepad submitted',
+        metadata: {
+          submissionId: submission.id,
+          date: today.toISOString(),
+          isOnTime,
+        },
+      })
+    } catch (error) {
+      console.error('Error logging activity:', error)
+      // Continue even if activity logging fails
     }
 
     return NextResponse.json({

@@ -1,50 +1,45 @@
 ---
-description: Documentation for construction estimate comparison algorithms, matching rules, and prioritization logic
+description: Specification for construction estimate comparison algorithm including matching rules and prioritization logic
 ---
 
 
 # estimate-comparison-algorithm
 
-The estimate comparison system implements specialized construction industry logic for analyzing and comparing estimates across different formats:
+File: app/api/tools/estimate-comparison/compare/route.ts
 
-## Core Matching Rules
-- Line items matched using construction industry codes
-- Construction terminology and abbreviations normalized (sq ft, lf, r&r)
-- Industry-standard measurement types handled (area, linear, volume, count)
-- Construction-specific similarity matching for line items
+Core Comparison Logic:
+- Line item matching algorithm specialized for construction estimates
+- Percentage-based discrepancy detection between estimate versions
+- Classification system for critical vs minor cost differences
+- Construction-specific terminology normalization and matching
 
-## Threshold Logic
-- Quantity discrepancy threshold: 25%
-- Unit price discrepancy threshold: 15%
-- Handles construction-specific measurements and unit conversions
+Business Rules:
+1. Item Matching
+- Identifies matching line items between estimates using domain-specific similarity scoring
+- Normalizes construction terminology and measurements for comparison
+- Handles variations in item descriptions while maintaining semantic matching
 
-## Prioritization System
-- Categorizes discrepancies as critical or minor based on industry thresholds
-- Implements specialized rules for identifying missing items
-- Prioritizes measurement and cost differences according to construction standards
+2. Discrepancy Detection
+- Calculates percentage differences in quantities and costs
+- Classifies discrepancies based on industry-standard thresholds:
+  - Critical: >10% difference in cost or quantity
+  - Major: 5-10% difference
+  - Minor: <5% difference
 
-## Key Components
+3. Domain-Specific Processing
+- Construction unit conversions (e.g., square feet to square yards)
+- Material cost variance analysis
+- Labor rate comparison checks
+- Equipment cost reconciliation
 
-1. Estimate Comparison Engine
-Path: `/lib/estimate-comparison.ts`
-- Primary comparison logic implementation
-- Industry code matching system
-- Threshold-based discrepancy detection
 Importance Score: 90/100
+The estimate comparison algorithm represents core business functionality specific to the construction industry, implementing specialized rules for cost analysis and estimate reconciliation.
 
-2. Construction Parser
-Path: `/lib/estimate-parser.ts`
-- Format normalization (Xactimate/Symbility)
-- Construction terminology standardization
-- Measurement type handling
-Importance Score: 85/100
-
-3. AI Analysis Workflow
-Path: `/tools/estimate-comparison/index.tsx`
-- Adjuster vs contractor estimate processing
-- Construction-specific metrics generation
-- Industry-standard discrepancy categorization
-Importance Score: 80/100
+Key Components:
+- Construction terminology matching engine
+- Industry-standard measurement normalization
+- Cost variance prioritization system
+- Automated discrepancy reporting logic
 
 $END$
 

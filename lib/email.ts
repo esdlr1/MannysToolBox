@@ -1,6 +1,19 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialization of Resend client
+let resend: Resend | null = null
+
+function getResendClient(): Resend | null {
+  if (!resend) {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      console.warn('RESEND_API_KEY is not set. Email functionality will be disabled.')
+      return null
+    }
+    resend = new Resend(apiKey)
+  }
+  return resend
+}
 
 const FROM_EMAIL = process.env.EMAIL_FROM || 'noreply@mannystoolbox.com'
 
@@ -67,8 +80,14 @@ export async function sendSubmissionConfirmation(
     </html>
   `
 
+  const client = getResendClient()
+  if (!client) {
+    console.warn('Email service not available. Skipping submission confirmation email.')
+    return
+  }
+
   try {
-    await resend.emails.send({
+    await client.emails.send({
       from: FROM_EMAIL,
       to: employee.email,
       subject,
@@ -128,8 +147,14 @@ export async function sendManagerNotification(
     </html>
   `
 
+  const client = getResendClient()
+  if (!client) {
+    console.warn('Email service not available. Skipping manager notification email.')
+    return
+  }
+
   try {
-    await resend.emails.send({
+    await client.emails.send({
       from: FROM_EMAIL,
       to: manager.email,
       subject,
@@ -183,8 +208,14 @@ export async function sendReminderEmail(employee: EmailUser): Promise<void> {
     </html>
   `
 
+  const client = getResendClient()
+  if (!client) {
+    console.warn('Email service not available. Skipping reminder email.')
+    return
+  }
+
   try {
-    await resend.emails.send({
+    await client.emails.send({
       from: FROM_EMAIL,
       to: employee.email,
       subject,
@@ -277,8 +308,14 @@ export async function sendEndOfDaySummary(
     </html>
   `
 
+  const client = getResendClient()
+  if (!client) {
+    console.warn('Email service not available. Skipping end of day summary email.')
+    return
+  }
+
   try {
-    await resend.emails.send({
+    await client.emails.send({
       from: FROM_EMAIL,
       to: manager.email,
       subject,
@@ -365,8 +402,14 @@ export async function sendAnnouncementEmail(params: {
     </html>
   `
 
+  const client = getResendClient()
+  if (!client) {
+    console.warn('Email service not available. Skipping announcement email.')
+    return
+  }
+
   try {
-    await resend.emails.send({
+    await client.emails.send({
       from: FROM_EMAIL,
       to: params.to,
       subject,

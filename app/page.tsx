@@ -7,6 +7,7 @@ import { ToolDropdown } from '@/components/ui/tool-dropdown'
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { Pin, AlertCircle, Info, AlertTriangle, X } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 
 interface Announcement {
   id: string
@@ -22,26 +23,46 @@ interface Announcement {
   createdAt: string
 }
 
+interface Activity {
+  id: string
+  type: string
+  action: string
+  createdAt: string
+  user?: {
+    name: string | null
+    email: string
+  }
+}
+
 export default function Home() {
+  const { data: session } = useSession()
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [dismissedAnnouncements, setDismissedAnnouncements] = useState<string[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [activitiesLoading, setActivitiesLoading] = useState(true)
 
   useEffect(() => {
     fetchAnnouncements()
-  }, [])
+    if (session?.user) {
+      fetchActivities()
+    }
+  }, [session])
 
   const fetchAnnouncements = async () => {
     try {
       const response = await fetch('/api/announcements?limit=3')
+      const data = await response.json()
+      
       if (response.ok) {
-        const data = await response.json()
         console.log('Announcements fetched:', data)
         setAnnouncements(data.announcements || [])
       } else {
-        console.error('Failed to fetch announcements:', response.status, response.statusText)
-        const errorData = await response.json().catch(() => ({}))
-        console.error('Error details:', errorData)
+        console.error('Failed to fetch announcements:', response.status, response.statusText, data)
+        // Don't show error to user if it's just no announcements
+        if (data.error && !data.error.includes('database')) {
+          console.warn('Announcement API error:', data.error)
+        }
       }
     } catch (error) {
       console.error('Failed to fetch announcements:', error)
@@ -50,8 +71,41 @@ export default function Home() {
     }
   }
 
+  const fetchActivities = async () => {
+    if (!session?.user) return
+    
+    try {
+      setActivitiesLoading(true)
+      const response = await fetch('/api/activities?limit=2')
+      if (response.ok) {
+        const data = await response.json()
+        setActivities(data.activities || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch activities:', error)
+    } finally {
+      setActivitiesLoading(false)
+    }
+  }
+
   const handleDismiss = (id: string) => {
     setDismissedAnnouncements((prev) => [...prev, id])
+  }
+
+  const formatActivityTime = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins} min ago`
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+    if (diffDays === 1) return 'Yesterday'
+    if (diffDays < 7) return `${diffDays} days ago`
+    return format(date, 'MMM d')
   }
 
   const priorityConfig = {
@@ -130,69 +184,88 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 w-full max-w-2xl mx-auto">
-          {/* Debug Info - Remove after testing */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mb-4 p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded text-xs">
-              <p>Loading: {loading ? 'Yes' : 'No'}</p>
-              <p>Announcements count: {announcements.length}</p>
-              <p>Latest announcement: {latestAnnouncement ? 'Yes' : 'No'}</p>
-            </div>
-          )}
-
           {/* Announcements Section - Above Logo */}
           {!loading && latestAnnouncement ? (
             <div className="mb-8">
               <Link
                 href="/announcements"
-                className="group relative block overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 rounded-2xl p-5 shadow-xl border border-gray-700/50 dark:border-gray-700/30 hover:shadow-2xl transition-all duration-300"
+                className={`group relative block overflow-hidden rounded-2xl border backdrop-blur-sm shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 ${
+                  latestAnnouncement.priority === 'urgent'
+                    ? 'bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/30 dark:to-red-900/20 border-red-300/50 dark:border-red-800/50'
+                    : latestAnnouncement.priority === 'high'
+                    ? 'bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/30 dark:to-orange-900/20 border-orange-300/50 dark:border-orange-800/50'
+                    : latestAnnouncement.priority === 'normal'
+                    ? 'bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/30 dark:to-blue-900/20 border-blue-300/50 dark:border-blue-800/50'
+                    : 'bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-900/50 dark:to-gray-800/30 border-gray-300/50 dark:border-gray-700/50'
+                } ${latestAnnouncement.pinned ? 'ring-2 ring-red-500/50 dark:ring-red-400/50 shadow-lg shadow-red-500/10' : ''}`}
               >
-                {/* Animated background pattern */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute inset-0" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                  }}></div>
-                </div>
+                {/* Pinned Badge */}
+                {latestAnnouncement.pinned && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 rounded-full shadow-lg">
+                      <Pin className="w-3.5 h-3.5 text-white fill-current" />
+                      <span className="text-xs font-semibold text-white">Pinned</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Content */}
-                <div className="relative z-10">
-                  <div className="flex items-start gap-4">
-                    {/* Priority Icon */}
-                    <div className="flex-shrink-0">
-                      {(() => {
-                        const config = priorityConfig[latestAnnouncement.priority] || priorityConfig.normal
-                        const Icon = config.icon
-                        return (
-                          <div className={`w-12 h-12 bg-gradient-to-br ${config.bg} backdrop-blur-sm rounded-xl flex items-center justify-center border ${config.border} shadow-lg`}>
-                            <Icon className={`w-6 h-6 ${config.color}`} />
-                          </div>
-                        )
-                      })()}
-                    </div>
-
-                    {/* Text Content */}
+                <div className="relative z-10 p-6">
+                  <div className="flex items-start gap-4 mb-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        {latestAnnouncement.pinned && (
-                          <Pin className="w-4 h-4 text-red-500 fill-current" />
-                        )}
-                        <h3 className="text-lg font-bold text-white truncate group-hover:text-red-100 transition-colors">
-                          {latestAnnouncement.title}
-                        </h3>
-                      </div>
-                      <p className="text-sm text-gray-300 line-clamp-2 mb-2">
-                        {latestAnnouncement.message}
-                      </p>
-                      <div className="flex items-center gap-3 text-xs text-gray-400">
-                        <span>{latestAnnouncement.author.name || latestAnnouncement.author.email}</span>
-                        <span>•</span>
-                        <span>{format(new Date(latestAnnouncement.createdAt), 'MMM d, yyyy')}</span>
+                      {/* Priority Badge */}
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
+                        {(() => {
+                          const config = priorityConfig[latestAnnouncement.priority] || priorityConfig.normal
+                          const Icon = config.icon
+                          const badgeColors = {
+                            urgent: 'bg-red-500/10 text-red-700 dark:text-red-400',
+                            high: 'bg-orange-500/10 text-orange-700 dark:text-orange-400',
+                            normal: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
+                            low: 'bg-gray-500/10 text-gray-700 dark:text-gray-400',
+                          }
+                          const labels = {
+                            urgent: 'Urgent',
+                            high: 'High Priority',
+                            normal: 'Normal',
+                            low: 'Low Priority',
+                          }
+                          return (
+                            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${badgeColors[latestAnnouncement.priority] || badgeColors.normal} text-xs font-semibold`}>
+                              <Icon className="w-3.5 h-3.5" />
+                              <span>{labels[latestAnnouncement.priority] || labels.normal}</span>
+                            </div>
+                          )
+                        })()}
                         {latestAnnouncement.category && (
-                          <>
-                            <span>•</span>
-                            <span>{latestAnnouncement.category}</span>
-                          </>
+                          <span className="px-3 py-1 bg-gray-200/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 rounded-full text-xs font-medium">
+                            {latestAnnouncement.category}
+                          </span>
                         )}
                       </div>
+                      
+                      {/* Title */}
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-tight pr-8 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                        {latestAnnouncement.title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Message Preview */}
+                  <p className="text-gray-700 dark:text-gray-300 mb-4 line-clamp-2 leading-relaxed">
+                    {latestAnnouncement.message}
+                  </p>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-gray-600 dark:text-gray-400 font-medium">
+                        {latestAnnouncement.author.name || latestAnnouncement.author.email}
+                      </span>
+                      <span className="text-gray-400 dark:text-gray-500">•</span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        {format(new Date(latestAnnouncement.createdAt), 'MMM d, yyyy')}
+                      </span>
                     </div>
 
                     {/* Dismiss Button */}
@@ -202,7 +275,7 @@ export default function Home() {
                         e.stopPropagation()
                         handleDismiss(latestAnnouncement.id)
                       }}
-                      className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+                      className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                       aria-label="Dismiss announcement"
                     >
                       <X className="w-4 h-4" />
@@ -210,8 +283,8 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Shine effect on hover */}
-                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                {/* Decorative gradient overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none"></div>
               </Link>
             </div>
           ) : !loading && announcements.length === 0 ? (
@@ -348,29 +421,47 @@ export default function Home() {
                 </div>
 
                 {/* Activity Items - Only 2 items */}
-                <div className="space-y-3">
-                  {/* Activity Item 1 */}
-                  <div className="flex items-center gap-3 p-2 rounded-lg bg-white/10 hover:bg-white/15 transition-colors">
-                    <div className="w-2 h-2 rounded-full bg-white/80 animate-pulse"></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white/90 truncate">
-                        Tool used: Estimate Comparison
-                      </p>
-                      <p className="text-xs text-white/70">2 hours ago</p>
+                {activitiesLoading ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/10">
+                      <div className="w-2 h-2 rounded-full bg-white/50"></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="h-4 bg-white/20 rounded w-3/4 mb-1"></div>
+                        <div className="h-3 bg-white/10 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-2 rounded-lg bg-white/10">
+                      <div className="w-2 h-2 rounded-full bg-white/50"></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="h-4 bg-white/20 rounded w-3/4 mb-1"></div>
+                        <div className="h-3 bg-white/10 rounded w-1/2"></div>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Activity Item 2 */}
-                  <div className="flex items-center gap-3 p-2 rounded-lg bg-white/10 hover:bg-white/15 transition-colors">
-                    <div className="w-2 h-2 rounded-full bg-white/80"></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white/90 truncate">
-                        Notepad submitted
-                      </p>
-                      <p className="text-xs text-white/70">Yesterday</p>
-                    </div>
+                ) : activities.length > 0 ? (
+                  <div className="space-y-3">
+                    {activities.slice(0, 2).map((activity) => (
+                      <div
+                        key={activity.id}
+                        className="flex items-center gap-3 p-2 rounded-lg bg-white/10 hover:bg-white/15 transition-colors"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-white/80"></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white/90 truncate">
+                            {activity.action}
+                          </p>
+                          <p className="text-xs text-white/70">
+                            {formatActivityTime(activity.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center py-4 text-white/60 text-sm">
+                    No recent activity
+                  </div>
+                )}
 
                 {/* View All Link */}
                 <div className="mt-4 pt-4 border-t border-white/20">

@@ -1,5 +1,5 @@
 ---
-description: Specifies data models and structures for construction estimate comparison, including industry codes and measurements
+description: Documentation for construction industry data models and estimate comparison structures
 ---
 
 
@@ -8,42 +8,52 @@ description: Specifies data models and structures for construction estimate comp
 ## Core Data Structures
 
 ### Estimate Comparison Models
-- Industry-specific construction codes mapping system
-- Measurement types: area, linear, volume, count
-- Unit pricing thresholds (15% variance tolerance)
-- Quantity comparison thresholds (25% variance tolerance)
+Path: app/api/tools/estimate-comparison/compare/route.ts
 
-### Normalized Construction Terms
-- Standardized measurements (sq ft, lf, r&r)
-- Material and labor cost segregation
-- Construction terminology abbreviations
-- Industry-standard unit conversions
+Construction estimate data models implement:
+- Industry-specific code matching and normalization
+- Line item comparison structures with construction terminology
+- Percentage-based variance tracking for measurements and costs
+- Critical difference classification based on industry thresholds
 
-### Estimate Format Models
-- Xactimate format structure
-- Symbility format structure
-- Line item matching patterns
-- Construction-specific similarity metrics
+Key Components:
+1. Line Item Structure
+- Construction material codes
+- Standardized measurement units
+- Price variance tolerances
+- Quantity comparison rules
 
-## Data Validation Rules
-
-### Measurement Validation
-- Construction industry measurement types
-- Unit conversion rules
-- Area calculation standardization
-- Volume computation standards
-
-### Price Comparison Logic
-- Unit price variance thresholds
-- Quantity difference tolerances
-- Material cost segregation rules
-- Labor rate standardization
+2. Estimate Classification System
+- Priority-based discrepancy tracking
+- Construction terminology matching rules
+- Material category organization
+- Measurement unit conversions
 
 Importance Score: 90/100
-Primary Files:
-- `/lib/estimate-comparison.ts`
-- `/lib/estimate-parser.ts`
-- `/tools/estimate-comparison/index.tsx`
+
+### Price Analysis Models
+Path: lib/estimate-parser.ts
+
+Specialized data structures for:
+- Construction cost normalization
+- Unit price comparison logic
+- Material cost variance tracking
+- Industry-standard measurement conversions
+
+Key Features:
+1. Price Comparison Framework
+- Material cost baselines
+- Regional price adjustments
+- Bulk pricing rules
+- Contractor markup tracking
+
+2. Measurement Standards
+- Construction industry units
+- Conversion rate tables
+- Quantity aggregation rules
+- Material-specific measurement types
+
+Importance Score: 85/100
 
 $END$
 

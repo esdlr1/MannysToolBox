@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import AnnouncementCard from './AnnouncementCard'
-import { Loader2 } from 'lucide-react'
+import { Loader2, AlertCircle, Megaphone } from 'lucide-react'
 
 interface Announcement {
   id: string
@@ -43,19 +43,30 @@ export default function AnnouncementList({
   const fetchAnnouncements = async () => {
     try {
       setLoading(true)
+      setError(null)
       const url = limit
         ? `/api/announcements?limit=${limit}`
         : '/api/announcements'
       const response = await fetch(url)
+      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error('Failed to fetch announcements')
+        // If it's a database error, show a helpful message
+        if (data.error?.includes('database') || data.error?.includes('connection') || data.error?.includes('credentials')) {
+          setError('Database connection issue. Please check your database configuration.')
+        } else {
+          setError(data.error || 'Failed to fetch announcements')
+        }
+        // Still set empty array to prevent crashes
+        setAnnouncements([])
+        return
       }
 
-      const data = await response.json()
       setAnnouncements(data.announcements || [])
     } catch (err: any) {
-      setError(err.message || 'Failed to load announcements')
+      console.error('Error fetching announcements:', err)
+      setError('Unable to connect to the server. Please check your connection.')
+      setAnnouncements([])
     } finally {
       setLoading(false)
     }
@@ -105,30 +116,67 @@ export default function AnnouncementList({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-red-600 dark:text-red-400" />
+      <div className="flex items-center justify-center py-16">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-red-600 dark:text-red-400" />
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Loading announcements...</p>
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="text-center py-8 text-red-600 dark:text-red-400">
-        {error}
+      <div className="rounded-2xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 p-8">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30">
+              <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+            </div>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
+              Unable to Load Announcements
+            </h3>
+            <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
+            {error.includes('Database') && (
+              <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                <p className="text-sm text-red-800 dark:text-red-200">
+                  <strong>Solution:</strong> Please check your database connection settings in your environment variables.
+                  Make sure your <code className="bg-red-200 dark:bg-red-900/50 px-1 rounded">DATABASE_URL</code> is correctly configured.
+                </p>
+              </div>
+            )}
+            <button
+              onClick={fetchAnnouncements}
+              className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
 
   if (announcements.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        No announcements yet.
+      <div className="rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-900/50 dark:to-gray-800/30 border border-gray-200 dark:border-gray-800 p-12 text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-200 dark:bg-gray-800 mb-4">
+          <Megaphone className="w-8 h-8 text-gray-400 dark:text-gray-600" />
+        </div>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          No announcements yet
+        </h3>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          When announcements are posted, they'll appear here
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {announcements.map((announcement) => (
         <AnnouncementCard
           key={announcement.id}

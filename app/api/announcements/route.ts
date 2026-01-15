@@ -28,6 +28,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ announcements })
   } catch (error: any) {
     console.error('Error fetching announcements:', error)
+    
+    // If it's a database connection error, return empty array instead of error
+    // This allows the UI to still render even if DB is unavailable
+    if (error.message?.includes('database') || error.message?.includes('connection') || error.message?.includes('credentials')) {
+      console.warn('Database connection issue - returning empty announcements array')
+      return NextResponse.json({ announcements: [] })
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch announcements', details: error.message },
       { status: 500 }
@@ -47,10 +55,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
+    // Check database connection first
+    let user
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { role: true },
+      })
+    } catch (dbError: any) {
+      console.error('Database error when checking user:', dbError)
+      if (dbError.message?.includes('database') || dbError.message?.includes('connection') || dbError.message?.includes('credentials')) {
+        return NextResponse.json(
+          { error: 'Database connection failed. Please check your database configuration.' },
+          { status: 503 }
+        )
+      }
+      throw dbError
+    }
 
     if (!canCreateAnnouncement(user?.role || null)) {
       return NextResponse.json(
@@ -70,39 +91,59 @@ export async function POST(request: NextRequest) {
     }
 
     // Create announcement
-    const announcement = await createAnnouncement({
-      title,
-      message,
-      authorId: session.user.id,
-      priority: priority || 'normal',
-      category: category || null,
-      pinned: pinned || false,
-    })
-
-    // Notify all employees (in-app notifications)
-    const employees = await prisma.user.findMany({
-      where: {
-        role: 'Employee',
-        isApproved: true,
-      },
-      select: { id: true, email: true, name: true },
-    })
-
-    // Create in-app notifications for all employees
-    const notificationPromises = employees.map((employee) =>
-      createNotification({
-        userId: employee.id,
-        type: 'announcement',
-        title: `New Announcement: ${title}`,
-        message: message.substring(0, 200) + (message.length > 200 ? '...' : ''),
-        metadata: {
-          announcementId: announcement.id,
-          priority: priority || 'normal',
-        },
+    let announcement
+    try {
+      announcement = await createAnnouncement({
+        title,
+        message,
+        authorId: session.user.id,
+        priority: priority || 'normal',
+        category: category || null,
+        pinned: pinned || false,
       })
-    )
+    } catch (dbError: any) {
+      console.error('Database error when creating announcement:', dbError)
+      if (dbError.message?.includes('database') || dbError.message?.includes('connection') || dbError.message?.includes('credentials')) {
+        return NextResponse.json(
+          { error: 'Database connection failed. Unable to create announcement. Please check your database configuration.' },
+          { status: 503 }
+        )
+      }
+      throw dbError
+    }
 
-    await Promise.all(notificationPromises)
+    // Notify all employees (in-app notifications) - don't fail if this errors
+    try {
+      const employees = await prisma.user.findMany({
+        where: {
+          role: 'Employee',
+          isApproved: true,
+        },
+        select: { id: true, email: true, name: true },
+      })
+
+      // Create in-app notifications for all employees
+      const notificationPromises = employees.map((employee) =>
+        createNotification({
+          userId: employee.id,
+          type: 'announcement',
+          title: `New Announcement: ${title}`,
+          message: message.substring(0, 200) + (message.length > 200 ? '...' : ''),
+          metadata: {
+            announcementId: announcement.id,
+            priority: priority || 'normal',
+          },
+        }).catch((err) => {
+          console.error(`Failed to create notification for ${employee.email}:`, err)
+          return null
+        })
+      )
+
+      await Promise.all(notificationPromises)
+    } catch (notifError) {
+      console.error('Error creating notifications (non-fatal):', notifError)
+      // Continue even if notifications fail
+    }
 
     // Send email notifications (async, don't wait)
     employees.forEach((employee) => {

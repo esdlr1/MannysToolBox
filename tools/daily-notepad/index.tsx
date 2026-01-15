@@ -333,20 +333,31 @@ export default function DailyNotepadTool() {
   if (view === 'employee') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Daily Yellow Notepad</h1>
-            <p className="text-gray-600 dark:text-gray-400">Submit your daily planner photo by 9:00 AM</p>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-xl shadow-lg shadow-yellow-500/20">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                  Daily Yellow Notepad
+                </h1>
+                <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
+                  Submit your daily planner photo by 9:00 AM
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex space-x-1 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+          <div className="flex space-x-2 mb-8 bg-gray-100 dark:bg-gray-800 p-1.5 rounded-xl">
             <button
               onClick={() => setCurrentView('upload')}
-              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 currentView === 'upload'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md transform scale-[1.02]'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -354,9 +365,9 @@ export default function DailyNotepadTool() {
             </button>
             <button
               onClick={() => setCurrentView('history')}
-              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 currentView === 'history'
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md transform scale-[1.02]'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -369,50 +380,60 @@ export default function DailyNotepadTool() {
             <div className="space-y-6">
               {/* Status Card */}
               {todaySubmission && (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
-                    <h3 className="text-lg font-semibold text-green-900 dark:text-green-100">
-                      Submitted Today {todaySubmission.isOnTime ? '(On Time)' : '(Late)'}
-                    </h3>
+                <div className="relative overflow-hidden rounded-2xl border backdrop-blur-sm bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-950/30 dark:to-green-900/20 border-green-300/50 dark:border-green-800/50 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <div className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg">
+                        <CheckCircle2 className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-green-900 dark:text-green-100">
+                          Submitted Today {todaySubmission.isOnTime ? '(On Time)' : '(Late)'}
+                        </h3>
+                        <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                          Submitted at: {format(new Date(todaySubmission.submittedAt), 'PPp')}
+                        </p>
+                      </div>
+                    </div>
+                    <img
+                      src={todaySubmission.thumbnailUrl || todaySubmission.imageUrl}
+                      alt="Today's submission"
+                      className="w-full max-w-md mx-auto rounded-xl border-2 border-green-200 dark:border-green-800 shadow-md"
+                    />
                   </div>
-                  <p className="text-sm text-green-700 dark:text-green-300 mb-4">
-                    Submitted at: {format(new Date(todaySubmission.submittedAt), 'PPp')}
-                  </p>
-                  <img
-                    src={todaySubmission.thumbnailUrl || todaySubmission.imageUrl}
-                    alt="Today's submission"
-                    className="w-full max-w-md mx-auto rounded-lg border border-green-200 dark:border-green-800"
-                  />
                 </div>
               )}
 
               {/* Upload Area */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg p-6">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-8">
                 {!uploadSuccess ? (
                   <>
                     {preview ? (
-                      <div className="space-y-4">
-                        <div className="relative">
-                          <img
-                            src={preview}
-                            alt="Preview"
-                            className="w-full rounded-lg border border-gray-200 dark:border-gray-700"
-                          />
+                      <div className="space-y-6">
+                        <div className="relative group">
+                          <div className="relative overflow-hidden rounded-2xl border-2 border-gray-200 dark:border-gray-700 shadow-lg">
+                            <img
+                              src={preview}
+                              alt="Preview"
+                              className="w-full h-auto"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                          </div>
                           <button
                             onClick={() => {
                               setPreview(null)
                               setSelectedFile(null)
                             }}
-                            className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                            className="absolute top-4 right-4 p-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-all shadow-lg hover:scale-110 active:scale-95"
+                            title="Remove image"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-5 h-5" />
                           </button>
                         </div>
                         <button
                           onClick={handleUpload}
                           disabled={uploading}
-                          className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          className="w-full py-4 px-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30 transform hover:scale-[1.02] active:scale-[0.98] disabled:transform-none"
                         >
                           {uploading ? (
                             <>
@@ -428,15 +449,19 @@ export default function DailyNotepadTool() {
                         </button>
                       </div>
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {/* Camera Button (Mobile-first) */}
                         <button
                           onClick={handleCameraClick}
-                          className="w-full py-12 px-6 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl transition-colors flex flex-col items-center justify-center gap-3 shadow-lg"
+                          className="group relative w-full py-16 px-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-2xl transition-all duration-200 flex flex-col items-center justify-center gap-4 shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30 transform hover:scale-[1.02] active:scale-[0.98]"
                         >
-                          <Camera className="w-12 h-12" />
-                          <span className="text-lg">Take Photo</span>
-                          <span className="text-sm opacity-90">Use your camera to capture your notepad</span>
+                          <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm group-hover:bg-white/30 transition-all">
+                            <Camera className="w-14 h-14" />
+                          </div>
+                          <div className="text-center">
+                            <span className="text-xl font-bold block mb-1">Take Photo</span>
+                            <span className="text-sm opacity-90 font-normal">Use your camera to capture your notepad</span>
+                          </div>
                         </button>
                         <input
                           ref={cameraInputRef}
@@ -450,18 +475,22 @@ export default function DailyNotepadTool() {
                         {/* Divider */}
                         <div className="flex items-center gap-4">
                           <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">OR</span>
+                          <span className="px-4 py-1.5 text-sm font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full">OR</span>
                           <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
                         </div>
 
                         {/* File Upload */}
                         <label
                           htmlFor="file-upload"
-                          className="w-full py-12 px-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:border-red-400 dark:hover:border-red-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors flex flex-col items-center justify-center gap-3"
+                          className="group relative w-full py-16 px-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl cursor-pointer hover:border-red-400 dark:hover:border-red-600 hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100/50 dark:hover:from-gray-800/50 dark:hover:to-gray-700/30 transition-all duration-200 flex flex-col items-center justify-center gap-4 hover:shadow-lg"
                         >
-                          <FileImage className="w-12 h-12 text-gray-400 dark:text-gray-500" />
-                          <span className="text-lg font-medium text-gray-700 dark:text-gray-300">Choose from Gallery</span>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">Select an image from your device</span>
+                          <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-2xl group-hover:bg-red-50 dark:group-hover:bg-red-950/30 transition-all">
+                            <FileImage className="w-14 h-14 text-gray-400 dark:text-gray-500 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors" />
+                          </div>
+                          <div className="text-center">
+                            <span className="text-xl font-bold text-gray-700 dark:text-gray-300 block mb-1 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Choose from Gallery</span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Select an image from your device</span>
+                          </div>
                         </label>
                         <input
                           id="file-upload"
@@ -475,16 +504,19 @@ export default function DailyNotepadTool() {
                     )}
                     
                     {error && (
-                      <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                        <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+                      <div className="mt-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl flex items-center gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                        <p className="text-sm text-red-800 dark:text-red-200 font-medium">{error}</p>
                       </div>
                     )}
                   </>
                 ) : (
-                  <div className="text-center py-12">
-                    <CheckCircle2 className="w-16 h-16 text-green-600 dark:text-green-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Submission Successful!</h3>
-                    <p className="text-gray-600 dark:text-gray-400">Your daily notepad has been submitted successfully.</p>
+                  <div className="text-center py-16">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full shadow-lg mb-6">
+                      <CheckCircle2 className="w-12 h-12 text-white" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Submission Successful!</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-lg">Your daily notepad has been submitted successfully.</p>
                   </div>
                 )}
               </div>
@@ -494,49 +526,63 @@ export default function DailyNotepadTool() {
           {/* History View */}
           {currentView === 'history' && (
             <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg p-6">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Submission History</h2>
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-8">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-500/20">
+                    <Clock className="w-5 h-5 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Submission History</h2>
+                </div>
                 
                 {loadingSubmissions ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <Loader2 className="w-10 h-10 animate-spin text-red-600 mb-4" />
+                    <p className="text-gray-500 dark:text-gray-400">Loading submissions...</p>
                   </div>
                 ) : submissions.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                    No submissions found
+                  <div className="text-center py-16">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gray-200 dark:bg-gray-800 mb-4">
+                      <Calendar className="w-8 h-8 text-gray-400 dark:text-gray-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No submissions found</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">Your submission history will appear here</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {submissions.map((submission) => (
                       <div
                         key={submission.id}
-                        className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+                        className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1"
                       >
                         {submission.thumbnailUrl && (
-                          <img
-                            src={submission.thumbnailUrl}
-                            alt={`Submission ${format(new Date(submission.date), 'PP')}`}
-                            className="w-full h-48 object-cover"
-                          />
+                          <div className="relative overflow-hidden">
+                            <img
+                              src={submission.thumbnailUrl}
+                              alt={`Submission ${format(new Date(submission.date), 'PP')}`}
+                              className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                          </div>
                         )}
-                        <div className="p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        <div className="p-5">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm font-bold text-gray-900 dark:text-white">
                               {format(new Date(submission.date), 'PP')}
                             </span>
                             {submission.isOnTime ? (
-                              <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded-full">
+                              <span className="px-3 py-1 text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded-full">
                                 On Time
                               </span>
                             ) : (
-                              <span className="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full">
+                              <span className="px-3 py-1 text-xs font-semibold bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full">
                                 Late
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {format(new Date(submission.submittedAt), 'p')}
-                          </p>
+                          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>{format(new Date(submission.submittedAt), 'p')}</span>
+                          </div>
                         </div>
                       </div>
                     ))}

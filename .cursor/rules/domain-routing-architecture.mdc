@@ -1,34 +1,38 @@
 ---
-description: Documentation and rules for subdomain-based tool routing and access control architecture
+description: Specification for implementing subdomain-based tool isolation and routing in construction management systems
 ---
 
 
 # domain-routing-architecture
 
-## Subdomain Routing Implementation
-The system implements a specialized subdomain-based routing architecture for tool access and isolation:
+## Core Routing Implementation
+- Tool-specific subdomains map directly to isolated tool environments
+- Dynamic routing transforms root paths (/) on tool subdomains to `/tools/[toolId]`
+- Enforces strict subdomain-tool relationship validation
 
-### Core Routing Rules
-- Tool-specific subdomains map directly to corresponding tool pages
-- Automatic routing pattern: `/tools/${tool.id}`
-- Reserved subdomains: 'www' and 'mannystoolbox' receive special handling
-- Root paths on tool subdomains redirect to tool-specific pages
+## Access Control Rules
+- Reserved domain protection for 'www' and 'mannystoolbox'
+- Tool access permissions validated through subdomain-path matching
+- Environment-aware URL generation for development vs production contexts
 
-### Access Control Integration
-- Subdomain validation enforces tool access permissions
-- Prevents unauthorized access through URL manipulation
-- Maintains strict separation between main domain and tool subdomains
-- Environment-specific handling for development (localhost) vs production
+## Tool Isolation Strategy
+Path: `app/tools/[toolId]/page.tsx`
+- Dynamic tool access through dedicated subdomains
+- Tool-specific access control enforcement
+- Maintains tool isolation through subdomain boundaries
 
-### File Structure
-Primary implementation: `/middleware.ts`
+## Business Logic Score: 85/100
+Domain-specific value:
+- Enables construction tool isolation through subdomain architecture
+- Enforces tool-specific access patterns
+- Implements construction industry-specific routing rules
+- Maintains tool relationship integrity through subdomain validation
 
-### Business Impact Score: 75/100
-Rationale:
-- Implements unique domain-specific routing architecture
-- Controls tool access through subdomain validation
-- Critical for tool isolation and security
-- Moderate complexity focused on routing rules
+The routing architecture specifically addresses construction industry needs by:
+- Isolating specialized construction tools in dedicated environments
+- Enforcing tool-specific access controls
+- Managing environment-specific routing for development and production
+- Maintaining consistent tool access patterns across the platform
 
 $END$
 
