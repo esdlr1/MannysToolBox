@@ -6,6 +6,7 @@ export type NotificationType =
   | 'confirmation'
   | 'summary'
   | 'comment'
+  | 'announcement'
 
 interface CreateNotificationParams {
   userId: string
