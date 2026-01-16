@@ -6,16 +6,14 @@ import AnnouncementList from '@/components/announcements/AnnouncementList'
 import AnnouncementForm from '@/components/announcements/AnnouncementForm'
 import { Plus, Megaphone } from 'lucide-react'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { canCreateAnnouncement as canCreate } from '@/lib/announcements'
 
 export default function AnnouncementsPage() {
   const { data: session } = useSession()
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const canCreateAnnouncement =
-    session?.user?.role === 'Super Admin' ||
-    session?.user?.role === 'Owner' ||
-    session?.user?.role === 'Manager'
+  const canCreateAnnouncement = canCreate(session?.user?.role)
 
   const handleAnnouncementSuccess = () => {
     setRefreshKey((prev) => prev + 1)

@@ -7,6 +7,7 @@ import AnnouncementForm from '@/components/announcements/AnnouncementForm'
 import { Plus, ClipboardList, BarChart3, Users } from 'lucide-react'
 import Link from 'next/link'
 import { getTools } from '@/lib/tools'
+import { canCreateAnnouncement as canCreate } from '@/lib/announcements'
 
 interface DashboardProps {
   role: string | null | undefined
@@ -18,8 +19,7 @@ export default function Dashboard({ role }: DashboardProps) {
   const [refreshKey, setRefreshKey] = useState(0)
   const tools = getTools()
 
-  const canCreateAnnouncement =
-    role === 'Super Admin' || role === 'Owner' || role === 'Manager'
+  const canCreateAnnouncement = canCreate(role)
 
   const handleAnnouncementSuccess = () => {
     setRefreshKey((prev) => prev + 1)
