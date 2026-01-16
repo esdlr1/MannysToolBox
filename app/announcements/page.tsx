@@ -14,16 +14,6 @@ export default function AnnouncementsPage() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   const canCreateAnnouncement = canCreate(session?.user?.role)
-  
-  // Debug: Log session info (remove in production)
-  if (typeof window !== 'undefined') {
-    console.log('Announcements Page - Session:', {
-      status,
-      hasSession: !!session,
-      userRole: session?.user?.role,
-      canCreate: canCreateAnnouncement,
-    })
-  }
 
   const handleAnnouncementSuccess = () => {
     setRefreshKey((prev) => prev + 1)
@@ -39,7 +29,7 @@ export default function AnnouncementsPage() {
               <div className="p-2 bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg shadow-red-500/20">
                 <Megaphone className="w-6 h-6 text-white" />
               </div>
-              <div className="flex-1">
+              <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                   Announcements
                 </h1>
@@ -47,14 +37,6 @@ export default function AnnouncementsPage() {
                   Stay updated with company news and updates
                 </p>
               </div>
-              {/* Debug info - remove in production */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded">
-                  <div>Status: {status}</div>
-                  <div>Role: {session?.user?.role || 'None'}</div>
-                  <div>Can Create: {canCreateAnnouncement ? 'Yes' : 'No'}</div>
-                </div>
-              )}
             </div>
             {status === 'loading' ? (
               <div className="inline-flex items-center gap-2 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-xl">
