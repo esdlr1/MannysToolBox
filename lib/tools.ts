@@ -4,6 +4,17 @@ import { Tool } from '@/types/tool'
 // Initialize with tools directly to avoid module initialization issues
 const tools: Tool[] = [
   {
+    id: 'estimate-audit',
+    name: 'Estimate Completeness Audit',
+    description: 'Analyze a single construction estimate to detect missing line items that should accompany each other (e.g., drywall + texture + paint).',
+    category: 'Construction',
+    subdomain: 'estimate-audit',
+    component: 'tools/estimate-audit/index',
+    requiresAuth: true,
+    usesAI: true,
+    supportsFileUpload: true,
+  },
+  {
     id: 'estimate-comparison',
     name: 'Estimate Comparison Tool',
     description: 'Compare construction estimates from insurance adjusters and contractors. Identify missing items, discrepancies, and cost differences using AI.',
