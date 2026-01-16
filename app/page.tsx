@@ -7,7 +7,7 @@ import { ToolDropdown } from '@/components/ui/tool-dropdown'
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { Pin, AlertCircle, Info, AlertTriangle, X } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 
 interface Announcement {
   id: string
@@ -35,7 +35,7 @@ interface Activity {
 }
 
 export default function Home() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [dismissedAnnouncements, setDismissedAnnouncements] = useState<string[]>([])
@@ -145,21 +145,46 @@ export default function Home() {
       {/* Minimal Navigation Bar */}
       <nav className="w-full py-4 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-end">
-          {/* Auth Links */}
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/auth/signin"
-              className="text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/auth/signup"
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-            >
-              Sign Up
-            </Link>
-          </div>
+          {/* Auth Links / User Menu */}
+          {status === 'loading' ? (
+            <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+          ) : session ? (
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/profile"
+                className="text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
+              >
+                {session.user?.name || session.user?.email}
+              </Link>
+              <Link
+                href="/announcements"
+                className="text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
+              >
+                Announcements
+              </Link>
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <Link
+                href="/auth/signin"
+                className="text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth/signup"
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
         </div>
       </nav>
 
