@@ -57,8 +57,12 @@ export default function DailyNotepadTool() {
   
   // View state
   const [view, setView] = useState<'employee' | 'manager'>('employee')
-  const [currentView, setCurrentView] = useState<'upload' | 'history'>('upload')
+  const [currentView, setCurrentView] = useState<'upload' | 'history' | 'calendar'>('upload')
   const [managerView, setManagerView] = useState<'dashboard' | 'list' | 'calendar' | 'detail'>('dashboard')
+  
+  // Employee calendar state
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
+  const [selectedSubmissionDate, setSelectedSubmissionDate] = useState<Submission | null>(null)
   
   // Upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -375,6 +379,16 @@ export default function DailyNotepadTool() {
             >
               History
             </button>
+            <button
+              onClick={() => setCurrentView('calendar')}
+              className={`flex-1 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                currentView === 'calendar'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md transform scale-[1.02]'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              Calendar
+            </button>
           </div>
 
           {/* Upload View */}
@@ -519,6 +533,186 @@ export default function DailyNotepadTool() {
                     </div>
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Submission Successful!</h3>
                     <p className="text-gray-600 dark:text-gray-400 text-lg">Your daily notepad has been submitted successfully.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Calendar View */}
+          {currentView === 'calendar' && (
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg shadow-purple-500/20">
+                      <Calendar className="w-5 h-5 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Submission Calendar</h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCalendarMonth(subDays(calendarMonth, 1))}
+                      className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      aria-label="Previous month"
+                    >
+                      <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    </button>
+                    <button
+                      onClick={() => setCalendarMonth(new Date())}
+                      className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Today
+                    </button>
+                    <button
+                      onClick={() => setCalendarMonth(addDays(calendarMonth, 1))}
+                      className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                      aria-label="Next month"
+                    >
+                      <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white text-center">
+                    {format(calendarMonth, 'MMMM yyyy')}
+                  </h3>
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 gap-2 mb-4">
+                  {/* Day headers */}
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                    <div
+                      key={day}
+                      className="text-center text-sm font-semibold text-gray-600 dark:text-gray-400 py-2"
+                    >
+                      {day}
+                    </div>
+                  ))}
+
+                  {/* Calendar days */}
+                  {(() => {
+                    const monthStart = startOfMonth(calendarMonth)
+                    const monthEnd = endOfMonth(calendarMonth)
+                    const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
+                    const startDay = monthStart.getDay()
+                    const endDay = monthEnd.getDay()
+
+                    // Empty cells before month starts
+                    const emptyStart = Array.from({ length: startDay }, (_, i) => (
+                      <div key={`empty-start-${i}`} className="aspect-square"></div>
+                    ))
+
+                    // Month days
+                    const monthDays = daysInMonth.map((day) => {
+                      const dayStr = format(day, 'yyyy-MM-dd')
+                      const submission = submissions.find((s) => format(new Date(s.date), 'yyyy-MM-dd') === dayStr)
+                      const isToday = isToday(day)
+                      const isWeekendDay = isWeekend(day)
+
+                      return (
+                        <button
+                          key={dayStr}
+                          onClick={() => {
+                            if (submission) {
+                              setSelectedSubmissionDate(submission)
+                            }
+                          }}
+                          className={`aspect-square p-2 rounded-lg border-2 transition-all duration-200 relative ${
+                            submission
+                              ? 'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 hover:scale-105 cursor-pointer'
+                              : isToday
+                              ? 'bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-700'
+                              : 'border-transparent hover:bg-gray-50 dark:hover:bg-gray-800'
+                          } ${isWeekendDay ? 'opacity-60' : ''}`}
+                        >
+                          <div className="flex flex-col items-center justify-center h-full">
+                            <span
+                              className={`text-sm font-semibold ${
+                                submission
+                                  ? 'text-green-700 dark:text-green-300'
+                                  : isToday
+                                  ? 'text-red-600 dark:text-red-400'
+                                  : 'text-gray-700 dark:text-gray-300'
+                              }`}
+                            >
+                              {format(day, 'd')}
+                            </span>
+                            {submission && (
+                              <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
+                                <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })
+
+                    // Empty cells after month ends
+                    const emptyEnd = Array.from({ length: 6 - endDay }, (_, i) => (
+                      <div key={`empty-end-${i}`} className="aspect-square"></div>
+                    ))
+
+                    return [...emptyStart, ...monthDays, ...emptyEnd]
+                  })()}
+                </div>
+
+                {/* Legend */}
+                <div className="flex items-center justify-center gap-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded border-2 border-green-400 bg-green-50 dark:bg-green-900/20"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Submitted</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded border-2 border-red-400 bg-red-50 dark:bg-red-900/20"></div>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Today</span>
+                  </div>
+                </div>
+
+                {/* Submission Detail Modal */}
+                {selectedSubmissionDate && (
+                  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                      <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between z-10">
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {format(new Date(selectedSubmissionDate.date), 'EEEE, MMMM d, yyyy')}
+                        </h3>
+                        <button
+                          onClick={() => setSelectedSubmissionDate(null)}
+                          className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                          aria-label="Close"
+                        >
+                          <X className="w-6 h-6" />
+                        </button>
+                      </div>
+                      <div className="p-6">
+                        <div className="mb-6 flex items-center gap-4">
+                          <div
+                            className={`px-4 py-2 rounded-lg text-sm font-semibold ${
+                              selectedSubmissionDate.isOnTime
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                            }`}
+                          >
+                            {selectedSubmissionDate.isOnTime ? '✓ Submitted On Time' : '⚠ Submitted Late'}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                            <Clock className="w-4 h-4" />
+                            <span>Submitted at {format(new Date(selectedSubmissionDate.submittedAt), 'PPp')}</span>
+                          </div>
+                        </div>
+                        <div className="relative group">
+                          <img
+                            src={selectedSubmissionDate.imageUrl}
+                            alt={`Submission for ${format(new Date(selectedSubmissionDate.date), 'PP')}`}
+                            className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-lg"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
