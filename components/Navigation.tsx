@@ -207,7 +207,7 @@ export default function Navigation() {
                       >
                         Profile
                       </Link>
-                      {session.user?.role === 'Super Admin' && (
+                      {(session.user?.role === 'Super Admin' || session.user?.role === 'Owner') && (
                         <>
                           <Link
                             href="/admin/approvals"
@@ -215,6 +215,13 @@ export default function Navigation() {
                             onClick={() => setIsUserMenuOpen(false)}
                           >
                             User Approvals
+                          </Link>
+                          <Link
+                            href="/admin/manager-assignments"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            Manager Assignments
                           </Link>
                           <hr className="my-1 border-gray-300 dark:border-gray-700" />
                           <div className="relative" ref={roleMenuRef}>
@@ -381,8 +388,11 @@ export default function Navigation() {
                 {session ? (
                   <>
                     <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Profile</Link>
-                    {session.user?.role === 'Super Admin' && (
+                    {(session.user?.role === 'Super Admin' || session.user?.role === 'Owner') && (
                       <Link href="/admin/approvals" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">User Approvals</Link>
+                    )}
+                    {(session.user?.role === 'Super Admin' || session.user?.role === 'Owner') && (
+                      <Link href="/admin/manager-assignments" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Manager Assignments</Link>
                     )}
                     <Link href="/announcements" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Announcements</Link>
                     <Link href="/history" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">History</Link>

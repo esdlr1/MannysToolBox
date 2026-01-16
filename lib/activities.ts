@@ -109,11 +109,14 @@ export async function getTeamActivities(
   }
 ) {
   try {
-    // Get all employees (for now, managers see all employees)
-    // TODO: Implement team/department filtering when teams are set up
+    const assignments = await prisma.managerAssignment.findMany({
+      where: { managerId },
+      select: { employeeId: true },
+    })
+    const employeeIds = assignments.map((a) => a.employeeId)
     const where: any = {
-      user: {
-        role: 'Employee',
+      userId: {
+        in: employeeIds.length > 0 ? employeeIds : ['__none__'],
       },
     }
 

@@ -30,6 +30,31 @@ export async function POST(
       )
     }
 
+    if (user.role === 'Manager') {
+      const submission = await prisma.dailyNotepadSubmission.findUnique({
+        where: { id: params.id },
+        select: { userId: true },
+      })
+      if (!submission) {
+        return NextResponse.json(
+          { error: 'Submission not found' },
+          { status: 404 }
+        )
+      }
+      const assignment = await prisma.managerAssignment.findFirst({
+        where: {
+          managerId: session.user.id,
+          employeeId: submission.userId,
+        },
+      })
+      if (!assignment) {
+        return NextResponse.json(
+          { error: 'Forbidden' },
+          { status: 403 }
+        )
+      }
+    }
+
     const body = await request.json()
     const { reviewStatus, reviewNote } = body
 

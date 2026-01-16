@@ -31,8 +31,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
+    const managerId = user.role === 'Manager' ? session.user.id : undefined
 
-    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId })
+    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId, managerId })
 
     const employees = await prisma.user.findMany({
       where: {

@@ -96,11 +96,18 @@ export async function notifyManagersOnSubmission(
   employeeName: string | null,
   submissionId: string
 ) {
+  const assignments = await prisma.managerAssignment.findMany({
+    where: { employeeId },
+    select: { managerId: true },
+  })
+  const managerIds = assignments.map((a) => a.managerId)
+
   const managers = await prisma.user.findMany({
     where: {
-      role: {
-        in: ['Manager', 'Owner', 'Super Admin'],
-      },
+      OR: [
+        { id: { in: managerIds } },
+        { role: { in: ['Owner', 'Super Admin'] } },
+      ],
       isApproved: true,
     },
     select: {

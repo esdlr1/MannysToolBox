@@ -58,6 +58,9 @@ export async function GET(request: NextRequest) {
     if (departmentIdParam) {
       filters.departmentId = departmentIdParam
     }
+    if (user.role === 'Manager') {
+      filters.managerId = session.user.id
+    }
 
     const submissions = await getSubmissions(filters)
 

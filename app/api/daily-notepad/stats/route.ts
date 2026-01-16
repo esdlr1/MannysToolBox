@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get('period') || 'today' // today, week, month
     const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
+    const managerId = user.role === 'Manager' ? session.user.id : undefined
 
     const today = getTodayDate()
     let startDate: Date
@@ -54,15 +55,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Get statistics
-    const stats = await getSubmissionStats(startDate, endDate, { teamId, departmentId })
+    const stats = await getSubmissionStats(startDate, endDate, { teamId, departmentId, managerId })
 
     // Get today's missing submissions
     const missingToday = isWorkday(today)
-      ? await getMissingSubmissions(today, { teamId, departmentId })
+      ? await getMissingSubmissions(today, { teamId, departmentId, managerId })
       : []
 
     // Get total employees
-    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId })
+    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId, managerId })
     const totalEmployees = employeeIds.length
 
     // Calculate today's stats

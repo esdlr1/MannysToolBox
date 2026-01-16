@@ -27,10 +27,30 @@ export async function GET() {
       )
     }
 
-    const teams = await prisma.team.findMany({
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true },
-    })
+    let teams
+    if (user.role === 'Manager') {
+      const assignments = await prisma.managerAssignment.findMany({
+        where: { managerId: session.user.id },
+        select: { employeeId: true },
+      })
+      const employeeIds = assignments.map((a) => a.employeeId)
+      teams = await prisma.team.findMany({
+        where: {
+          members: {
+            some: {
+              userId: { in: employeeIds.length > 0 ? employeeIds : ['__none__'] },
+            },
+          },
+        },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      })
+    } else {
+      teams = await prisma.team.findMany({
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      })
+    }
 
     return NextResponse.json({
       success: true,

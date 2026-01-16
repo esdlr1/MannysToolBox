@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     const formatParam = (searchParams.get('format') || 'csv').toLowerCase()
     const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
+    const managerId = user.role === 'Manager' ? session.user.id : undefined
 
     const today = new Date()
     const startDate = startOfWeek(today)
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
     const workdays = eachDayOfInterval({ start: startDate, end: endDate }).filter(isWorkday)
     const totalWorkdays = workdays.length
 
-    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId })
+    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId, managerId })
     const employees = await prisma.user.findMany({
       where: { id: { in: employeeIds } },
       select: { id: true, name: true, email: true },

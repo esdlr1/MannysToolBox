@@ -38,6 +38,8 @@ model User {
   activities             Activity[]       // Activities performed by this user
   createdEvents         CalendarEvent[] @relation("EventCreator") // Calendar events created by this user
   reviewedDailyNotepadSubmissions DailyNotepadSubmission[] @relation("DailyNotepadReview")
+  managedEmployees               ManagerAssignment[]      @relation("ManagerAssignments")
+  managers                       ManagerAssignment[]      @relation("EmployeeAssignments")
 
   @@index([departmentId])
   @@map("users")
@@ -176,6 +178,21 @@ model DailyNotepadSubmission {
   @@index([userId, date])
   @@index([submittedAt])
   @@map("daily_notepad_submissions")
+}
+
+model ManagerAssignment {
+  id         String   @id @default(cuid())
+  managerId  String
+  employeeId String
+  createdAt  DateTime @default(now())
+
+  manager  User @relation("ManagerAssignments", fields: [managerId], references: [id], onDelete: Cascade)
+  employee User @relation("EmployeeAssignments", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([managerId, employeeId])
+  @@index([managerId])
+  @@index([employeeId])
+  @@map("manager_assignments")
 }
 
 model SubmissionComment {

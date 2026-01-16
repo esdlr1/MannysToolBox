@@ -51,6 +51,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (user.role === 'Manager') {
+      const assignment = await prisma.managerAssignment.findFirst({
+        where: {
+          managerId: session.user.id,
+          employeeId: employee.id,
+        },
+      })
+      if (!assignment) {
+        return NextResponse.json(
+          { error: 'Forbidden' },
+          { status: 403 }
+        )
+      }
+    }
+
     await sendFollowUpEmail(
       { email: employee.email, name: employee.name },
       note

@@ -37,12 +37,28 @@ export async function GET(
 
     const isOwner = submission.userId === session.user.id
     const isManager = user?.role && ['Manager', 'Owner', 'Super Admin'].includes(user.role)
+    const isOwnerOrAdmin = user?.role && ['Owner', 'Super Admin'].includes(user.role)
 
     if (!isOwner && !isManager) {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }
       )
+    }
+
+    if (!isOwner && user?.role === 'Manager' && !isOwnerOrAdmin) {
+      const assignment = await prisma.managerAssignment.findFirst({
+        where: {
+          managerId: session.user.id,
+          employeeId: submission.userId,
+        },
+      })
+      if (!assignment) {
+        return NextResponse.json(
+          { error: 'Forbidden' },
+          { status: 403 }
+        )
+      }
     }
 
     return NextResponse.json({

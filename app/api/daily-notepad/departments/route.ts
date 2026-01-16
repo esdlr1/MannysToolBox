@@ -27,10 +27,30 @@ export async function GET() {
       )
     }
 
-    const departments = await prisma.department.findMany({
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true },
-    })
+    let departments
+    if (user.role === 'Manager') {
+      const assignments = await prisma.managerAssignment.findMany({
+        where: { managerId: session.user.id },
+        select: { employeeId: true },
+      })
+      const employeeIds = assignments.map((a) => a.employeeId)
+      departments = await prisma.department.findMany({
+        where: {
+          users: {
+            some: {
+              id: { in: employeeIds.length > 0 ? employeeIds : ['__none__'] },
+            },
+          },
+        },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      })
+    } else {
+      departments = await prisma.department.findMany({
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+      })
+    }
 
     return NextResponse.json({
       success: true,
