@@ -35,6 +35,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Debug: Check if API key is available
+    const apiKey = process.env.OPENAI_API_KEY
+    console.log('[Estimate Audit] API Key check:', {
+      hasKey: !!apiKey,
+      keyLength: apiKey?.length || 0,
+      keyPrefix: apiKey?.substring(0, 10) || 'none',
+    })
+
     const { fileId, projectName, notes } = await request.json()
 
     if (!fileId) {
@@ -53,7 +61,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const estimate = await parseEstimatePDF(fileRecord.path)
+    let estimate
+    try {
+      estimate = await parseEstimatePDF(fileRecord.path)
+    } catch (parseError: any) {
+      console.error('[Estimate Audit] PDF parsing error:', parseError.message)
+      if (isOpenAIAuthError(parseError)) {
+        return NextResponse.json(
+          { error: 'OpenAI API key is missing or invalid. Set OPENAI_API_KEY and restart the server.' },
+          { status: 401 }
+        )
+      }
+      throw parseError // Re-throw if it's not an API key error
+    }
     const lineItems = estimate.lineItems || []
 
     const itemTexts = lineItems.map((item) => {
