@@ -25,10 +25,27 @@ let openai: OpenAI | null = null
 
 function getOpenAI(): OpenAI {
   if (!openai) {
-    const apiKey = process.env.OPENAI_API_KEY
+    let apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       throw new Error('OPENAI_API_KEY is not set in environment variables')
     }
+    
+    // Clean up the key: trim whitespace and remove quotes if present
+    apiKey = apiKey.trim()
+    if ((apiKey.startsWith('"') && apiKey.endsWith('"')) || 
+        (apiKey.startsWith("'") && apiKey.endsWith("'"))) {
+      apiKey = apiKey.slice(1, -1).trim()
+    }
+    
+    // Validate key format (should start with sk-)
+    if (!apiKey.startsWith('sk-')) {
+      const preview = apiKey.length > 10 
+        ? `${apiKey.substring(0, 7)}...${apiKey.substring(apiKey.length - 3)}` 
+        : '***'
+      console.error(`Invalid OpenAI API key format. Key preview: ${preview}`)
+      throw new Error('OPENAI_API_KEY format is invalid. It should start with "sk-"')
+    }
+    
     openai = new OpenAI({ apiKey })
   }
   return openai
