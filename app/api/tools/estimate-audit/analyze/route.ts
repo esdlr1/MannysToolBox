@@ -21,8 +21,10 @@ function isOpenAIAuthError(error: unknown) {
   return (
     normalized.includes('incorrect api key') ||
     normalized.includes('invalid_api_key') ||
-    normalized.includes('openai_api_key is not set') ||
-    normalized.includes('missing api key')
+    normalized.includes('openai_api_key') ||
+    normalized.includes('missing api key') ||
+    normalized.includes('api key') ||
+    normalized.includes('format is invalid')
   )
 }
 
