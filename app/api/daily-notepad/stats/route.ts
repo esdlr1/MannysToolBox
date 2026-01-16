@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getSubmissionStats, getMissingSubmissions, getTodayDate, isWorkday } from '@/lib/daily-notepad'
+import { getSubmissionStats, getMissingSubmissions, getTodayDate, isWorkday, getEmployeeIdsForScope } from '@/lib/daily-notepad'
 import { prisma } from '@/lib/prisma'
 import { startOfWeek, endOfWeek, subDays, startOfMonth, endOfMonth } from 'date-fns'
 
@@ -32,6 +32,8 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const period = searchParams.get('period') || 'today' // today, week, month
+    const teamId = searchParams.get('teamId') || undefined
+    const departmentId = searchParams.get('departmentId') || undefined
 
     const today = getTodayDate()
     let startDate: Date
@@ -52,19 +54,23 @@ export async function GET(request: NextRequest) {
     }
 
     // Get statistics
-    const stats = await getSubmissionStats(startDate, endDate)
+    const stats = await getSubmissionStats(startDate, endDate, { teamId, departmentId })
 
     // Get today's missing submissions
-    const missingToday = isWorkday(today) ? await getMissingSubmissions(today) : []
+    const missingToday = isWorkday(today)
+      ? await getMissingSubmissions(today, { teamId, departmentId })
+      : []
 
     // Get total employees
-    const totalEmployees = await prisma.user.count({
-      where: { role: 'Employee' },
-    })
+    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId })
+    const totalEmployees = employeeIds.length
 
     // Calculate today's stats
     const todaySubmissions = await prisma.dailyNotepadSubmission.count({
-      where: { date: today },
+      where: {
+        date: today,
+        ...(employeeIds.length > 0 ? { userId: { in: employeeIds } } : {}),
+      },
     })
 
     const submissionRate = totalEmployees > 0 ? (todaySubmissions / totalEmployees) * 100 : 0

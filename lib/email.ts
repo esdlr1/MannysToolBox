@@ -228,6 +228,71 @@ export async function sendReminderEmail(employee: EmailUser): Promise<void> {
 }
 
 /**
+ * Send follow-up email to employee with optional note
+ */
+export async function sendFollowUpEmail(
+  employee: EmailUser,
+  note?: string | null
+): Promise<void> {
+  const subject = 'Follow-up: Daily Notepad Submission'
+
+  const noteBlock = note
+    ? `<div class="note"><strong>Manager Note:</strong> ${note}</div>`
+    : ''
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #dc2626; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background-color: #f9fafb; }
+        .note { background-color: #e0f2fe; border-left: 4px solid #0284c7; padding: 12px; margin: 16px 0; }
+        .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Follow-up: Daily Notepad</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${employee.name || 'there'},</p>
+          <p>This is a quick follow-up regarding your daily notepad submission.</p>
+          ${noteBlock}
+          <p>Please submit your notepad as soon as possible if you have not already done so.</p>
+        </div>
+        <div class="footer">
+          <p>This is an automated email from Manny's ToolBox</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  const client = getResendClient()
+  if (!client) {
+    console.warn('Email service not available. Skipping follow-up email.')
+    return
+  }
+
+  try {
+    await client.emails.send({
+      from: FROM_EMAIL,
+      to: employee.email,
+      subject,
+      html,
+    })
+  } catch (error) {
+    console.error('Error sending follow-up email:', error)
+    throw error
+  }
+}
+
+/**
  * Send end of day summary email to managers
  */
 export async function sendEndOfDaySummary(
@@ -323,6 +388,106 @@ export async function sendEndOfDaySummary(
     })
   } catch (error) {
     console.error('Error sending end of day summary email:', error)
+    throw error
+  }
+}
+
+/**
+ * Send missing submissions summary (morning) to managers
+ */
+export async function sendMissingSummary(
+  manager: EmailUser,
+  summary: {
+    date: Date
+    totalEmployees: number
+    submittedCount: number
+    missingCount: number
+    submissionRate: number
+    missingEmployees: Array<{ name: string | null; email: string }>
+  }
+): Promise<void> {
+  const subject = `Daily Notepad Missing Summary - ${summary.date.toLocaleDateString()}`
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #dc2626; color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; background-color: #f9fafb; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .stat-card { background-color: white; padding: 15px; border-radius: 5px; text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #dc2626; }
+        .stat-label { font-size: 12px; color: #6b7280; margin-top: 5px; }
+        .missing-list { background-color: white; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .missing-item { padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+        .missing-item:last-child { border-bottom: none; }
+        .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Missing Submissions Summary</h1>
+          <p>${summary.date.toLocaleDateString()} - 9:05 AM</p>
+        </div>
+        <div class="content">
+          <p>Hi ${manager.name || 'there'},</p>
+          <p>Here is the current missing submissions summary:</p>
+          <div class="stats">
+            <div class="stat-card">
+              <div class="stat-value">${summary.submittedCount}</div>
+              <div class="stat-label">Submitted</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${summary.missingCount}</div>
+              <div class="stat-label">Missing</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${summary.totalEmployees}</div>
+              <div class="stat-label">Total Employees</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">${summary.submissionRate.toFixed(1)}%</div>
+              <div class="stat-label">Submission Rate</div>
+            </div>
+          </div>
+          ${summary.missingCount > 0 ? `
+            <div class="missing-list">
+              <h3>Missing Submissions (${summary.missingCount}):</h3>
+              ${summary.missingEmployees.map(emp => `
+                <div class="missing-item">${emp.name || emp.email}</div>
+              `).join('')}
+            </div>
+          ` : ''}
+          <p>View details in the Daily Notepad dashboard.</p>
+        </div>
+        <div class="footer">
+          <p>This is an automated email from Manny's ToolBox</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  const client = getResendClient()
+  if (!client) {
+    console.warn('Email service not available. Skipping missing summary email.')
+    return
+  }
+
+  try {
+    await client.emails.send({
+      from: FROM_EMAIL,
+      to: manager.email,
+      subject,
+      html,
+    })
+  } catch (error) {
+    console.error('Error sending missing summary email:', error)
     throw error
   }
 }

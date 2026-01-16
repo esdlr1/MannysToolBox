@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { format, subDays, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns'
 
 /**
  * Check if a date is a weekday (Monday-Friday)
@@ -26,6 +27,49 @@ export function getTodayDate(): Date {
   return today
 }
 
+function toDateKey(date: Date): string {
+  return format(date, 'yyyy-MM-dd')
+}
+
+function getPreviousWorkday(date: Date): Date {
+  let cursor = subDays(date, 1)
+  while (!isWorkday(cursor)) {
+    cursor = subDays(cursor, 1)
+  }
+  return cursor
+}
+
+async function getEmployeesForScope(filters?: { teamId?: string; departmentId?: string }) {
+  const { teamId, departmentId } = filters || {}
+  const baseEmployees = await prisma.user.findMany({
+    where: {
+      role: 'Employee',
+      ...(departmentId ? { departmentId } : {}),
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
+  })
+
+  if (!teamId) {
+    return baseEmployees
+  }
+
+  const teamMembers = await prisma.teamMember.findMany({
+    where: { teamId },
+    select: { userId: true },
+  })
+  const teamMemberIds = new Set(teamMembers.map((m) => m.userId))
+  return baseEmployees.filter((emp) => teamMemberIds.has(emp.id))
+}
+
+export async function getEmployeeIdsForScope(filters?: { teamId?: string; departmentId?: string }) {
+  const employees = await getEmployeesForScope(filters)
+  return employees.map((emp) => emp.id)
+}
+
 /**
  * Get all submissions for a user on a specific date
  */
@@ -40,29 +84,38 @@ export async function getTodaysSubmissions(userId: string, date?: Date) {
     orderBy: {
       submittedAt: 'desc',
     },
+    include: {
+      reviewedBy: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
+      },
+    },
   })
 }
 
 /**
  * Get all employees who haven't submitted for a specific date
  */
-export async function getMissingSubmissions(date: Date) {
-  // Get all employees
-  const employees = await prisma.user.findMany({
-    where: {
-      role: 'Employee',
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-    },
-  })
+export async function getMissingSubmissions(
+  date: Date,
+  filters?: { teamId?: string; departmentId?: string }
+) {
+  const employees = await getEmployeesForScope(filters)
 
   // Get all submissions for that date
   const submissions = await prisma.dailyNotepadSubmission.findMany({
     where: {
       date,
+      ...(filters?.teamId || filters?.departmentId
+        ? {
+            userId: {
+              in: employees.map((emp) => emp.id),
+            },
+          }
+        : {}),
     },
     select: {
       userId: true,
@@ -80,12 +133,14 @@ export async function getMissingSubmissions(date: Date) {
 /**
  * Get submission statistics for a date range
  */
-export async function getSubmissionStats(startDate: Date, endDate: Date) {
-  const employees = await prisma.user.count({
-    where: {
-      role: 'Employee',
-    },
-  })
+export async function getSubmissionStats(
+  startDate: Date,
+  endDate: Date,
+  filters?: { teamId?: string; departmentId?: string }
+) {
+  const scopedEmployees = await getEmployeesForScope(filters)
+  const employeeIds = scopedEmployees.map((emp) => emp.id)
+  const employees = scopedEmployees.length
 
   const submissions = await prisma.dailyNotepadSubmission.groupBy({
     by: ['date'],
@@ -94,6 +149,13 @@ export async function getSubmissionStats(startDate: Date, endDate: Date) {
         gte: startDate,
         lte: endDate,
       },
+      ...(filters?.teamId || filters?.departmentId
+        ? {
+            userId: {
+              in: employeeIds,
+            },
+          }
+        : {}),
     },
     _count: {
       id: true,
@@ -122,6 +184,7 @@ export async function getSubmissions(filters: {
   teamId?: string
   startDate?: Date
   endDate?: Date
+  departmentId?: string
 }) {
   const where: any = {}
 
@@ -140,26 +203,26 @@ export async function getSubmissions(filters: {
     where.userId = filters.userId
   }
 
-  if (filters.teamId) {
+  if (filters.teamId || filters.departmentId) {
     // Get user IDs for this team
-    const teamMembers = await prisma.teamMember.findMany({
-      where: {
-        teamId: filters.teamId,
-      },
-      select: {
-        userId: true,
-      },
+    const employees = await getEmployeesForScope({
+      teamId: filters.teamId,
+      departmentId: filters.departmentId,
     })
-    const userIds = teamMembers.map(m => m.userId)
-    where.userId = {
-      in: userIds,
-    }
+    where.userId = { in: employees.map((e) => e.id) }
   }
 
   return await prisma.dailyNotepadSubmission.findMany({
     where,
     include: {
       user: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
+      },
+      reviewedBy: {
         select: {
           id: true,
           email: true,
@@ -206,6 +269,13 @@ export async function getSubmissionById(id: string) {
           name: true,
         },
       },
+      reviewedBy: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
+      },
       comments: {
         include: {
           user: {
@@ -222,4 +292,51 @@ export async function getSubmissionById(id: string) {
       },
     },
   })
+}
+
+export async function getEmployeeStats(userId: string) {
+  const today = getTodayDate()
+  const monthStart = startOfMonth(today)
+  const monthEnd = endOfMonth(today)
+
+  const submissions = await prisma.dailyNotepadSubmission.findMany({
+    where: {
+      userId,
+      date: {
+        gte: subDays(today, 120),
+        lte: monthEnd,
+      },
+    },
+    select: {
+      date: true,
+    },
+  })
+
+  const submittedDates = new Set(submissions.map((s) => toDateKey(s.date)))
+
+  const workdaysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd }).filter(isWorkday)
+  const submittedInMonth = workdaysInMonth.filter((day) => submittedDates.has(toDateKey(day))).length
+  const monthlyCompliance = workdaysInMonth.length > 0
+    ? (submittedInMonth / workdaysInMonth.length) * 100
+    : 0
+
+  let cursor = today
+  while (!isWorkday(cursor)) {
+    cursor = getPreviousWorkday(cursor)
+  }
+
+  let streak = 0
+  if (submittedDates.has(toDateKey(cursor))) {
+    while (submittedDates.has(toDateKey(cursor))) {
+      streak += 1
+      cursor = getPreviousWorkday(cursor)
+    }
+  }
+
+  return {
+    streak,
+    monthlyCompliance,
+    submittedInMonth,
+    totalWorkdaysInMonth: workdaysInMonth.length,
+  }
 }

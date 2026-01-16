@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
     const dateParam = searchParams.get('date')
     const userIdParam = searchParams.get('userId')
     const teamIdParam = searchParams.get('teamId')
+    const departmentIdParam = searchParams.get('departmentId')
     const startDateParam = searchParams.get('startDate')
     const endDateParam = searchParams.get('endDate')
 
@@ -54,6 +55,9 @@ export async function GET(request: NextRequest) {
     if (teamIdParam) {
       filters.teamId = teamIdParam
     }
+    if (departmentIdParam) {
+      filters.departmentId = departmentIdParam
+    }
 
     const submissions = await getSubmissions(filters)
 
@@ -66,6 +70,14 @@ export async function GET(request: NextRequest) {
         date: sub.date,
         submittedAt: sub.submittedAt,
         isOnTime: sub.isOnTime,
+        reviewStatus: sub.reviewStatus,
+        reviewNote: sub.reviewNote,
+        reviewedAt: sub.reviewedAt,
+        reviewedBy: sub.reviewedBy ? {
+          id: sub.reviewedBy.id,
+          email: sub.reviewedBy.email,
+          name: sub.reviewedBy.name,
+        } : null,
         imageUrl: `/api/files/daily-notepad/${sub.imageUrl.split('/').pop()}`,
         thumbnailUrl: sub.thumbnailUrl ? `/api/files/daily-notepad/thumbnails/${sub.thumbnailUrl.split('/').pop()}` : null,
         commentsCount: sub._count?.comments || 0,

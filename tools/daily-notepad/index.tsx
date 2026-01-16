@@ -20,6 +20,14 @@ interface Submission {
   imageUrl: string
   thumbnailUrl: string | null
   commentsCount?: number
+  reviewStatus?: string | null
+  reviewNote?: string | null
+  reviewedAt?: string | null
+  reviewedBy?: {
+    id: string
+    email: string
+    name: string | null
+  } | null
 }
 
 interface Stats {
@@ -49,6 +57,13 @@ interface Notification {
   createdAt: string
 }
 
+interface EmployeeStats {
+  streak: number
+  monthlyCompliance: number
+  submittedInMonth: number
+  totalWorkdaysInMonth: number
+}
+
 export default function DailyNotepadTool() {
   const { data: session } = useSession()
   const { effectiveRole } = useRoleView()
@@ -74,6 +89,7 @@ export default function DailyNotepadTool() {
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [todaySubmission, setTodaySubmission] = useState<Submission | null>(null)
   const [loadingSubmissions, setLoadingSubmissions] = useState(false)
+  const [employeeStats, setEmployeeStats] = useState<EmployeeStats | null>(null)
   
   // Manager state
   const [stats, setStats] = useState<Stats | null>(null)
@@ -81,8 +97,18 @@ export default function DailyNotepadTool() {
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [filterEmployee, setFilterEmployee] = useState<string>('all')
+  const [filterDepartment, setFilterDepartment] = useState<string>('all')
+  const [filterTeam, setFilterTeam] = useState<string>('all')
   const [filterDateRange, setFilterDateRange] = useState<'today' | 'week' | 'month'>('today')
   const [loadingStats, setLoadingStats] = useState(false)
+  const [employees, setEmployees] = useState<Array<{ id: string; name: string | null; email: string }>>([])
+  const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([])
+  const [teams, setTeams] = useState<Array<{ id: string; name: string }>>([])
+  const [sendingFollowUpId, setSendingFollowUpId] = useState<string | null>(null)
+  const [followUpNote, setFollowUpNote] = useState<string>('')
+  const [reviewStatus, setReviewStatus] = useState<'ok' | 'needs_follow_up'>('ok')
+  const [reviewNote, setReviewNote] = useState<string>('')
+  const [savingReview, setSavingReview] = useState(false)
   
   // Notifications
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -110,6 +136,7 @@ export default function DailyNotepadTool() {
     if (view === 'employee' && session?.user?.id) {
       loadTodaySubmission()
       loadEmployeeSubmissions()
+      loadEmployeeStats()
     }
   }, [view, session])
 
@@ -119,8 +146,17 @@ export default function DailyNotepadTool() {
       loadStats()
       loadAllSubmissions()
       loadNotifications()
+      loadEmployees()
+      loadDepartments()
+      loadTeams()
     }
-  }, [view, session, filterDateRange, filterEmployee])
+  }, [view, session, filterDateRange, filterEmployee, filterTeam, filterDepartment])
+
+  useEffect(() => {
+    if (filterEmployee !== 'all') {
+      setFilterEmployee('all')
+    }
+  }, [filterTeam, filterDepartment])
 
   const loadTodaySubmission = async () => {
     try {
@@ -155,10 +191,27 @@ export default function DailyNotepadTool() {
     }
   }
 
+  const loadEmployeeStats = async () => {
+    try {
+      const response = await fetch('/api/daily-notepad/my-stats')
+      if (response.ok) {
+        const data = await response.json()
+        setEmployeeStats(data.stats || null)
+      }
+    } catch (error) {
+      console.error('Error loading employee stats:', error)
+    }
+  }
+
   const loadStats = async () => {
     setLoadingStats(true)
     try {
-      const response = await fetch(`/api/daily-notepad/stats?period=${filterDateRange}`)
+      const params = new URLSearchParams({
+        period: filterDateRange,
+      })
+      if (filterTeam !== 'all') params.set('teamId', filterTeam)
+      if (filterDepartment !== 'all') params.set('departmentId', filterDepartment)
+      const response = await fetch(`/api/daily-notepad/stats?${params.toString()}`)
       if (response.ok) {
         const data = await response.json()
         setStats(data.stats)
@@ -187,6 +240,12 @@ export default function DailyNotepadTool() {
       if (filterEmployee !== 'all') {
         url += `&userId=${filterEmployee}`
       }
+      if (filterTeam !== 'all') {
+        url += `&teamId=${filterTeam}`
+      }
+      if (filterDepartment !== 'all') {
+        url += `&departmentId=${filterDepartment}`
+      }
       
       const response = await fetch(url)
       if (response.ok) {
@@ -195,6 +254,45 @@ export default function DailyNotepadTool() {
       }
     } catch (error) {
       console.error('Error loading all submissions:', error)
+    }
+  }
+
+  const loadEmployees = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (filterTeam !== 'all') params.set('teamId', filterTeam)
+      if (filterDepartment !== 'all') params.set('departmentId', filterDepartment)
+      const response = await fetch(`/api/daily-notepad/employees?${params.toString()}`)
+      if (response.ok) {
+        const data = await response.json()
+        setEmployees(data.employees || [])
+      }
+    } catch (error) {
+      console.error('Error loading employees:', error)
+    }
+  }
+
+  const loadDepartments = async () => {
+    try {
+      const response = await fetch('/api/daily-notepad/departments')
+      if (response.ok) {
+        const data = await response.json()
+        setDepartments(data.departments || [])
+      }
+    } catch (error) {
+      console.error('Error loading departments:', error)
+    }
+  }
+
+  const loadTeams = async () => {
+    try {
+      const response = await fetch('/api/daily-notepad/teams')
+      if (response.ok) {
+        const data = await response.json()
+        setTeams(data.teams || [])
+      }
+    } catch (error) {
+      console.error('Error loading teams:', error)
     }
   }
 
@@ -289,6 +387,8 @@ export default function DailyNotepadTool() {
         if (data.submission) {
           setSelectedSubmission(data.submission)
           setSubmissionComments(data.submission.comments || [])
+          setReviewStatus(data.submission.reviewStatus || 'ok')
+          setReviewNote(data.submission.reviewNote || '')
           setManagerView('detail')
         }
       }
@@ -324,6 +424,62 @@ export default function DailyNotepadTool() {
     }
   }
 
+  const handleSendFollowUp = async (employeeId: string) => {
+    setSendingFollowUpId(employeeId)
+    try {
+      const response = await fetch('/api/daily-notepad/follow-up', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employeeId,
+          note: followUpNote.trim() || null,
+        }),
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to send follow-up')
+      }
+      setFollowUpNote('')
+    } catch (error) {
+      console.error('Error sending follow-up:', error)
+    } finally {
+      setSendingFollowUpId(null)
+    }
+  }
+
+  const handleSaveReview = async () => {
+    if (!selectedSubmission) return
+    setSavingReview(true)
+    try {
+      const response = await fetch(`/api/daily-notepad/submissions/${selectedSubmission.id}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reviewStatus,
+          reviewNote: reviewNote.trim() || null,
+        }),
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setSelectedSubmission((prev) =>
+          prev
+            ? {
+                ...prev,
+                reviewStatus: data.submission.reviewStatus,
+                reviewNote: data.submission.reviewNote,
+                reviewedAt: data.submission.reviewedAt,
+                reviewedBy: data.submission.reviewedBy,
+              }
+            : prev
+        )
+      }
+    } catch (error) {
+      console.error('Error saving review:', error)
+    } finally {
+      setSavingReview(false)
+    }
+  }
+
   const markNotificationRead = async (notificationId: string) => {
     try {
       await fetch(`/api/notifications/${notificationId}/read`, {
@@ -333,6 +489,13 @@ export default function DailyNotepadTool() {
     } catch (error) {
       console.error('Error marking notification as read:', error)
     }
+  }
+
+  const getReportUrl = (formatType: 'csv' | 'pdf') => {
+    const params = new URLSearchParams({ format: formatType })
+    if (filterTeam !== 'all') params.set('teamId', filterTeam)
+    if (filterDepartment !== 'all') params.set('departmentId', filterDepartment)
+    return `/api/daily-notepad/reports?${params.toString()}`
   }
 
   // Employee View
@@ -356,6 +519,36 @@ export default function DailyNotepadTool() {
               </div>
             </div>
           </div>
+
+          {/* Employee Stats */}
+          {employeeStats && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-lg p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Current Streak</span>
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                </div>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {employeeStats.streak} day{employeeStats.streak !== 1 ? 's' : ''}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Consecutive workdays submitted
+                </p>
+              </div>
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-lg p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Monthly Compliance</span>
+                  <CheckCircle2 className="w-5 h-5 text-blue-500" />
+                </div>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {employeeStats.monthlyCompliance.toFixed(1)}%
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {employeeStats.submittedInMonth} of {employeeStats.totalWorkdaysInMonth} workdays
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="flex space-x-2 mb-8 bg-gray-100 dark:bg-gray-800 p-1.5 rounded-xl">
@@ -581,12 +774,12 @@ export default function DailyNotepadTool() {
                 </div>
 
                 {/* Calendar Grid */}
-                <div className="grid grid-cols-7 gap-2 mb-4">
+                <div className="grid grid-cols-7 gap-px mb-4 bg-gray-200 dark:bg-gray-700 rounded-xl overflow-hidden">
                   {/* Day headers */}
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
                     <div
                       key={day}
-                      className="text-center text-sm font-semibold text-gray-600 dark:text-gray-400 py-2"
+                      className="bg-gray-50 dark:bg-gray-800 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 py-2 uppercase tracking-wide"
                     >
                       {day}
                     </div>
@@ -602,7 +795,7 @@ export default function DailyNotepadTool() {
 
                     // Empty cells before month starts
                     const emptyStart = Array.from({ length: startDay }, (_, i) => (
-                      <div key={`empty-start-${i}`} className="aspect-square"></div>
+                      <div key={`empty-start-${i}`} className="aspect-square bg-white dark:bg-gray-900"></div>
                     ))
 
                     // Month days
@@ -620,12 +813,12 @@ export default function DailyNotepadTool() {
                               setSelectedSubmissionDate(submission)
                             }
                           }}
-                          className={`aspect-square p-2 rounded-lg border-2 transition-all duration-200 relative min-h-[3rem] ${
+                          className={`aspect-square p-2 transition-all duration-200 relative min-h-[3rem] bg-white dark:bg-gray-900 ${
                             submission
-                              ? 'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 hover:scale-105 cursor-pointer'
+                              ? 'ring-2 ring-green-400 dark:ring-green-700 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 cursor-pointer'
                               : isCurrentDay
-                              ? 'bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-700'
-                              : 'border-transparent hover:bg-gray-50 dark:hover:bg-gray-800'
+                              ? 'ring-2 ring-red-400 dark:ring-red-700 bg-red-50 dark:bg-red-900/20'
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                           } ${isWeekendDay ? 'opacity-60' : ''}`}
                         >
                           <div className="flex flex-col items-center justify-center h-full">
@@ -655,7 +848,7 @@ export default function DailyNotepadTool() {
                     const daysAfterMonthEnd = (6 - endDay + 7) % 7
                     const emptyEnd = daysAfterMonthEnd > 0 
                       ? Array.from({ length: daysAfterMonthEnd }, (_, i) => (
-                          <div key={`empty-end-${i}`} className="aspect-square"></div>
+                          <div key={`empty-end-${i}`} className="aspect-square bg-white dark:bg-gray-900"></div>
                         ))
                       : []
 
@@ -715,6 +908,31 @@ export default function DailyNotepadTool() {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
                         </div>
+                        {selectedSubmissionDate.reviewStatus && (
+                          <div className="mt-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span
+                                className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                                  selectedSubmissionDate.reviewStatus === 'ok'
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                    : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                }`}
+                              >
+                                {selectedSubmissionDate.reviewStatus === 'ok' ? 'Reviewed: OK' : 'Reviewed: Follow-up'}
+                              </span>
+                              {selectedSubmissionDate.reviewedAt && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {format(new Date(selectedSubmissionDate.reviewedAt), 'PPp')}
+                                </span>
+                              )}
+                            </div>
+                            {selectedSubmissionDate.reviewNote && (
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                                {selectedSubmissionDate.reviewNote}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -783,6 +1001,24 @@ export default function DailyNotepadTool() {
                             <Clock className="w-3.5 h-3.5" />
                             <span>{format(new Date(submission.submittedAt), 'p')}</span>
                           </div>
+                          {submission.reviewStatus && (
+                            <div className="mt-3 text-xs">
+                              <span
+                                className={`px-2 py-1 rounded-full font-semibold ${
+                                  submission.reviewStatus === 'ok'
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                    : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                }`}
+                              >
+                                {submission.reviewStatus === 'ok' ? 'Reviewed: OK' : 'Reviewed: Follow-up'}
+                              </span>
+                              {submission.reviewNote && (
+                                <p className="mt-2 text-gray-600 dark:text-gray-400 line-clamp-2">
+                                  {submission.reviewNote}
+                                </p>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -806,19 +1042,33 @@ export default function DailyNotepadTool() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Daily Notepad Dashboard</h1>
             <p className="text-gray-600 dark:text-gray-400">Monitor employee daily notepad submissions</p>
           </div>
-          {unreadCount > 0 && (
-            <button
-              onClick={() => setManagerView('dashboard')}
-              className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <button
+                onClick={() => setManagerView('dashboard')}
+                className="relative p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              >
+                <Bell className="w-6 h-6" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 w-5 h-5 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
+            <a
+              href={getReportUrl('csv')}
+              className="px-3 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
             >
-              <Bell className="w-6 h-6" />
-              {unreadCount > 0 && (
-                <span className="absolute top-0 right-0 w-5 h-5 bg-red-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-          )}
+              Export CSV
+            </a>
+            <a
+              href={getReportUrl('pdf')}
+              className="px-3 py-2 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+            >
+              Export PDF
+            </a>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -900,14 +1150,34 @@ export default function DailyNotepadTool() {
                 {stats.missingEmployees.length > 0 && (
                   <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg p-6">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Missing Submissions ({stats.missingEmployees.length})</h3>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                        Follow-up note (optional)
+                      </label>
+                      <input
+                        value={followUpNote}
+                        onChange={(e) => setFollowUpNote(e.target.value)}
+                        placeholder="Add a quick note to include in follow-ups"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                      />
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {stats.missingEmployees.map((emp) => (
                         <div
                           key={emp.id}
-                          className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+                          className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between gap-3"
                         >
-                          <p className="font-medium text-gray-900 dark:text-white">{emp.name || emp.email}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{emp.email}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium text-gray-900 dark:text-white truncate">{emp.name || emp.email}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{emp.email}</p>
+                          </div>
+                          <button
+                            onClick={() => handleSendFollowUp(emp.id)}
+                            disabled={sendingFollowUpId === emp.id}
+                            className="px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {sendingFollowUpId === emp.id ? 'Sending...' : 'Follow up'}
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -929,6 +1199,30 @@ export default function DailyNotepadTool() {
                         <option value="month">This Month</option>
                       </select>
                     </div>
+                    <select
+                      value={filterDepartment}
+                      onChange={(e) => setFilterDepartment(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    >
+                      <option value="all">All Departments</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={filterTeam}
+                      onChange={(e) => setFilterTeam(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    >
+                      <option value="all">All Teams</option>
+                      {teams.map((team) => (
+                        <option key={team.id} value={team.id}>
+                          {team.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </>
@@ -954,6 +1248,42 @@ export default function DailyNotepadTool() {
                     <option value="month">This Month</option>
                   </select>
                 </div>
+                <select
+                  value={filterDepartment}
+                  onChange={(e) => setFilterDepartment(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Departments</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={filterTeam}
+                  onChange={(e) => setFilterTeam(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Teams</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={filterEmployee}
+                  onChange={(e) => setFilterEmployee(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Employees</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name || emp.email}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -987,6 +1317,19 @@ export default function DailyNotepadTool() {
                         </span>
                       )}
                     </div>
+                    {submission.reviewStatus && (
+                      <div className="mb-2">
+                        <span
+                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            submission.reviewStatus === 'ok'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                              : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                          }`}
+                        >
+                          {submission.reviewStatus === 'ok' ? 'Reviewed: OK' : 'Reviewed: Follow-up'}
+                        </span>
+                      </div>
+                    )}
                     <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                       {format(new Date(submission.date), 'PP')}
                     </p>
@@ -1094,6 +1437,62 @@ export default function DailyNotepadTool() {
                   alt={`${selectedSubmission.user?.name || selectedSubmission.user?.email} - ${format(new Date(selectedSubmission.date), 'PP')}`}
                   className="w-full max-w-4xl mx-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg"
                 />
+              </div>
+
+              {/* Review Section */}
+              <div className="p-6 border-t border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                  Manager Review
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={reviewStatus}
+                      onChange={(e) => setReviewStatus(e.target.value as 'ok' | 'needs_follow_up')}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    >
+                      <option value="ok">OK</option>
+                      <option value="needs_follow_up">Needs Follow-up</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                      Last Reviewed
+                    </label>
+                    <div className="text-sm text-gray-700 dark:text-gray-300">
+                      {selectedSubmission.reviewedAt
+                        ? format(new Date(selectedSubmission.reviewedAt), 'PPp')
+                        : 'Not reviewed yet'}
+                    </div>
+                    {selectedSubmission.reviewedBy && (
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        By {selectedSubmission.reviewedBy.name || selectedSubmission.reviewedBy.email}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                    Note
+                  </label>
+                  <textarea
+                    value={reviewNote}
+                    onChange={(e) => setReviewNote(e.target.value)}
+                    placeholder="Add a short note (optional)"
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                  />
+                </div>
+                <button
+                  onClick={handleSaveReview}
+                  disabled={savingReview}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingReview ? 'Saving...' : 'Save Review'}
+                </button>
               </div>
 
               {/* Comments Section */}

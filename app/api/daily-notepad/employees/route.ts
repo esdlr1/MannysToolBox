@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getMissingSubmissions, getTodayDate, isWorkday } from '@/lib/daily-notepad'
 import { prisma } from '@/lib/prisma'
+import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Check if user is manager/owner/admin
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true },
@@ -30,37 +29,32 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const dateParam = searchParams.get('date')
     const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
 
-    const targetDate = dateParam ? new Date(dateParam) : getTodayDate()
+    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId })
 
-    if (!isWorkday(targetDate)) {
-      return NextResponse.json({
-        success: true,
-        date: targetDate,
-        missing: [],
-        message: 'Not a workday',
-      })
-    }
-
-    const missing = await getMissingSubmissions(targetDate, { teamId, departmentId })
+    const employees = await prisma.user.findMany({
+      where: {
+        id: { in: employeeIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        departmentId: true,
+      },
+      orderBy: { name: 'asc' },
+    })
 
     return NextResponse.json({
       success: true,
-      date: targetDate,
-      missing: missing.map(emp => ({
-        id: emp.id,
-        email: emp.email,
-        name: emp.name,
-      })),
-      count: missing.length,
+      employees,
     })
   } catch (error) {
-    console.error('Get missing submissions error:', error)
+    console.error('Get employees error:', error)
     return NextResponse.json(
-      { error: 'Failed to get missing submissions' },
+      { error: 'Failed to get employees' },
       { status: 500 }
     )
   }
