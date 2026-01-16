@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRoleView } from '@/contexts/RoleViewContext'
 import { Upload, Camera, CheckCircle2, X, Calendar, Clock, AlertCircle, FileImage, Users, TrendingUp, Filter, Search, ChevronLeft, ChevronRight, MessageSquare, Download, Eye, Loader2, Bell } from 'lucide-react'
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isWeekend, addDays, subDays, startOfMonth, endOfMonth } from 'date-fns'
 
@@ -50,6 +51,7 @@ interface Notification {
 
 export default function DailyNotepadTool() {
   const { data: session } = useSession()
+  const { effectiveRole } = useRoleView()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   
@@ -90,14 +92,14 @@ export default function DailyNotepadTool() {
   // Error state
   const [error, setError] = useState('')
 
-  // Determine view based on user role
+  // Determine view based on effective role (uses view-as role if set, otherwise actual role)
   useEffect(() => {
-    if (session?.user?.role && ['Manager', 'Owner', 'Super Admin'].includes(session.user.role)) {
+    if (effectiveRole && ['Manager', 'Owner', 'Super Admin'].includes(effectiveRole)) {
       setView('manager')
     } else {
       setView('employee')
     }
-  }, [session])
+  }, [effectiveRole])
 
   // Load today's submission for employee
   useEffect(() => {
