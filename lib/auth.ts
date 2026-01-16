@@ -63,18 +63,33 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
+      // Initial sign in - use user data
       if (user) {
         token.id = user.id
         token.role = (user as any).role
         token.isApproved = (user as any).isApproved
+      } else if (token.id) {
+        // Token refresh - fetch fresh user data from database
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { role: true, isApproved: true },
+          })
+          if (dbUser) {
+            token.role = dbUser.role
+            token.isApproved = dbUser.isApproved
+          }
+        } catch (error) {
+          console.error('Error fetching user data for JWT refresh:', error)
+        }
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.role = token.role
-        session.user.isApproved = token.isApproved
+        session.user.role = token.role as string | null | undefined
+        session.user.isApproved = token.isApproved as boolean | undefined
       }
       return session
     },
