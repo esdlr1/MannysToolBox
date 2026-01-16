@@ -26,7 +26,14 @@ let openai: OpenAI | null = null
 function getOpenAI(): OpenAI {
   if (!openai) {
     let apiKey = process.env.OPENAI_API_KEY
+    console.log('[OpenAI] Checking API key...', {
+      hasKey: !!apiKey,
+      keyLength: apiKey?.length || 0,
+      keyPrefix: apiKey?.substring(0, 10) || 'none',
+    })
+    
     if (!apiKey) {
+      console.error('[OpenAI] OPENAI_API_KEY is not set in environment variables')
       throw new Error('OPENAI_API_KEY is not set in environment variables')
     }
     
@@ -42,10 +49,11 @@ function getOpenAI(): OpenAI {
       const preview = apiKey.length > 10 
         ? `${apiKey.substring(0, 7)}...${apiKey.substring(apiKey.length - 3)}` 
         : '***'
-      console.error(`Invalid OpenAI API key format. Key preview: ${preview}`)
+      console.error(`[OpenAI] Invalid OpenAI API key format. Key preview: ${preview}`)
       throw new Error('OPENAI_API_KEY format is invalid. It should start with "sk-"')
     }
     
+    console.log('[OpenAI] Initializing OpenAI client with key prefix:', apiKey.substring(0, 10) + '...')
     openai = new OpenAI({ apiKey })
   }
   return openai
@@ -56,7 +64,16 @@ function getOpenAI(): OpenAI {
  */
 export async function callAI(request: AIRequest): Promise<AIResponse> {
   try {
-    const client = getOpenAI()
+    let client: OpenAI
+    try {
+      client = getOpenAI()
+    } catch (initError: any) {
+      console.error('[OpenAI] Initialization error:', initError.message)
+      return {
+        result: '',
+        error: initError.message || 'Failed to initialize OpenAI client'
+      }
+    }
     
     const systemPrompt = request.systemPrompt || 
       (request.toolId 
@@ -87,7 +104,23 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
       } : undefined
     }
   } catch (error: any) {
-    console.error('OpenAI API error:', error)
+    console.error('[OpenAI] API error:', {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      type: error.type,
+    })
+    
+    // Check if it's an authentication error
+    if (error.status === 401 || error.code === 'invalid_api_key' || 
+        error.message?.toLowerCase().includes('incorrect api key') ||
+        error.message?.toLowerCase().includes('invalid_api_key')) {
+      return {
+        result: '',
+        error: 'OpenAI API key is invalid or incorrect. Please check your OPENAI_API_KEY environment variable.'
+      }
+    }
+    
     return {
       result: '',
       error: error.message || 'Failed to get AI response'
