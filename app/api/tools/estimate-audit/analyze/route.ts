@@ -15,6 +15,17 @@ function hasAny(text: string, keywords: string[]) {
   return keywords.some((keyword) => text.includes(keyword))
 }
 
+function isOpenAIAuthError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error || '')
+  const normalized = message.toLowerCase()
+  return (
+    normalized.includes('incorrect api key') ||
+    normalized.includes('invalid_api_key') ||
+    normalized.includes('openai_api_key is not set') ||
+    normalized.includes('missing api key')
+  )
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -202,6 +213,12 @@ Return only valid JSON matching the requested schema.`,
     return NextResponse.json(result)
   } catch (error: any) {
     console.error('Estimate audit error:', error)
+    if (isOpenAIAuthError(error)) {
+      return NextResponse.json(
+        { error: 'OpenAI API key is missing or invalid. Set OPENAI_API_KEY and restart the server.' },
+        { status: 401 }
+      )
+    }
     return NextResponse.json(
       { error: 'Failed to analyze estimate', details: error.message },
       { status: 500 }
