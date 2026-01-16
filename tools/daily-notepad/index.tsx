@@ -109,6 +109,7 @@ export default function DailyNotepadTool() {
   const [reviewStatus, setReviewStatus] = useState<'ok' | 'needs_follow_up'>('ok')
   const [reviewNote, setReviewNote] = useState<string>('')
   const [savingReview, setSavingReview] = useState(false)
+  const [showMissingPanel, setShowMissingPanel] = useState(false)
   
   // Notifications
   const [notifications, setNotifications] = useState<Notification[]>([])
@@ -496,6 +497,18 @@ export default function DailyNotepadTool() {
     if (filterTeam !== 'all') params.set('teamId', filterTeam)
     if (filterDepartment !== 'all') params.set('departmentId', filterDepartment)
     return `/api/daily-notepad/reports?${params.toString()}`
+  }
+
+  const handleViewSubmittedToday = () => {
+    setFilterDateRange('today')
+    setFilterEmployee('all')
+    setManagerView('list')
+  }
+
+  const handleViewMissingToday = () => {
+    setFilterDateRange('today')
+    setShowMissingPanel(true)
+    setManagerView('dashboard')
   }
 
   // Employee View
@@ -1118,25 +1131,33 @@ export default function DailyNotepadTool() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Employees</span>
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        {effectiveRole === 'Manager' ? 'Assigned Employees' : 'Total Employees'}
+                      </span>
                       <Users className="w-5 h-5 text-gray-400" />
                     </div>
                     <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalEmployees}</p>
                   </div>
-                  <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                  <button
+                    onClick={handleViewSubmittedToday}
+                    className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 text-left hover:shadow-md transition-shadow"
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Submitted Today</span>
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
                     </div>
                     <p className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.today.submitted}</p>
-                  </div>
-                  <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                  </button>
+                  <button
+                    onClick={handleViewMissingToday}
+                    className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 text-left hover:shadow-md transition-shadow"
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Missing Today</span>
                       <AlertCircle className="w-5 h-5 text-red-500" />
                     </div>
                     <p className="text-3xl font-bold text-red-600 dark:text-red-400">{stats.today.missing}</p>
-                  </div>
+                  </button>
                   <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Submission Rate</span>
@@ -1147,7 +1168,7 @@ export default function DailyNotepadTool() {
                 </div>
 
                 {/* Missing Employees */}
-                {stats.missingEmployees.length > 0 && (
+                {(stats.missingEmployees.length > 0 || showMissingPanel) && (
                   <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-lg p-6">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Missing Submissions ({stats.missingEmployees.length})</h3>
                     <div className="mb-4">
@@ -1161,26 +1182,32 @@ export default function DailyNotepadTool() {
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
                       />
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {stats.missingEmployees.map((emp) => (
-                        <div
-                          key={emp.id}
-                          className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between gap-3"
-                        >
-                          <div className="min-w-0">
-                            <p className="font-medium text-gray-900 dark:text-white truncate">{emp.name || emp.email}</p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{emp.email}</p>
-                          </div>
-                          <button
-                            onClick={() => handleSendFollowUp(emp.id)}
-                            disabled={sendingFollowUpId === emp.id}
-                            className="px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    {stats.missingEmployees.length === 0 ? (
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        No missing submissions for today.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {stats.missingEmployees.map((emp) => (
+                          <div
+                            key={emp.id}
+                            className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between gap-3"
                           >
-                            {sendingFollowUpId === emp.id ? 'Sending...' : 'Follow up'}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                            <div className="min-w-0">
+                              <p className="font-medium text-gray-900 dark:text-white truncate">{emp.name || emp.email}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{emp.email}</p>
+                            </div>
+                            <button
+                              onClick={() => handleSendFollowUp(emp.id)}
+                              disabled={sendingFollowUpId === emp.id}
+                              className="px-3 py-1.5 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {sendingFollowUpId === emp.id ? 'Sending...' : 'Follow up'}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
