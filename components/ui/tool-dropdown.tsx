@@ -123,7 +123,7 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute w-full mt-2 rounded-2xl border-2 overflow-hidden shadow-2xl bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 z-50 max-h-[600px] flex flex-col"
+            className="absolute w-full mt-2 rounded-2xl border-2 overflow-hidden shadow-2xl bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 z-50 max-h-[70vh] flex flex-col"
           >
             {/* Search Input */}
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -142,7 +142,7 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
             </div>
 
             {/* Tools List */}
-            <div className="overflow-y-auto max-h-[500px]">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
               {Object.keys(toolsByCategory).length === 0 ? (
                 <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                   <p>No tools found matching &quot;{searchQuery}&quot;</p>
