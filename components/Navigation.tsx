@@ -381,8 +381,53 @@ export default function Navigation() {
                 {session ? (
                   <>
                     <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Profile</Link>
+                    {session.user?.role === 'Super Admin' && (
+                      <Link href="/admin/approvals" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">User Approvals</Link>
+                    )}
+                    <Link href="/announcements" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Announcements</Link>
                     <Link href="/history" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">History</Link>
                     <Link href="/saved" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Saved Work</Link>
+                    {session.user?.role === 'Super Admin' && (
+                      <>
+                        <hr className="my-2 border-gray-200 dark:border-gray-700" />
+                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">View As</div>
+                        <button
+                          onClick={() => {
+                            setViewAsRole(null)
+                            setIsMobileMenuOpen(false)
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm ${
+                            !isViewingAs
+                              ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium'
+                              : 'text-gray-700 dark:text-gray-200'
+                          }`}
+                        >
+                          Super Admin (Actual)
+                        </button>
+                        {['Employee', 'Manager', 'Owner', 'Super Admin'].map((role) => (
+                          <button
+                            key={role}
+                            onClick={() => {
+                              setViewAsRole(role as any)
+                              setIsMobileMenuOpen(false)
+                            }}
+                            className={`w-full text-left px-4 py-2 text-sm ${
+                              viewAsRole === role
+                                ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium'
+                                : 'text-gray-700 dark:text-gray-200'
+                            }`}
+                          >
+                            {role}
+                          </button>
+                        ))}
+                        {isViewingAs && (
+                          <div className="px-4 py-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20">
+                            Viewing as: <span className="font-semibold">{viewAsRole}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <hr className="my-2 border-gray-200 dark:border-gray-700" />
                     <button
                       onClick={() => signOut({ callbackUrl: '/' })}
                       className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400"
