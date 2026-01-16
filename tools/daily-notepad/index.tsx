@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRoleView } from '@/contexts/RoleViewContext'
 import { Upload, Camera, CheckCircle2, X, Calendar, Clock, AlertCircle, FileImage, Users, TrendingUp, Filter, Search, ChevronLeft, ChevronRight, MessageSquare, Download, Eye, Loader2, Bell } from 'lucide-react'
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isWeekend, addDays, subDays, startOfMonth, endOfMonth } from 'date-fns'
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isWeekend, addDays, subDays, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns'
 
 interface Submission {
   id: string
@@ -552,7 +552,7 @@ export default function DailyNotepadTool() {
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => setCalendarMonth(subDays(calendarMonth, 1))}
+                      onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}
                       className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       aria-label="Previous month"
                     >
@@ -565,7 +565,7 @@ export default function DailyNotepadTool() {
                       Today
                     </button>
                     <button
-                      onClick={() => setCalendarMonth(addDays(calendarMonth, 1))}
+                      onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}
                       className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       aria-label="Next month"
                     >
@@ -620,7 +620,7 @@ export default function DailyNotepadTool() {
                               setSelectedSubmissionDate(submission)
                             }
                           }}
-                          className={`aspect-square p-2 rounded-lg border-2 transition-all duration-200 relative ${
+                          className={`aspect-square p-2 rounded-lg border-2 transition-all duration-200 relative min-h-[3rem] ${
                             submission
                               ? 'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 hover:scale-105 cursor-pointer'
                               : isCurrentDay
@@ -650,10 +650,14 @@ export default function DailyNotepadTool() {
                       )
                     })
 
-                    // Empty cells after month ends
-                    const emptyEnd = Array.from({ length: 6 - endDay }, (_, i) => (
-                      <div key={`empty-end-${i}`} className="aspect-square"></div>
-                    ))
+                    // Empty cells after month ends to complete the last week
+                    // Calculate how many cells needed to complete the week (7 days total)
+                    const daysAfterMonthEnd = (6 - endDay + 7) % 7
+                    const emptyEnd = daysAfterMonthEnd > 0 
+                      ? Array.from({ length: daysAfterMonthEnd }, (_, i) => (
+                          <div key={`empty-end-${i}`} className="aspect-square"></div>
+                        ))
+                      : []
 
                     return [...emptyStart, ...monthDays, ...emptyEnd]
                   })()}
