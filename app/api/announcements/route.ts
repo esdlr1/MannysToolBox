@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
       throw dbError
     }
 
-    // Notify all employees (in-app notifications) - don't fail if this errors
+    // Notify all employees (in-app notifications and emails) - don't fail if this errors
     try {
       const employees = await prisma.user.findMany({
         where: {
@@ -140,24 +140,24 @@ export async function POST(request: NextRequest) {
       )
 
       await Promise.all(notificationPromises)
+
+      // Send email notifications (async, don't wait)
+      employees.forEach((employee) => {
+        sendAnnouncementEmail({
+          to: employee.email,
+          name: employee.name || 'Employee',
+          announcementTitle: title,
+          announcementMessage: message,
+          priority: priority || 'normal',
+          authorName: session.user?.name || 'Management',
+        }).catch((error) => {
+          console.error(`Failed to send email to ${employee.email}:`, error)
+        })
+      })
     } catch (notifError) {
       console.error('Error creating notifications (non-fatal):', notifError)
       // Continue even if notifications fail
     }
-
-    // Send email notifications (async, don't wait)
-    employees.forEach((employee) => {
-      sendAnnouncementEmail({
-        to: employee.email,
-        name: employee.name || 'Employee',
-        announcementTitle: title,
-        announcementMessage: message,
-        priority: priority || 'normal',
-        authorName: session.user?.name || 'Management',
-      }).catch((error) => {
-        console.error(`Failed to send email to ${employee.email}:`, error)
-      })
-    })
 
     return NextResponse.json(
       { announcement, message: 'Announcement created and notifications sent' },
