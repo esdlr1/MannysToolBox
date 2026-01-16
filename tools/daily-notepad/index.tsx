@@ -609,7 +609,7 @@ export default function DailyNotepadTool() {
                     const monthDays = daysInMonth.map((day) => {
                       const dayStr = format(day, 'yyyy-MM-dd')
                       const submission = submissions.find((s) => format(new Date(s.date), 'yyyy-MM-dd') === dayStr)
-                      const isToday = isToday(day)
+                      const isCurrentDay = isToday(day)
                       const isWeekendDay = isWeekend(day)
 
                       return (
@@ -623,7 +623,7 @@ export default function DailyNotepadTool() {
                           className={`aspect-square p-2 rounded-lg border-2 transition-all duration-200 relative ${
                             submission
                               ? 'bg-green-50 dark:bg-green-900/20 border-green-400 dark:border-green-700 hover:bg-green-100 dark:hover:bg-green-900/30 hover:scale-105 cursor-pointer'
-                              : isToday
+                              : isCurrentDay
                               ? 'bg-red-50 dark:bg-red-900/20 border-red-400 dark:border-red-700'
                               : 'border-transparent hover:bg-gray-50 dark:hover:bg-gray-800'
                           } ${isWeekendDay ? 'opacity-60' : ''}`}
@@ -633,7 +633,7 @@ export default function DailyNotepadTool() {
                               className={`text-sm font-semibold ${
                                 submission
                                   ? 'text-green-700 dark:text-green-300'
-                                  : isToday
+                                  : isCurrentDay
                                   ? 'text-red-600 dark:text-red-400'
                                   : 'text-gray-700 dark:text-gray-300'
                               }`}
