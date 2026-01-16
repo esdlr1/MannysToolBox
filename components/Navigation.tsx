@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { getToolsByCategory, getCategories } from '@/lib/tools'
+import { useRoleView } from '@/contexts/RoleViewContext'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Eye } from 'lucide-react'
 
 // Get current subdomain
 function getCurrentSubdomain(): string | null {
@@ -55,12 +57,15 @@ export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
   const { data: session, status } = useSession()
+  const { viewAsRole, setViewAsRole, effectiveRole, isViewingAs } = useRoleView()
   const [isToolMenuOpen, setIsToolMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [currentSubdomain, setCurrentSubdomain] = useState<string | null>(null)
   const toolMenuRef = useRef<HTMLDivElement>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
+  const roleMenuRef = useRef<HTMLDivElement>(null)
 
   const categorizedTools = getToolsByCategory()
   const categories = getCategories()
@@ -77,6 +82,9 @@ export default function Navigation() {
       }
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false)
+      }
+      if (roleMenuRef.current && !roleMenuRef.current.contains(event.target as Node)) {
+        setIsRoleMenuOpen(false)
       }
     }
 
@@ -200,13 +208,79 @@ export default function Navigation() {
                         Profile
                       </Link>
                       {session.user?.role === 'Super Admin' && (
-                        <Link
-                          href="/admin/approvals"
-                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
-                          User Approvals
-                        </Link>
+                        <>
+                          <Link
+                            href="/admin/approvals"
+                            className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            User Approvals
+                          </Link>
+                          <hr className="my-1 border-gray-300 dark:border-gray-700" />
+                          <div className="relative" ref={roleMenuRef}>
+                            <button
+                              onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
+                              className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between ${
+                                isViewingAs
+                                  ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
+                                  : 'text-gray-700 dark:text-gray-200'
+                              } hover:bg-red-50 dark:hover:bg-gray-700 transition-colors`}
+                            >
+                              <span className="flex items-center gap-2">
+                                <Eye className="w-4 h-4" />
+                                View As
+                              </span>
+                              <svg
+                                className={`w-4 h-4 transition-transform ${isRoleMenuOpen ? 'rotate-180' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                            {isRoleMenuOpen && (
+                              <div className="absolute left-full ml-2 top-0 w-40 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl z-50">
+                                <button
+                                  onClick={() => {
+                                    setViewAsRole(null)
+                                    setIsRoleMenuOpen(false)
+                                    setIsUserMenuOpen(false)
+                                  }}
+                                  className={`w-full text-left px-4 py-2 text-sm ${
+                                    !isViewingAs
+                                      ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium'
+                                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                  } transition-colors`}
+                                >
+                                  Super Admin (Actual)
+                                </button>
+                                {['Employee', 'Manager', 'Owner', 'Super Admin'].map((role) => (
+                                  <button
+                                    key={role}
+                                    onClick={() => {
+                                      setViewAsRole(role as any)
+                                      setIsRoleMenuOpen(false)
+                                      setIsUserMenuOpen(false)
+                                    }}
+                                    className={`w-full text-left px-4 py-2 text-sm ${
+                                      viewAsRole === role
+                                        ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium'
+                                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                    } transition-colors`}
+                                  >
+                                    {role}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          {isViewingAs && (
+                            <div className="px-4 py-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-t border-red-200 dark:border-red-800">
+                              Viewing as: <span className="font-semibold">{viewAsRole}</span>
+                            </div>
+                          )}
+                        </>
                       )}
                       <Link
                         href="/announcements"

@@ -7,13 +7,15 @@ import AnnouncementForm from '@/components/announcements/AnnouncementForm'
 import { Plus, Megaphone } from 'lucide-react'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { canCreateAnnouncement as canCreate } from '@/lib/announcements'
+import { useRoleView } from '@/contexts/RoleViewContext'
 
 export default function AnnouncementsPage() {
   const { data: session, status } = useSession()
+  const { effectiveRole } = useRoleView()
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const canCreateAnnouncement = canCreate(session?.user?.role)
+  const canCreateAnnouncement = canCreate(effectiveRole)
 
   const handleAnnouncementSuccess = () => {
     setRefreshKey((prev) => prev + 1)
@@ -64,7 +66,7 @@ export default function AnnouncementsPage() {
             key={refreshKey}
             showActions={canCreateAnnouncement}
             currentUserId={session?.user?.id}
-            currentUserRole={session?.user?.role}
+            currentUserRole={effectiveRole}
           />
 
           {/* Announcement Form Modal */}

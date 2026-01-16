@@ -8,17 +8,21 @@ import { Plus, ClipboardList, BarChart3, Users } from 'lucide-react'
 import Link from 'next/link'
 import { getTools } from '@/lib/tools'
 import { canCreateAnnouncement as canCreate } from '@/lib/announcements'
+import { useRoleView } from '@/contexts/RoleViewContext'
 
 interface DashboardProps {
   role: string | null | undefined
 }
 
-export default function Dashboard({ role }: DashboardProps) {
+export default function Dashboard({ role: propRole }: DashboardProps) {
   const { data: session } = useSession()
+  const { effectiveRole } = useRoleView()
   const [showAnnouncementForm, setShowAnnouncementForm] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const tools = getTools()
 
+  // Use effectiveRole if available, otherwise fall back to propRole
+  const role = effectiveRole || propRole
   const canCreateAnnouncement = canCreate(role)
 
   const handleAnnouncementSuccess = () => {

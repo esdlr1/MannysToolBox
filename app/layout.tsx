@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Navigation from '@/components/Navigation'
 import { SessionProvider } from '@/components/SessionProvider'
+import { RoleViewProvider } from '@/contexts/RoleViewContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,8 +21,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <SessionProvider>
-          <Navigation />
-          {children}
+          <RoleViewProvider>
+            <Navigation />
+            {children}
+          </RoleViewProvider>
         </SessionProvider>
       </body>
     </html>
