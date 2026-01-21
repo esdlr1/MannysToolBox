@@ -318,20 +318,34 @@ FULL CONTRACTOR LINE ITEMS (showing first ${Math.min(maxItemsPerEstimate, contra
 - Cost estimation practices
 - Room naming variations (Kitchen/Kit/K, Living Room/LR, Bedroom/BR, etc.)
 - Sketch layout differences and how to match items across different room naming conventions
+- Construction synonyms and terminology variations
 
-Your task is to accurately compare construction estimates, identifying:
-1. Missing items (contractor has, adjuster doesn't)
-2. Discrepancies in quantities, prices, measurements
-3. Scope differences
-4. Cost impacts
+Your PRIMARY GOAL is ACCURACY, not finding differences. Be VERY CONSERVATIVE:
+- Only flag items as "missing" if you are ABSOLUTELY CERTAIN they don't exist in the adjuster estimate
+- When in doubt, assume items match (even if worded differently)
+- False positives (flagging items as missing when they exist) are WORSE than false negatives (missing actual differences)
+
+Your task is to accurately compare construction estimates, identifying ONLY GENUINE differences:
+1. Missing items (contractor has, adjuster doesn't) - ONLY if 100% certain
+2. Discrepancies in quantities, prices, measurements - ONLY if same item confirmed
+3. Scope differences - ONLY if truly missing
+4. Cost impacts - Calculate accurately
+
+MATCHING PRIORITY (in order):
+1. Match by code first (highest confidence)
+2. Match by description similarity + quantity/price match
+3. Match by description similarity + category match
+4. Match by description similarity alone (only if >80% similar)
 
 IMPORTANT: Handle room name and sketch variations intelligently:
 - Match items by code and description even if room names differ
 - "Kitchen" = "Kit" = "K" = "Kitchen Area" are the same room
 - Focus on item matching, not exact room name matching
 - Sketch differences are expected - prioritize item codes and descriptions
+- When descriptions differ but codes match, they are THE SAME ITEM
 
 Be precise with calculations and prioritize critical issues that could affect project scope or safety.
+REMEMBER: It's better to miss a difference than to incorrectly flag an item as missing.
 
 IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-JSON.`,
           temperature: 0.2, // Very low temperature for consistent, accurate results
