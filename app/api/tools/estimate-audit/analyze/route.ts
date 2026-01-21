@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { callAI } from '@/lib/ai'
 import { parseEstimatePDF } from '@/lib/pdf-parser'
+import { existsSync } from 'fs'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,18 +62,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    // Check if file exists on filesystem
+    if (!existsSync(fileRecord.path)) {
+      console.error('[Estimate Audit] File not found:', fileRecord.path)
+      return NextResponse.json(
+        { error: 'File not found on server. Please upload the file again.' },
+        { status: 404 }
+      )
+    }
+
     let estimate
     try {
       estimate = await parseEstimatePDF(fileRecord.path)
     } catch (parseError: any) {
       console.error('[Estimate Audit] PDF parsing error:', parseError.message)
+      console.error('[Estimate Audit] Error stack:', parseError.stack)
       if (isOpenAIAuthError(parseError)) {
         return NextResponse.json(
           { error: 'OpenAI API key is missing or invalid. Set OPENAI_API_KEY and restart the server.' },
           { status: 401 }
         )
       }
-      throw parseError // Re-throw if it's not an API key error
+      // Return more detailed error message
+      return NextResponse.json(
+        { error: `Failed to parse PDF: ${parseError.message}` },
+        { status: 500 }
+      )
     }
     const lineItems = estimate.lineItems || []
 
@@ -234,7 +249,8 @@ Return only valid JSON matching the requested schema.`,
 
     return NextResponse.json(result)
   } catch (error: any) {
-    console.error('Estimate audit error:', error)
+    console.error('[Estimate Audit] Error:', error)
+    console.error('[Estimate Audit] Error stack:', error.stack)
     if (isOpenAIAuthError(error)) {
       return NextResponse.json(
         { error: 'OpenAI API key is missing or invalid. Set OPENAI_API_KEY and restart the server.' },
@@ -242,7 +258,7 @@ Return only valid JSON matching the requested schema.`,
       )
     }
     return NextResponse.json(
-      { error: 'Failed to analyze estimate', details: error.message },
+      { error: 'Failed to analyze estimate', details: error.message || 'Unknown error' },
       { status: 500 }
     )
   }
