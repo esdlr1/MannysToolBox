@@ -179,17 +179,17 @@ export function preprocessComparison(
     const contractorText = `${item.item} ${item.description} ${item.code || ''}`.toLowerCase()
     const contractorNormalized = expandSynonyms(contractorText)
     
-    interface MatchResult {
+    type MatchResult = {
       item: LineItem
       similarity: number
     }
     
     let bestMatch: MatchResult | null = null
     
-    adjusterData.lineItems.forEach(adjItem => {
+    for (const adjItem of adjusterData.lineItems) {
       // Skip if adjuster item already matched
       const adjusterMatched = suggestedMatches.some(m => m.adjusterItem === adjItem)
-      if (adjusterMatched) return
+      if (adjusterMatched) continue
       
       const adjusterText = `${adjItem.item} ${adjItem.description} ${adjItem.code || ''}`.toLowerCase()
       const adjusterNormalized = expandSynonyms(adjusterText)
@@ -202,7 +202,7 @@ export function preprocessComparison(
         const codeSimilarity = item.code.toLowerCase() === adjItem.code.toLowerCase() ? 0.95 : 0
         if (codeSimilarity > similarity) {
           bestMatch = { item: adjItem, similarity: codeSimilarity }
-          return
+          break
         }
       }
       
@@ -210,13 +210,16 @@ export function preprocessComparison(
       const qtyMatch = Math.abs(item.quantity - adjItem.quantity) < 0.1
       const priceMatch = Math.abs(item.unitPrice - adjItem.unitPrice) < 1.0
       if (qtyMatch && priceMatch && similarity > 0.5) {
-        if (!bestMatch || similarity > bestMatch.similarity) {
-          bestMatch = { item: adjItem, similarity: similarity + 0.2 }
+        const enhancedSimilarity = similarity + 0.2
+        if (!bestMatch || enhancedSimilarity > bestMatch.similarity) {
+          bestMatch = { item: adjItem, similarity: enhancedSimilarity }
         }
-      } else if (!bestMatch || similarity > bestMatch.similarity) {
-        bestMatch = { item: adjItem, similarity }
+      } else {
+        if (!bestMatch || similarity > bestMatch.similarity) {
+          bestMatch = { item: adjItem, similarity }
+        }
       }
-    })
+    }
 
     // Only mark as potentially missing if similarity is very low (< 0.6)
     // This is conservative - we want to avoid false positives
