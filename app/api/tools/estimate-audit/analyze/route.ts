@@ -5,9 +5,12 @@ import { prisma } from '@/lib/prisma'
 import { callAI } from '@/lib/ai'
 import { parseEstimatePDF } from '@/lib/pdf-parser'
 import { existsSync } from 'fs'
+import { checkDependencies } from '@/lib/estimate-dependencies'
 
 export const dynamic = 'force-dynamic'
 
+// Legacy helper functions (kept for backward compatibility)
+// Note: Now using checkDependencies() from lib/estimate-dependencies.ts
 function normalize(text: string) {
   return text.toLowerCase()
 }
@@ -91,85 +94,74 @@ export async function POST(request: NextRequest) {
     }
     const lineItems = estimate.lineItems || []
 
-    const itemTexts = lineItems.map((item) => {
-      const description = item.description || item.item || ''
-      const code = item.code ? ` (${item.code})` : ''
-      return `${description}${code}`.trim()
-    })
-    const normalizedItems = itemTexts.map((text) => normalize(text))
-
-    const hasDrywallReplace = normalizedItems.some((text) =>
-      hasAny(text, ['drywall', 'sheetrock']) && hasAny(text, ['replace', 'replacement', 'remove', 'demo', 'install', 'hang'])
-    )
-    const hasTexture = normalizedItems.some((text) => hasAny(text, ['texture', 'orange peel', 'knockdown']))
-    const hasTapeMud = normalizedItems.some((text) => hasAny(text, ['tape', 'mud', 'compound', 'joint']))
-    const hasPrime = normalizedItems.some((text) => hasAny(text, ['prime', 'primer', 'seal']))
-    const hasPaint = normalizedItems.some((text) => hasAny(text, ['paint', 'finish coat']))
-    const hasRoomPaint = normalizedItems.some((text) => hasAny(text, ['paint room', 'paint walls', 'paint ceiling', 'paint entire']))
-
-    const heuristicMissing: Array<{
-      requiredItem: string
-      reason: string
-      priority: 'critical' | 'minor'
-      relatedItemsFound?: string[]
-    }> = []
-
-    if (hasDrywallReplace && !hasTapeMud) {
-      heuristicMissing.push({
-        requiredItem: 'Drywall tape and mud (finish)',
-        reason: 'Drywall replacement typically requires taping and joint compound.',
-        priority: 'critical',
-        relatedItemsFound: itemTexts.filter((text, idx) => normalizedItems[idx].includes('drywall')),
-      })
-    }
-
-    if (hasDrywallReplace && !hasTexture) {
-      heuristicMissing.push({
-        requiredItem: 'Drywall texture (match existing)',
-        reason: 'Drywall replacement usually requires re-texturing to match existing finish.',
-        priority: 'critical',
-        relatedItemsFound: itemTexts.filter((text, idx) => normalizedItems[idx].includes('drywall')),
-      })
-    }
-
-    if (hasDrywallReplace && !hasPrime) {
-      heuristicMissing.push({
-        requiredItem: 'Prime/seal new drywall',
-        reason: 'New drywall needs primer/sealer before paint.',
-        priority: 'minor',
-        relatedItemsFound: itemTexts.filter((text, idx) => normalizedItems[idx].includes('drywall')),
-      })
-    }
-
-    if (hasDrywallReplace && !hasPaint) {
-      heuristicMissing.push({
-        requiredItem: 'Paint repaired surfaces',
-        reason: 'Drywall replacement usually requires painting finished surfaces.',
-        priority: 'critical',
-        relatedItemsFound: itemTexts.filter((text, idx) => normalizedItems[idx].includes('drywall')),
-      })
-    }
-
-    if (hasDrywallReplace && !hasRoomPaint) {
-      heuristicMissing.push({
-        requiredItem: 'Paint entire affected room (walls/ceiling)',
-        reason: 'Patching drywall often requires full room paint for color/texture consistency.',
-        priority: 'minor',
-        relatedItemsFound: itemTexts.filter((text, idx) => normalizedItems[idx].includes('drywall')),
-      })
-    }
+    // Use comprehensive dependency checking system
+    const heuristicMissing = checkDependencies(lineItems)
 
     const auditPrompt = `
-You are an expert construction estimator. Analyze this SINGLE estimate to check for missing line items that should accompany each other.
+You are an expert construction estimator specializing in Xactimate and Symbility estimates. Analyze this SINGLE estimate to check for missing line items that should accompany each other.
 
-Focus on Xactimate-style estimates and real-world construction dependencies.
+You have comprehensive knowledge of construction dependencies across ALL trades:
 
-Rules to enforce (at minimum):
-1. Drywall replacement should include: tape/mud, texture, prime/seal, paint.
-2. Drywall removal/replacement should include painting the affected room (walls and/or ceiling).
+**ROOFING DEPENDENCIES:**
+- Shingles → Underlayment (felt, ice shield), Flashing (valleys, ridges, penetrations), Drip edge, Gutters/downspouts
+- Roof replacement → Ventilation systems, Gutter repairs
 
-Use the provided line items and identify missing items that are required to complete the scope. 
-If a related item is already present, do NOT flag it.
+**PLUMBING DEPENDENCIES:**
+- Pipe replacement → Shutoff valves, Access panels (if in wall/ceiling)
+- Fixtures (toilet, sink, shower) → Supply lines, Drain/waste lines, P-traps
+- Water heater → Expansion tank (often code-required)
+
+**ELECTRICAL DEPENDENCIES:**
+- Wiring → Junction boxes, Grounding systems, Conduit (if exposed/commercial)
+- New circuits → Circuit breakers in panel
+- Outlets/switches → Electrical boxes
+
+**HVAC DEPENDENCIES:**
+- HVAC units → Ductwork, Supply/return vents/registers
+- AC/Heat pumps → Refrigerant lines/line sets, Insulation on lines
+- HVAC systems → Thermostats/controls
+
+**FLOORING DEPENDENCIES:**
+- Flooring installation → Subfloor preparation, Underlayment
+- Tile → Grout, Sealer (optional)
+- Carpet → Padding/underlayment
+- Multiple flooring types → Transition strips
+
+**DRYWALL DEPENDENCIES:**
+- Drywall replacement → Tape/mud, Texture, Prime/seal, Paint, Full room paint (often)
+- Drywall installation → Corner bead/trim
+
+**WINDOWS & DOORS:**
+- Windows → Flashing, Caulk/sealant, Trim/casing
+- Doors → Hardware (hinges, lockset, handle), Weatherstripping (exterior)
+
+**SIDING & EXTERIOR:**
+- Siding → Underlayment/WRVB, Flashing (corners, penetrations), Trim
+
+**WATER DAMAGE RESTORATION:**
+- Water damage → Demolition, Drying equipment (dehumidifiers, air movers), Moisture barriers, Mold remediation (if present)
+
+**FIRE DAMAGE RESTORATION:**
+- Fire damage → Smoke cleaning/deodorization, Structural assessment
+
+**FOUNDATION & STRUCTURAL:**
+- Foundation work → Waterproofing, Drainage systems
+- Concrete slabs → Reinforcement (rebar/mesh), Vapor barriers
+
+**GENERAL CONSTRUCTION:**
+- Major construction → Permits/inspections, Cleanup/waste removal, Site protection
+
+**ADDITIONAL CONSIDERATIONS:**
+- Code compliance items (grounding, expansion tanks, access panels)
+- Regional code variations
+- Commercial vs residential differences
+- Quality levels (standard vs premium materials)
+- Waste factors and material overage
+- Labor burden and overhead
+- Contingency and risk allowances
+
+Use the provided line items and identify missing items that are required to complete the scope, ensure code compliance, or meet industry standards.
+If a related item is already present (even with different wording), do NOT flag it.
 
 PROJECT INFO:
 Project: ${projectName || 'N/A'}
@@ -215,11 +207,29 @@ IMPORTANT:
     const aiResponse = await callAI({
       prompt: auditPrompt,
       toolId: 'estimate-audit',
-      systemPrompt: `You are an expert construction estimator with deep knowledge of:
-- Xactimate line item codes and descriptions
-- Drywall, texture, paint sequencing
-- Scope dependencies (e.g., prep + finish + paint)
+      systemPrompt: `You are an expert construction estimator with comprehensive knowledge of:
+
+- Xactimate and Symbility line item codes and descriptions
+- Construction dependencies across ALL trades (roofing, plumbing, electrical, HVAC, flooring, drywall, windows, doors, siding, water damage, fire damage, structural)
+- Building codes and compliance requirements
+- Industry best practices and standards
 - Construction terminology and abbreviations
+- Regional code variations
+- Commercial vs residential differences
+- Material specifications and quality levels
+- Scope sequencing and dependencies
+
+Your expertise covers:
+- Roofing: Shingles, underlayment, flashing, gutters, ventilation
+- Plumbing: Pipes, fixtures, valves, access panels, expansion tanks
+- Electrical: Wiring, boxes, breakers, grounding, conduit
+- HVAC: Units, ductwork, vents, refrigerant lines, controls
+- Flooring: Subfloor, underlayment, grout, padding, transitions
+- Drywall: Installation, finishing, texture, paint sequences
+- Windows/Doors: Flashing, caulk, hardware, weatherstripping
+- Siding: Underlayment, flashing, trim
+- Water/Fire Damage: Demolition, drying, cleaning, remediation
+- Structural: Foundation, waterproofing, drainage, reinforcement
 
 Return only valid JSON matching the requested schema.
 IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-JSON.`,
