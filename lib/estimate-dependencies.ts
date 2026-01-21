@@ -583,18 +583,32 @@ export function checkDependencies(
             'repair period',
             'minimum charge',
             'labor and material',
+            'manage project',
+            'deadline',
           ]
           
           const isGeneric = excludePatterns.some((pattern) =>
             normalized.includes(pattern.toLowerCase())
           )
           
-          // Also check if the item's category code matches (if available)
-          const itemCategory = item.category || ''
-          const ruleCategoryCode = rule.category.substring(0, 3).toUpperCase() // e.g., "Roofing" -> "ROO"
-          const categoryMatches = itemCategory && itemCategory.toUpperCase().includes(ruleCategoryCode)
+          // Use Xactimate lookup to check if item has matching category (if code is available)
+          let categoryMatches = false
+          if (item.code) {
+            try {
+              const { findByCode } = require('./xactimate-lookup')
+              const xactItem = findByCode(item.code.toString().trim())
+              if (xactItem && xactItem.category) {
+                const ruleCategoryCode = rule.category.substring(0, 3).toUpperCase() // e.g., "Roofing" -> "ROO"
+                const itemCategoryCode = xactItem.category.substring(0, 3).toUpperCase()
+                categoryMatches = itemCategoryCode === ruleCategoryCode || 
+                                  xactItem.category.toUpperCase().includes(ruleCategoryCode)
+              }
+            } catch (e) {
+              // Xactimate lookup not available, continue without category check
+            }
+          }
           
-          return matchesCategory && !isGeneric && (categoryMatches || !itemCategory)
+          return matchesCategory && !isGeneric
         })
         .map(({ text }) => text)
         .slice(0, 3) // Limit to 3 most relevant items
