@@ -179,7 +179,12 @@ export function preprocessComparison(
     const contractorText = `${item.item} ${item.description} ${item.code || ''}`.toLowerCase()
     const contractorNormalized = expandSynonyms(contractorText)
     
-    let bestMatch: { item: LineItem; similarity: number } | null = null
+    interface MatchResult {
+      item: LineItem
+      similarity: number
+    }
+    
+    let bestMatch: MatchResult | null = null
     
     adjusterData.lineItems.forEach(adjItem => {
       // Skip if adjuster item already matched
