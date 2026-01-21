@@ -291,17 +291,91 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
       }))
       
     } catch (parseError: any) {
-      console.error('Failed to parse AI response:', parseError)
-      console.error('AI Response length:', aiResponse.result?.length || 0)
-      console.error('AI Response preview:', aiResponse.result?.substring(0, 500) || 'No response')
-      console.error('AI Response end:', aiResponse.result?.substring(Math.max(0, (aiResponse.result?.length || 0) - 200)) || 'No response')
+      console.error('[PDF Parser] Failed to parse AI response:', parseError)
+      console.error('[PDF Parser] AI Response length:', aiResponse.result?.length || 0)
+      console.error('[PDF Parser] AI Response preview:', aiResponse.result?.substring(0, 500) || 'No response')
+      console.error('[PDF Parser] AI Response end:', aiResponse.result?.substring(Math.max(0, (aiResponse.result?.length || 0) - 200)) || 'No response')
       
-      // If JSON is incomplete, provide helpful error
-      if (parseError.message?.includes('Unexpected end of JSON') || parseError.message?.includes('end of JSON')) {
-        throw new Error(`AI response was truncated. The response may be too long. Try reducing the estimate size or contact support. Error: ${parseError.message}`)
+      // Try one more time with more aggressive fixes
+      try {
+        console.log('[PDF Parser] Attempting aggressive JSON fix...')
+        let lastAttempt = aiResponse.result.trim()
+        lastAttempt = lastAttempt.replace(/```json\n?/g, '').replace(/```\n?/g, '')
+        
+        // Fix truncated null
+        lastAttempt = lastAttempt.replace(/:\s*nul\b/g, ': null')
+        lastAttempt = lastAttempt.replace(/:\s*"nul"/g, ': null')
+        
+        // Remove trailing commas
+        lastAttempt = lastAttempt.replace(/,(\s*[}\]])/g, '$1')
+        
+        // Try to extract just the lineItems array if the root object is broken
+        const lineItemsMatch = lastAttempt.match(/"lineItems":\s*\[([\s\S]*?)\]/)
+        const totalCostMatch = lastAttempt.match(/"totalCost":\s*([\d.]+)/)
+        
+        if (lineItemsMatch || totalCostMatch) {
+          // Reconstruct a minimal valid JSON
+          let lineItems: any[] = []
+          if (lineItemsMatch) {
+            try {
+              // Try to parse the lineItems array
+              const itemsJson = `[${lineItemsMatch[1]}]`
+              // Fix common issues in the array
+              const fixedItems = itemsJson
+                .replace(/:\s*nul\b/g, ': null')
+                .replace(/,(\s*[}\]])/g, '$1')
+              lineItems = JSON.parse(fixedItems)
+            } catch {
+              // If we can't parse the array, try to extract individual items
+              const itemMatches = lineItemsMatch[1].match(/\{[^}]*"item"[^}]*\}/g)
+              if (itemMatches) {
+                lineItems = itemMatches.map((itemStr: string) => {
+                  try {
+                    return JSON.parse(itemStr.replace(/:\s*nul\b/g, ': null'))
+                  } catch {
+                    return null
+                  }
+                }).filter((item: any) => item !== null)
+              }
+            }
+          }
+          
+          const totalCost = totalCostMatch ? parseFloat(totalCostMatch[1]) : 0
+          
+          parsedData = {
+            lineItems: lineItems.map((item: any) => ({
+              item: item.item || item.description || '',
+              description: item.description || item.item || '',
+              quantity: Number(item.quantity) || 0,
+              unit: item.unit || '',
+              unitPrice: Number(item.unitPrice) || 0,
+              totalPrice: Number(item.totalPrice) || (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0),
+              category: item.category || '',
+              code: item.code || '',
+            })),
+            measurements: [],
+            totalCost,
+            subtotals: {},
+            metadata: { format, date: undefined, projectName: undefined },
+          }
+          
+          console.log('[PDF Parser] Successfully recovered partial data:', {
+            lineItems: parsedData.lineItems.length,
+            totalCost: parsedData.totalCost,
+          })
+        } else {
+          throw parseError
+        }
+      } catch (recoveryError: any) {
+        console.error('[PDF Parser] Recovery attempt failed:', recoveryError)
+        
+        // If JSON is incomplete, provide helpful error
+        if (parseError.message?.includes('Unexpected end of JSON') || parseError.message?.includes('end of JSON')) {
+          throw new Error(`AI response was truncated. The response may be too long. Try reducing the estimate size or contact support. Error: ${parseError.message}`)
+        }
+        
+        throw new Error(`Failed to parse estimate data: ${parseError.message}`)
       }
-      
-      throw new Error(`Failed to parse estimate data: ${parseError.message}`)
     }
 
     return parsedData
