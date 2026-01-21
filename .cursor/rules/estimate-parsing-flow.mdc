@@ -1,48 +1,44 @@
 ---
-description: Specification for construction estimate parsing, terminology normalization, and line item matching logic
+description: Specification for the construction estimate parsing and terminology normalization logic
 ---
 
 
 # estimate-parsing-flow
 
-## Core Parsing Components
+Importance Score: 90/100
 
-### Estimate Parser
-Path: lib/estimate-parser.ts
-- Custom construction terminology normalization
-- Industry-specific measurement standardization
-- Structured parsing of estimate formats
-- Construction material and labor cost extraction
+The estimate parsing system implements specialized construction industry logic for processing and normalizing estimate documents:
 
-### Comparison Engine 
-Path: lib/estimate-comparison.ts
-- Line item matching using domain-specific similarity scoring
-- Discrepancy detection for measurements and quantities
-- Critical vs minor difference classification
-- Construction-specific unit conversion handling
+Core Components:
 
-## Business Rules
+1. Terminology Normalization
+- Implements construction-specific matching rules
+- Maps common variations like "R&R" to "Remove and Replace"
+- Handles industry standard abbreviations and alternates
+- Normalizes room names and location descriptors
 
-### Terminology Matching
-- Normalizes variant terms for identical construction items
-- Handles industry abbreviations and standard nomenclature
-- Maps equivalent materials across different vendor catalogs
+2. Line Item Matching Engine
+Location: app/api/tools/estimate-comparison/compare/route.ts
+- Matches similar items between contractor and adjuster estimates
+- Handles construction material and labor items
+- Identifies equivalent items with different terminology
+- Validates item relationships and dependencies
+- Processes Xactimate/Symbility specific codes
 
-### Cost Analysis
-- Identifies pricing discrepancies beyond threshold percentages
-- Validates unit price consistency across similar items
-- Flags unusual cost variations for manual review
+3. Price Discrepancy Analysis
+- Calculates variations in unit costs and quantities
+- Implements industry-specific thresholds for price differences
+- Flags significant deviations requiring review
+- Handles construction measurement unit conversions
 
-### Measurement Processing
-- Standardizes measurements to common units
-- Validates quantity calculations
-- Detects measurement format inconsistencies
+Key Business Rules:
+- Items must match based on normalized construction terminology
+- Price variations above threshold require additional validation
+- Related construction items must be identified and grouped
+- Industry-specific codes must be properly interpreted
+- Measurement units must be standardized before comparison
 
-Importance Score: 85/100
-- Critical business functionality for estimate comparison
-- Complex domain-specific matching algorithms
-- Construction industry terminology handling
-- Essential for cost control and bid analysis
+The system focuses on construction domain expertise in estimate processing, emphasizing accurate matching of equivalent items despite terminology differences and proper handling of industry-specific pricing rules.
 
 $END$
 

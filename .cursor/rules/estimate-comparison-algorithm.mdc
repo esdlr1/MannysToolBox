@@ -1,45 +1,43 @@
 ---
-description: Specification for construction estimate comparison algorithm including matching rules and prioritization logic
+description: Documents the business logic and rules for comparing construction estimates and identifying discrepancies
 ---
 
 
 # estimate-comparison-algorithm
 
-File: app/api/tools/estimate-comparison/compare/route.ts
+Located in app/api/tools/estimate-comparison/compare/route.ts
 
-Core Comparison Logic:
-- Line item matching algorithm specialized for construction estimates
-- Percentage-based discrepancy detection between estimate versions
-- Classification system for critical vs minor cost differences
-- Construction-specific terminology normalization and matching
+Construction Estimate Comparison Core Logic:
 
-Business Rules:
-1. Item Matching
-- Identifies matching line items between estimates using domain-specific similarity scoring
-- Normalizes construction terminology and measurements for comparison
-- Handles variations in item descriptions while maintaining semantic matching
+1. Matching Rules
+- Recognizes equivalent terminology (e.g., "R&R" = "Remove and Replace")
+- Matches room names with variations ("Master Bath" = "Master Bathroom")
+- Identifies related line items across different estimate formats
+- Handles construction industry codes from Xactimate/Symbility systems
 
-2. Discrepancy Detection
-- Calculates percentage differences in quantities and costs
-- Classifies discrepancies based on industry-standard thresholds:
-  - Critical: >10% difference in cost or quantity
-  - Major: 5-10% difference
-  - Minor: <5% difference
+2. Threshold Configuration
+- Price discrepancy tolerance levels by material type
+- Square footage variation allowances for measurements
+- Quantity difference thresholds based on item categories
+- Critical vs. minor difference classification rules
 
-3. Domain-Specific Processing
-- Construction unit conversions (e.g., square feet to square yards)
-- Material cost variance analysis
-- Labor rate comparison checks
-- Equipment cost reconciliation
+3. Prioritization Logic
+- High-value items flagged for priority review
+- Missing dependent items highlighted (e.g., drywall requiring texture)
+- Material-labor relationship validation
+- Category-based comparison importance weighting
+
+4. Business Rules
+- Construction-specific terminology standardization
+- Industry measurement unit conversions
+- Price variation tolerances by material category
+- Required vs. optional line item classification
 
 Importance Score: 90/100
-The estimate comparison algorithm represents core business functionality specific to the construction industry, implementing specialized rules for cost analysis and estimate reconciliation.
-
-Key Components:
-- Construction terminology matching engine
-- Industry-standard measurement normalization
-- Cost variance prioritization system
-- Automated discrepancy reporting logic
+- Critical business algorithm for construction estimate reconciliation
+- Highly specialized domain logic for construction industry
+- Core revenue-impacting functionality
+- Complex industry-specific matching requirements
 
 $END$
 

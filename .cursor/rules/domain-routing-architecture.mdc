@@ -1,38 +1,40 @@
 ---
-description: Specification for implementing subdomain-based tool isolation and routing in construction management systems
+description: Defines subdomain-based tool isolation and routing rules for construction management platform
 ---
 
 
 # domain-routing-architecture
 
-## Core Routing Implementation
-- Tool-specific subdomains map directly to isolated tool environments
-- Dynamic routing transforms root paths (/) on tool subdomains to `/tools/[toolId]`
-- Enforces strict subdomain-tool relationship validation
+The domain routing architecture implements a construction tool isolation system through subdomains with the following key components:
+
+IMPORTANCE SCORE: 85/100
+
+## Tool Subdomain Routing
+- Each construction tool operates in an isolated subdomain environment
+- Root subdomain paths (/) automatically map to specific tool interfaces (/tools/[toolId])
+- Enforces strict tool-to-subdomain matching for access control
 
 ## Access Control Rules
-- Reserved domain protection for 'www' and 'mannystoolbox'
-- Tool access permissions validated through subdomain-path matching
-- Environment-aware URL generation for development vs production contexts
+1. Protected Subdomains
+- 'www' and 'mannystoolbox' reserved for core platform functions
+- Prevents tool deployment to protected namespaces
 
-## Tool Isolation Strategy
-Path: `app/tools/[toolId]/page.tsx`
-- Dynamic tool access through dedicated subdomains
-- Tool-specific access control enforcement
-- Maintains tool isolation through subdomain boundaries
+2. Tool Access Validation
+- Tool IDs must match their assigned subdomains
+- Prevents cross-tool access through subdomain manipulation
+- Maintains isolation between estimate comparison, daily notepad, and other construction tools
 
-## Business Logic Score: 85/100
-Domain-specific value:
-- Enables construction tool isolation through subdomain architecture
-- Enforces tool-specific access patterns
-- Implements construction industry-specific routing rules
-- Maintains tool relationship integrity through subdomain validation
+## Development Environment Handling
+- Specialized localhost subdomain handling
+- Development-specific routing patterns for tool testing
 
-The routing architecture specifically addresses construction industry needs by:
-- Isolating specialized construction tools in dedicated environments
-- Enforcing tool-specific access controls
-- Managing environment-specific routing for development and production
-- Maintaining consistent tool access patterns across the platform
+## Tool Isolation Implementation
+Located in middleware.ts:
+- Validates incoming subdomain requests against registered tool IDs
+- Implements subdomain-to-tool mapping logic
+- Enforces tool-specific access boundaries
+
+The architecture ensures construction tools remain isolated while enabling centralized management through the main platform domain.
 
 $END$
 

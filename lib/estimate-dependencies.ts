@@ -1,5 +1,14 @@
 // Comprehensive construction estimate dependency rules
 // Based on industry best practices, Xactimate patterns, and common missing items
+// Focused on consistency for everyday estimates
+
+import {
+  itemExists,
+  keywordSynonyms,
+  getMissingItemConfidence,
+  shouldExcludeItem,
+} from './estimate-dependency-matcher'
+import { findMatchingPatterns } from './xactimate-dependency-builder'
 
 export interface DependencyRule {
   category: string
@@ -481,6 +490,7 @@ export function checkDependencies(
   priority: 'critical' | 'minor'
   relatedItemsFound?: string[]
   category: string
+  confidence?: number
 }> {
   const missing: Array<{
     requiredItem: string
@@ -488,6 +498,7 @@ export function checkDependencies(
     priority: 'critical' | 'minor'
     relatedItemsFound?: string[]
     category: string
+    confidence?: number
   }> = []
 
   // Normalize all item texts
@@ -511,26 +522,65 @@ export function checkDependencies(
       continue // Rule doesn't apply
     }
 
-    // Check if required items are present
-    const hasRequired = rule.required.keywords.some((keyword) =>
-      normalizedItems.some((item) => item.includes(keyword.toLowerCase()))
-    )
+    // Check if required items are present (using improved matching with synonyms)
+    const hasRequired = itemExists(lineItems, rule.required.keywords, keywordSynonyms)
 
     if (!hasRequired) {
-      // Missing required item - find related items
-      const relatedItems = itemTexts.filter((text, idx) => {
-        const normalized = normalizedItems[idx]
-        return rule.trigger.keywords.some((keywordGroup) =>
-          keywordGroup.some((keyword) => normalized.includes(keyword.toLowerCase()))
-        )
-      })
+      // Check if this item should be excluded based on context
+      if (shouldExcludeItem(lineItems, rule.missingItem, rule.category)) {
+        continue // Skip this rule
+      }
+      
+      // Get confidence score for this missing item
+      const confidence = getMissingItemConfidence(
+        lineItems,
+        rule.trigger.keywords,
+        rule.required.keywords,
+        rule.category
+      )
+      
+      // Only flag items with high confidence (reduce false positives for everyday estimates)
+      if (confidence < 0.6) {
+        continue // Skip low-confidence items
+      }
+      
+      // Missing required item - find related items that are actually in the same category/trade
+      // Only show items that are related to the category of the missing item
+      const categoryKeywords: Record<string, string[]> = {
+        'Roofing': ['roof', 'shingle', 'gutter', 'downspout', 'flashing', 'drip edge', 'ventilation', 'ridge', 'valley', 'eave', 'soffit', 'fascia'],
+        'Plumbing': ['plumb', 'pipe', 'fixture', 'toilet', 'sink', 'faucet', 'shower', 'tub', 'drain', 'waste', 'water', 'valve', 'supply', 'p-trap', 'trap'],
+        'Electrical': ['electrical', 'wire', 'wiring', 'circuit', 'breaker', 'outlet', 'switch', 'panel', 'ground', 'junction', 'conduit'],
+        'HVAC': ['hvac', 'furnace', 'air conditioner', 'heat pump', 'duct', 'vent', 'register', 'refrigerant', 'thermostat'],
+        'Flooring': ['floor', 'tile', 'carpet', 'hardwood', 'subfloor', 'underlayment', 'grout', 'padding'],
+        'Drywall': ['drywall', 'sheetrock', 'tape', 'mud', 'texture', 'paint', 'prime', 'joint compound'],
+        'Windows': ['window', 'glazing', 'sash', 'frame', 'casement', 'double hung'],
+        'Doors': ['door', 'entry', 'interior door', 'exterior door', 'slab', 'jamb'],
+        'Siding': ['siding', 'exterior', 'cladding', 'lap', 'board'],
+        'Water Damage': ['water', 'flood', 'moisture', 'mold', 'drying', 'dehumidifier'],
+        'Foundation': ['foundation', 'concrete', 'slab', 'footing', 'basement'],
+      }
+      
+      const categoryKeywordsList = categoryKeywords[rule.category] || []
+      
+      // Find items that match the category keywords (most relevant)
+      const relatedItems = itemTexts
+        .map((text, idx) => ({ text, idx, normalized: normalizedItems[idx] }))
+        .filter(({ normalized }) => {
+          // Must match at least one category keyword
+          return categoryKeywordsList.some((keyword) =>
+            normalized.includes(keyword.toLowerCase())
+          )
+        })
+        .map(({ text }) => text)
+        .slice(0, 3) // Limit to 3 most relevant items
 
       missing.push({
         requiredItem: rule.missingItem,
         reason: rule.reason,
         priority: rule.priority,
-        relatedItemsFound: relatedItems,
+        relatedItemsFound: relatedItems.length > 0 ? relatedItems : undefined,
         category: rule.category,
+        confidence: confidence,
       })
     }
   }

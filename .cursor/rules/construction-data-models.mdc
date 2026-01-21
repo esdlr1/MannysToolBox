@@ -1,59 +1,47 @@
 ---
-description: Documentation for construction industry data models and estimate comparison structures
+description: Defines data structures and models for construction estimate comparison and pricing.
 ---
 
 
 # construction-data-models
 
-## Core Data Structures
+Core data structures for construction estimate analysis:
 
-### Estimate Comparison Models
-Path: app/api/tools/estimate-comparison/compare/route.ts
+1. Estimate Comparison Models
+Location: app/api/tools/estimate-comparison/compare/route.ts
 
-Construction estimate data models implement:
-- Industry-specific code matching and normalization
-- Line item comparison structures with construction terminology
-- Percentage-based variance tracking for measurements and costs
-- Critical difference classification based on industry thresholds
+Key Data Structures:
+- Line Item Mapping
+  - Industry-specific codes (Xactimate/Symbility)
+  - Material quantities and units
+  - Labor costs and time estimates
+  - Room/location identifiers
 
-Key Components:
-1. Line Item Structure
-- Construction material codes
-- Standardized measurement units
-- Price variance tolerances
-- Quantity comparison rules
+- Price Discrepancy Tracking
+  - Threshold definitions by material type
+  - Variance calculations with industry tolerances
+  - Historical price trend integration
 
-2. Estimate Classification System
-- Priority-based discrepancy tracking
-- Construction terminology matching rules
-- Material category organization
-- Measurement unit conversions
+2. Construction Terminology Matching
+- Standard terminology mappings
+  - "R&R" = "Remove and Replace"
+  - Common material abbreviations
+  - Unit conversion standards
+  - Regional pricing variations
+
+3. Room Classification Schema
+- Standardized room naming conventions
+- Room type categorization
+- Area/scope definitions
+- Material requirements by room type
 
 Importance Score: 90/100
+- Critical for accurate estimate comparison
+- Industry-specific data relationships
+- Core pricing model implementation
+- Construction domain expertise encoding
 
-### Price Analysis Models
-Path: lib/estimate-parser.ts
-
-Specialized data structures for:
-- Construction cost normalization
-- Unit price comparison logic
-- Material cost variance tracking
-- Industry-standard measurement conversions
-
-Key Features:
-1. Price Comparison Framework
-- Material cost baselines
-- Regional price adjustments
-- Bulk pricing rules
-- Contractor markup tracking
-
-2. Measurement Standards
-- Construction industry units
-- Conversion rate tables
-- Quantity aggregation rules
-- Material-specific measurement types
-
-Importance Score: 85/100
+The data models implement specialized construction industry knowledge through structured relationships between materials, labor, and pricing components, enabling accurate estimate comparisons and standardized terminology matching.
 
 $END$
 

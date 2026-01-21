@@ -10,60 +10,40 @@
 - Explain your OBSERVATIONS clearly, then provide REASONING to identify the exact issue. Add console logs when needed to gather more information.
 
 
-Construction Industry Tool Management Platform featuring role-based access control, specialized document processing, and industry-specific workflows.
+Construction Management System orchestrating four primary business components:
 
-## Core Business Components
+1. Daily Notepad Management (85/100)
+- Enforces 9:00 AM submission deadlines
+- Manages workday validation and compliance tracking
+- Coordinates manager notifications and OCR processing
+- Location: app/api/daily-notepad/submit/route.ts
 
-### Access Control System (85/100)
-- Multi-tier approval workflow for Owner/Manager roles
-- Super Admin exclusive approval rights
-- Automated Employee role processing
-- Path: app/api/admin/approve-users/route.ts
+2. Estimate Comparison Engine (90/100)
+- Construction-specific estimate analysis
+- Identifies discrepancies between estimates using industry terminology
+- Implements specialized matching rules for construction terms
+- Handles material and pricing variance calculations
+- Location: app/api/tools/estimate-comparison/compare/route.ts
 
-### Construction Document Management (85/100)
-- Daily notepad submission with 9 AM deadline enforcement
-- Workday validation for Monday-Friday operations
-- OCR processing for construction documentation
-- Manager notification system
-- Path: app/api/daily-notepad/submit/route.ts
+3. Manager Assignment System (75/100)
+- Maintains hierarchical employee-manager relationships
+- Controls department-based access permissions
+- Coordinates approval workflows
+- Location: app/api/admin/manager-assignments/route.ts
 
-### Industry Communication (75/100)
-- Priority-based announcements (urgent/high/normal/low)
-- Role-specific publishing permissions
-- Construction category organization
-- Path: app/api/announcements/route.ts
+4. Announcement Priority System (70/100)
+- Multi-level priority classification system
+- Specialized visibility rules for pinned content
+- Role-based announcement permissions
+- Location: app/announcements/page.tsx
 
-### Estimate Processing (90/100)
-- Construction-specific estimate comparison
-- Line item matching for construction materials
-- Discrepancy detection with industry thresholds
-- Construction terminology normalization
-- Path: app/api/tools/estimate-comparison/compare/route.ts
+Core Business Integration Points:
+- Construction industry terminology matching
+- Hierarchical approval workflows
+- Compliance tracking systems
+- Role-based access management
 
-### Tool Access Management (75/100)
-- Subdomain-based tool routing
-- Environment-aware URL handling
-- Tool-specific access controls
-- Dynamic routing based on user roles
-
-## Domain-Specific Features
-
-### Construction AI Integration
-- Specialized prompting for estimate analysis
-- Construction terminology processing
-- Format detection for industry documents
-
-### Activity Monitoring
-- Construction tool usage tracking
-- Department-aware monitoring
-- Team performance metrics
-- Compliance tracking system
-
-### Document Generation
-- Construction-specific PDF formatting
-- Estimate comparison reports
-- Industry-standard measurement reporting
-- Priority-based discrepancy highlighting
+The system's primary business value centers on construction-specific estimate comparison and daily planning management, supported by integrated workflow management components.
 
 $END$
 
