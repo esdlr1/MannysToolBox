@@ -107,19 +107,123 @@ export function preprocessComparison(
   const matchedContractorCodes = new Set(
     suggestedMatches.map(m => m.contractorItem.code).filter(Boolean)
   )
+  const matchedContractorIndices = new Set(
+    suggestedMatches.map(m => contractorData.lineItems.indexOf(m.contractorItem))
+  )
 
-  contractorData.lineItems.forEach(item => {
-    if (!item.code || !matchedContractorCodes.has(item.code)) {
-      // Check if it might match by description (lower confidence)
-      const hasMatch = adjusterData.lineItems.some(adjItem => {
-        const desc1 = `${adjItem.item} ${adjItem.description}`.toLowerCase()
-        const desc2 = `${item.item} ${item.description}`.toLowerCase()
-        return desc1 === desc2 || desc1.includes(desc2) || desc2.includes(desc1)
-      })
+  // Enhanced fuzzy matching function
+  function normalizeText(text: string): string {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s]/g, ' ') // Remove punctuation
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim()
+  }
 
-      if (!hasMatch) {
-        potentialMissingItems.push(item)
+  function calculateSimilarity(text1: string, text2: string): number {
+    const norm1 = normalizeText(text1)
+    const norm2 = normalizeText(text2)
+    
+    // Exact match
+    if (norm1 === norm2) return 1.0
+    
+    // One contains the other
+    if (norm1.includes(norm2) || norm2.includes(norm1)) return 0.9
+    
+    // Word overlap
+    const words1 = new Set(norm1.split(/\s+/).filter(w => w.length > 2))
+    const words2 = new Set(norm2.split(/\s+/).filter(w => w.length > 2))
+    const intersection = new Set([...words1].filter(w => words2.has(w)))
+    const union = new Set([...words1, ...words2])
+    
+    if (union.size === 0) return 0
+    return intersection.size / union.size
+  }
+
+  // Construction terminology synonyms
+  const synonyms: Record<string, string[]> = {
+    'remove': ['demo', 'demolish', 'tear out', 'rip out', 'remove and replace', 'r&r'],
+    'replace': ['install', 'install new', 'new', 'r&r', 'remove and replace'],
+    'repair': ['fix', 'patch', 'restore'],
+    'paint': ['paint coat', 'paint finish', 'paint application'],
+    'drywall': ['sheetrock', 'gypsum', 'wallboard'],
+    'sq ft': ['sqft', 'square feet', 'sf', 'sq.ft'],
+    'linear feet': ['lf', 'ln ft', 'linear ft', 'lin ft'],
+    'each': ['ea', 'e.a.', 'piece'],
+  }
+
+  function expandSynonyms(text: string): string {
+    let expanded = text.toLowerCase()
+    for (const [key, values] of Object.entries(synonyms)) {
+      for (const synonym of values) {
+        if (expanded.includes(synonym)) {
+          expanded = expanded.replace(new RegExp(synonym, 'gi'), key)
+        }
       }
+    }
+    return expanded
+  }
+
+  contractorData.lineItems.forEach((item, index) => {
+    // Skip if already matched by code
+    if (item.code && matchedContractorCodes.has(item.code)) {
+      return
+    }
+    
+    // Skip if already matched
+    if (matchedContractorIndices.has(index)) {
+      return
+    }
+
+    // Enhanced matching: try multiple strategies
+    const contractorText = `${item.item} ${item.description} ${item.code || ''}`.toLowerCase()
+    const contractorNormalized = expandSynonyms(contractorText)
+    
+    let bestMatch: { item: LineItem; similarity: number } | null = null
+    
+    adjusterData.lineItems.forEach(adjItem => {
+      // Skip if adjuster item already matched
+      const adjusterMatched = suggestedMatches.some(m => m.adjusterItem === adjItem)
+      if (adjusterMatched) return
+      
+      const adjusterText = `${adjItem.item} ${adjItem.description} ${adjItem.code || ''}`.toLowerCase()
+      const adjusterNormalized = expandSynonyms(adjusterText)
+      
+      // Calculate similarity
+      const similarity = calculateSimilarity(contractorNormalized, adjusterNormalized)
+      
+      // Also check if codes match (even if not exact)
+      if (item.code && adjItem.code) {
+        const codeSimilarity = item.code.toLowerCase() === adjItem.code.toLowerCase() ? 0.95 : 0
+        if (codeSimilarity > similarity) {
+          bestMatch = { item: adjItem, similarity: codeSimilarity }
+          return
+        }
+      }
+      
+      // Check if quantities and prices are very similar (might be same item)
+      const qtyMatch = Math.abs(item.quantity - adjItem.quantity) < 0.1
+      const priceMatch = Math.abs(item.unitPrice - adjItem.unitPrice) < 1.0
+      if (qtyMatch && priceMatch && similarity > 0.5) {
+        if (!bestMatch || similarity > bestMatch.similarity) {
+          bestMatch = { item: adjItem, similarity: similarity + 0.2 }
+        }
+      } else if (!bestMatch || similarity > bestMatch.similarity) {
+        bestMatch = { item: adjItem, similarity }
+      }
+    })
+
+    // Only mark as potentially missing if similarity is very low (< 0.6)
+    // This is conservative - we want to avoid false positives
+    if (!bestMatch || bestMatch.similarity < 0.6) {
+      potentialMissingItems.push(item)
+    } else {
+      // Add to suggested matches with lower confidence
+      suggestedMatches.push({
+        adjusterItem: bestMatch.item,
+        contractorItem: item,
+        confidence: bestMatch.similarity,
+      })
     }
   })
 

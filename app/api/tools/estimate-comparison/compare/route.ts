@@ -143,43 +143,80 @@ export async function POST(request: NextRequest) {
       potentialDiscrepancies: preprocessing.potentialDiscrepancies.length,
     }
 
-    // Enhanced AI comparison prompt
+    // Enhanced AI comparison prompt with conservative matching
     const comparisonPrompt = `
 You are an expert construction estimator analyzing two construction estimates for comparison.
 
-TASK: Compare the adjuster's estimate with the contractor's estimate and identify all differences.
+CRITICAL: Be VERY CONSERVATIVE. Only flag items as "missing" if you are ABSOLUTELY CERTAIN they are not present in the adjuster's estimate. Many items may be worded differently but are actually the same item.
+
+TASK: Compare the adjuster's estimate with the contractor's estimate and identify ONLY GENUINE differences.
+
+PREPROCESSING RESULTS (Use these as hints, but verify yourself):
+- Items matched by code: ${preprocessing.suggestedMatches.filter(m => m.confidence >= 0.95).length}
+- Items matched by description similarity: ${preprocessing.suggestedMatches.filter(m => m.confidence < 0.95).length}
+- Potential missing items (unverified): ${preprocessing.potentialMissingItems.length}
+- Potential discrepancies (unverified): ${preprocessing.potentialDiscrepancies.length}
+
+MATCHING RULES (Apply these STRICTLY):
+1. Code Matching: Items with the same Xactimate/Symbility code are THE SAME ITEM, even if descriptions differ
+2. Description Matching: Items are the SAME if:
+   - Descriptions are >80% similar (accounting for abbreviations and synonyms)
+   - Same quantity AND same unit price (within $1)
+   - Same category/trade
+3. Synonym Matching: These terms are EQUIVALENT:
+   - "Remove and replace" = "R&R" = "Demo and install" = "Remove & Replace" = "Demo/Install"
+   - "Square feet" = "sq ft" = "sqft" = "SF" = "sq.ft" = "square ft"
+   - "Linear feet" = "lf" = "ln ft" = "linear ft" = "lin ft" = "LF"
+   - "Each" = "ea" = "E.A." = "piece" = "unit"
+   - "Drywall" = "Sheetrock" = "Gypsum board" = "Wallboard"
+   - "Paint" = "Paint coat" = "Paint application" = "Paint finish"
+   - "Repair" = "Fix" = "Patch" = "Restore"
+4. Abbreviation Matching: Match common abbreviations:
+   - "Kitchen" = "Kit" = "K" = "Kitchen Area"
+   - "Living Room" = "LR" = "Living Rm"
+   - "Bedroom" = "BR" = "Bed Rm"
+   - "Bathroom" = "Bath" = "BA"
+5. Quantity/Price Matching: If quantities AND prices match (within 5%), items are likely the SAME even if wording differs slightly
 
 COMPARISON RULES:
 1. Missing Items: Items present in contractor estimate but NOT in adjuster estimate
+   - ONLY include if you've checked ALL items in adjuster estimate and confirmed it's truly missing
+   - DO NOT include if:
+     * Item exists with different wording but same meaning
+     * Item exists with same code but different description
+     * Item exists with same quantity/price but different description
+     * You're not 100% certain it's missing
    - Include: item description, quantity, unit price, total price
    - Flag as "critical" if total price > $500 or if it's a structural/safety item
    - Flag as "minor" otherwise
 
-2. Discrepancies: Items present in both but with differences
-   - Quantity differences: Flag if difference > 25%
-   - Price differences: Flag if unit price difference > 15%
-   - Measurement differences: Flag if difference > 25%
+2. Discrepancies: Items present in both but with GENUINE differences
+   - Quantity differences: Flag if difference > 25% AND you're certain it's the same item
+   - Price differences: Flag if unit price difference > 15% AND you're certain it's the same item
+   - Measurement differences: Flag if difference > 25% AND you're certain it's the same measurement
    - Flag as "critical" if total impact > $1000 or difference > 50%
    - Flag as "minor" otherwise
+   - DO NOT flag if items might be different items (different codes, very different descriptions)
 
 3. Scope Differences: Items in adjuster estimate but NOT in contractor estimate
    - These are items the adjuster included but contractor didn't
    - Usually less critical but should be noted
+   - Only include if truly missing from contractor estimate
 
-4. Similar Items: Items that are essentially the same but worded differently
-   - Use construction terminology knowledge to match:
-     - "Remove and replace" = "R&R" = "Demo and install"
-     - "Square feet" = "sq ft" = "sqft"
-     - "Linear feet" = "lf" = "ln ft"
-   - Match items with >60% similarity
-
-5. Room/Sketch Variations: Handle differences in room naming and sketch layouts
+4. Room/Sketch Variations: Handle differences in room naming and sketch layouts
    - Room names may vary: "Kitchen" = "Kit" = "K" = "Kitchen Area"
    - Sketch differences are common - focus on matching items by description and code
    - If room/location is specified, use it for context but don't require exact match
    - Match items across different room names if description and code match
    - Examples: "Kitchen - Floor" matches "Kit - Floor", "Living Room" matches "LR"
    - Prioritize matching by item code and description over room name
+
+VALIDATION CHECKLIST (Before flagging as missing):
+- [ ] Did I check if the item code exists in adjuster estimate?
+- [ ] Did I check if a similar description exists (accounting for synonyms)?
+- [ ] Did I check if the same quantity/price combination exists?
+- [ ] Did I account for abbreviations and terminology variations?
+- [ ] Am I 100% certain this is truly missing and not just worded differently?
 
 ADJUSTER ESTIMATE SUMMARY:
 ${JSON.stringify(adjusterSummary, null, 2)}
