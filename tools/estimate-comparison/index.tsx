@@ -5,8 +5,9 @@ import { useSession } from 'next-auth/react'
 import { FileUpload } from '@/components/FileUpload'
 import { logUsage } from '@/lib/utils'
 import { ComparisonResult } from '@/types/estimate-comparison'
-import { Upload, FileText, User, CheckCircle2, Loader2, AlertCircle, DollarSign, TrendingUp, FileCheck, Download, Save, Eye, Search, Filter, ArrowUpDown, X, Calendar, Clock, Info, FileBarChart, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Upload, FileText, User, CheckCircle2, Loader2, AlertCircle, DollarSign, TrendingUp, FileCheck, Download, Save, Eye, Search, Filter, ArrowUpDown, X, Calendar, Clock, Info, FileBarChart, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react'
 import { format } from 'date-fns'
+import { FeedbackModal } from '@/components/estimate-comparison/FeedbackModal'
 
 // Sample data for preview
 const sampleComparisonResult: ComparisonResult = {
@@ -119,6 +120,12 @@ export default function EstimateComparisonTool() {
   // Room grouping and collapse state
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set())
   const [groupByRoom, setGroupByRoom] = useState(true)
+  
+  // Feedback modal state
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false)
+  const [feedbackItemType, setFeedbackItemType] = useState<'missing_item' | 'discrepancy' | 'overall'>('missing_item')
+  const [feedbackItemIndex, setFeedbackItemIndex] = useState<number | undefined>()
+  const [feedbackItemDescription, setFeedbackItemDescription] = useState<string | undefined>()
 
   const handleAdjusterUpload = (file: { id: string; filename: string; originalName: string; url: string }) => {
     setAdjusterFile(file)
@@ -1035,7 +1042,23 @@ export default function EstimateComparisonTool() {
                               {paginatedMissingItems.paginatedItems.length > 0 ? (
                                 paginatedMissingItems.paginatedItems.map((item, idx) => (
                                 <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                  <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{item.item}</td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-medium text-gray-900 dark:text-white">{item.item}</span>
+                                      <button
+                                        onClick={() => {
+                                          setFeedbackItemType('missing_item')
+                                          setFeedbackItemIndex(idx)
+                                          setFeedbackItemDescription(item.item)
+                                          setFeedbackModalOpen(true)
+                                        }}
+                                        className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                        title="Provide feedback on this item"
+                                      >
+                                        <MessageSquare className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </td>
                                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{item.quantity}</td>
                                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">${item.unitPrice.toFixed(2)}</td>
                                   <td className="px-6 py-4 text-sm font-semibold text-gray-900 dark:text-white">${item.totalPrice.toFixed(2)}</td>
@@ -1276,7 +1299,21 @@ export default function EstimateComparisonTool() {
                                   }`}
                                 >
                                   <div className="flex justify-between items-start mb-4">
-                                    <h4 className="font-semibold text-gray-900 dark:text-white text-base">{disc.item}</h4>
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <h4 className="font-semibold text-gray-900 dark:text-white text-base">{disc.item}</h4>
+                                      <button
+                                        onClick={() => {
+                                          setFeedbackItemType('discrepancy')
+                                          setFeedbackItemIndex(idx)
+                                          setFeedbackItemDescription(disc.item)
+                                          setFeedbackModalOpen(true)
+                                        }}
+                                        className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                        title="Provide feedback on this discrepancy"
+                                      >
+                                        <MessageSquare className="w-4 h-4" />
+                                      </button>
+                                    </div>
                                     <span
                                       className={`inline-flex px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wide ${
                                         disc.priority === 'critical'

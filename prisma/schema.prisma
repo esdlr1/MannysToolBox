@@ -15,31 +15,32 @@ model User {
   email         String    @unique
   name          String?
   password      String
-  role          String?   // Super Admin, Owner, Manager, Employee
+  role          String? // Super Admin, Owner, Manager, Employee
   isApproved    Boolean   @default(false) // Approval status for Owner/Manager
   emailVerified DateTime?
   image         String?
-  departmentId  String?   // Department assignment
+  departmentId  String? // Department assignment
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  profile                Profile?
-  savedWork              SavedWork[]
-  usageHistory           UsageHistory[]
-  sessions               Session[]
-  accounts               Account[]
-  dailyNotepadSubmissions DailyNotepadSubmission[]
-  teamMemberships        TeamMember[]
-  notifications          Notification[]
-  submissionComments     SubmissionComment[]
-  department             Department?     @relation(fields: [departmentId], references: [id])
-  announcements          Announcement[]  // Announcements created by this user
-  activities             Activity[]       // Activities performed by this user
-  createdEvents         CalendarEvent[] @relation("EventCreator") // Calendar events created by this user
-  reviewedDailyNotepadSubmissions DailyNotepadSubmission[] @relation("DailyNotepadReview")
-  managedEmployees               ManagerAssignment[]      @relation("ManagerAssignments")
-  managers                       ManagerAssignment[]      @relation("EmployeeAssignments")
+  profile                         Profile?
+  savedWork                       SavedWork[]
+  usageHistory                    UsageHistory[]
+  sessions                        Session[]
+  accounts                        Account[]
+  dailyNotepadSubmissions         DailyNotepadSubmission[]
+  teamMemberships                 TeamMember[]
+  notifications                   Notification[]
+  submissionComments              SubmissionComment[]
+  department                      Department?                  @relation(fields: [departmentId], references: [id])
+  announcements                   Announcement[] // Announcements created by this user
+  activities                      Activity[] // Activities performed by this user
+  createdEvents                   CalendarEvent[]              @relation("EventCreator") // Calendar events created by this user
+  reviewedDailyNotepadSubmissions DailyNotepadSubmission[]     @relation("DailyNotepadReview")
+  managedEmployees                ManagerAssignment[]          @relation("ManagerAssignments")
+  managers                        ManagerAssignment[]          @relation("EmployeeAssignments")
+  estimateComparisonFeedback      EstimateComparisonFeedback[]
 
   @@index([departmentId])
   @@map("users")
@@ -85,13 +86,13 @@ model VerificationToken {
 }
 
 model Profile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  bio       String?
-  avatar    String?
-  preferences Json?  // Store user preferences as JSON
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  bio         String?
+  avatar      String?
+  preferences Json? // Store user preferences as JSON
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -104,7 +105,7 @@ model SavedWork {
   toolId      String
   title       String
   description String?
-  data        Json     // Store tool-specific data as JSON
+  data        Json // Store tool-specific data as JSON
   files       String[] // Array of file paths/URLs
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -117,12 +118,12 @@ model SavedWork {
 }
 
 model UsageHistory {
-  id          String   @id @default(cuid())
-  userId      String
-  toolId      String
-  action      String   // e.g., "tool_used", "ai_request", "file_uploaded"
-  metadata    Json?    // Additional context about the action
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  toolId    String
+  action    String // e.g., "tool_used", "ai_request", "file_uploaded"
+  metadata  Json? // Additional context about the action
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -133,17 +134,17 @@ model UsageHistory {
 }
 
 model File {
-  id          String   @id @default(cuid())
-  userId      String
-  toolId      String?
-  filename    String
+  id           String   @id @default(cuid())
+  userId       String
+  toolId       String?
+  filename     String
   originalName String
-  mimeType    String
-  size        Int
-  path        String   // Path to file in storage
-  url         String?  // Public URL if applicable
-  savedWorkId String?  // If associated with saved work
-  createdAt   DateTime @default(now())
+  mimeType     String
+  size         Int
+  path         String // Path to file in storage
+  url          String? // Public URL if applicable
+  savedWorkId  String? // If associated with saved work
+  createdAt    DateTime @default(now())
 
   @@index([userId])
   @@index([toolId])
@@ -151,27 +152,27 @@ model File {
 }
 
 model DailyNotepadSubmission {
-  id            String   @id @default(cuid())
-  userId        String
-  date          DateTime @db.Date  // Date of submission (day)
-  imageUrl      String   // Path/URL to uploaded image
-  thumbnailUrl  String?  // Path/URL to thumbnail image
-  fileSize      Int?     // Original file size in bytes
-  optimizedSize Int?     // Optimized file size in bytes
-  imageOptimized Boolean @default(false)  // Optimization status
-  ocrText       String?  @db.Text  // Extracted text from image (for search)
-  submittedAt   DateTime @default(now())  // Timestamp of submission
-  isOnTime      Boolean  // Submitted before 9 AM deadline
-  reviewStatus  String?  // "ok" | "needs_follow_up"
-  reviewNote    String?  @db.Text
-  reviewedAt    DateTime?
-  reviewedById  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String    @id @default(cuid())
+  userId         String
+  date           DateTime  @db.Date // Date of submission (day)
+  imageUrl       String // Path/URL to uploaded image
+  thumbnailUrl   String? // Path/URL to thumbnail image
+  fileSize       Int? // Original file size in bytes
+  optimizedSize  Int? // Optimized file size in bytes
+  imageOptimized Boolean   @default(false) // Optimization status
+  ocrText        String?   @db.Text // Extracted text from image (for search)
+  submittedAt    DateTime  @default(now()) // Timestamp of submission
+  isOnTime       Boolean // Submitted before 9 AM deadline
+  reviewStatus   String? // "ok" | "needs_follow_up"
+  reviewNote     String?   @db.Text
+  reviewedAt     DateTime?
+  reviewedById   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewedBy User?                @relation("DailyNotepadReview", fields: [reviewedById], references: [id], onDelete: SetNull)
-  comments  SubmissionComment[]
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User?               @relation("DailyNotepadReview", fields: [reviewedById], references: [id], onDelete: SetNull)
+  comments   SubmissionComment[]
 
   @@index([userId])
   @@index([date])
@@ -196,12 +197,12 @@ model ManagerAssignment {
 }
 
 model SubmissionComment {
-  id            String   @id @default(cuid())
-  submissionId  String
-  userId        String
-  comment       String   @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(cuid())
+  submissionId String
+  userId       String
+  comment      String   @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   submission DailyNotepadSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   user       User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -225,10 +226,10 @@ model Team {
 }
 
 model TeamMember {
-  id        String   @id @default(cuid())
-  teamId    String
-  userId    String
-  joinedAt  DateTime @default(now())
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  joinedAt DateTime @default(now())
 
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -242,11 +243,11 @@ model TeamMember {
 model Notification {
   id        String   @id @default(cuid())
   userId    String
-  type      String   // "submission", "reminder", "confirmation", "summary", "announcement", etc.
+  type      String // "submission", "reminder", "confirmation", "summary", "announcement", etc.
   title     String
   message   String   @db.Text
   read      Boolean  @default(false)
-  metadata  Json?    // Additional data (submissionId, employeeId, announcementId, etc.)
+  metadata  Json? // Additional data (submissionId, employeeId, announcementId, etc.)
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -265,22 +266,22 @@ model Department {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  users         User[]
+  users          User[]
   calendarEvents CalendarEvent[]
 
   @@map("departments")
 }
 
 model Announcement {
-  id          String   @id @default(cuid())
-  title       String
-  message     String   @db.Text
-  authorId    String
-  priority    String   @default("normal") // "low", "normal", "high", "urgent"
-  category    String?  // Category/department tag
-  pinned      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  title     String
+  message   String   @db.Text
+  authorId  String
+  priority  String   @default("normal") // "low", "normal", "high", "urgent"
+  category  String? // Category/department tag
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
@@ -292,13 +293,13 @@ model Announcement {
 }
 
 model Activity {
-  id          String   @id @default(cuid())
-  userId      String
-  type        String   // "tool_used", "notepad_submitted", "estimate_compared", etc.
-  toolId      String?  // Which tool was used
-  action      String   // Specific action taken
-  metadata    Json?    // Additional context (tool name, submission date, etc.)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  type      String // "tool_used", "notepad_submitted", "estimate_compared", etc.
+  toolId    String? // Which tool was used
+  action    String // Specific action taken
+  metadata  Json? // Additional context (tool name, submission date, etc.)
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -310,23 +311,48 @@ model Activity {
 }
 
 model CalendarEvent {
-  id          String   @id @default(cuid())
-  title       String
-  description String?  @db.Text
-  startDate   DateTime
-  endDate     DateTime?
-  location    String?
-  createdById String
+  id           String    @id @default(cuid())
+  title        String
+  description  String?   @db.Text
+  startDate    DateTime
+  endDate      DateTime?
+  location     String?
+  createdById  String
   departmentId String? // If department-specific
-  allDay      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  allDay       Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  createdBy User        @relation("EventCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy  User        @relation("EventCreator", fields: [createdById], references: [id], onDelete: Cascade)
   department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
   @@index([createdById])
   @@index([startDate])
   @@index([departmentId])
   @@map("calendar_events")
+}
+
+model EstimateComparisonFeedback {
+  id              String   @id @default(cuid())
+  userId          String
+  comparisonId    String? // Optional: link to a saved comparison
+  itemType        String // "missing_item" | "discrepancy" | "overall"
+  itemIndex       Int? // Index of the item in the results array
+  itemDescription String? // Description of the item being feedback on
+  isCorrect       Boolean // true = correct, false = incorrect
+  feedbackType    String? // "false_positive" | "false_negative" | "missing_item" | "other"
+  comment         String?  @db.Text
+  adjusterData    Json? // How item appears in adjuster estimate
+  contractorData  Json? // How item appears in contractor estimate
+  metadata        Json? // Additional context
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([comparisonId])
+  @@index([itemType])
+  @@index([isCorrect])
+  @@index([createdAt])
+  @@map("estimate_comparison_feedback")
 }
