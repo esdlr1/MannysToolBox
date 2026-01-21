@@ -89,18 +89,25 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
     })
 
     const startTime = Date.now()
-    const completion = await client.chat.completions.create({
-      // Default to cheaper model, but can be overridden via OPENAI_MODEL env var
-      // Options: 'gpt-4o-mini' (cheapest, recommended), 'gpt-3.5-turbo' (very cheap), 'gpt-4-turbo' (most accurate but expensive)
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: request.prompt }
-      ],
-      temperature: request.temperature ?? 0.7,
-      max_tokens: request.maxTokens ?? 2000, // Increased for detailed comparisons
-      timeout: 180000, // 3 minute timeout
-    })
+    
+    // Wrap API call with timeout (3 minutes)
+    const completion = await Promise.race([
+      client.chat.completions.create({
+        // Default to cheaper model, but can be overridden via OPENAI_MODEL env var
+        // Options: 'gpt-4o-mini' (cheapest, recommended), 'gpt-3.5-turbo' (very cheap), 'gpt-4-turbo' (most accurate but expensive)
+        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: request.prompt }
+        ],
+        temperature: request.temperature ?? 0.7,
+        max_tokens: request.maxTokens ?? 2000, // Increased for detailed comparisons
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('OpenAI API call timed out after 3 minutes')), 3 * 60 * 1000)
+      )
+    ]) as any
+    
     const apiTime = Date.now() - startTime
     console.log('[OpenAI] API call completed:', {
       time: `${apiTime}ms`,
