@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { callAI } from '@/lib/ai'
 import { preprocessComparison, validateComparisonResult } from '@/lib/estimate-comparison'
 import { parseEstimatePDF } from '@/lib/pdf-parser'
+import { existsSync } from 'fs'
 
 // Mark as dynamic route since it uses getServerSession, file operations, and AI calls
 export const dynamic = 'force-dynamic'
@@ -52,9 +53,54 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if files exist on filesystem (important for Railway ephemeral storage)
+    if (!existsSync(adjusterFile.path)) {
+      console.error('[Estimate Comparison] Adjuster file not found:', adjusterFile.path)
+      return NextResponse.json(
+        { error: 'Adjuster file not found on server. Please upload the file again.' },
+        { status: 404 }
+      )
+    }
+
+    if (!existsSync(contractorFile.path)) {
+      console.error('[Estimate Comparison] Contractor file not found:', contractorFile.path)
+      return NextResponse.json(
+        { error: 'Contractor file not found on server. Please upload the file again.' },
+        { status: 404 }
+      )
+    }
+
     // Parse both estimates from file paths
-    const adjusterData = await parseEstimatePDF(adjusterFile.path)
-    const contractorData = await parseEstimatePDF(contractorFile.path)
+    let adjusterData, contractorData
+    try {
+      console.log('[Estimate Comparison] Parsing adjuster file...')
+      adjusterData = await parseEstimatePDF(adjusterFile.path)
+      console.log('[Estimate Comparison] Adjuster file parsed:', {
+        lineItems: adjusterData.lineItems?.length || 0,
+        totalCost: adjusterData.totalCost,
+      })
+    } catch (parseError: any) {
+      console.error('[Estimate Comparison] Failed to parse adjuster file:', parseError)
+      return NextResponse.json(
+        { error: `Failed to parse adjuster estimate: ${parseError.message}` },
+        { status: 500 }
+      )
+    }
+
+    try {
+      console.log('[Estimate Comparison] Parsing contractor file...')
+      contractorData = await parseEstimatePDF(contractorFile.path)
+      console.log('[Estimate Comparison] Contractor file parsed:', {
+        lineItems: contractorData.lineItems?.length || 0,
+        totalCost: contractorData.totalCost,
+      })
+    } catch (parseError: any) {
+      console.error('[Estimate Comparison] Failed to parse contractor file:', parseError)
+      return NextResponse.json(
+        { error: `Failed to parse contractor estimate: ${parseError.message}` },
+        { status: 500 }
+      )
+    }
 
     // Pre-process for better comparison accuracy
     const preprocessing = preprocessComparison(adjusterData, contractorData)
@@ -182,8 +228,29 @@ IMPORTANT:
 - Return ONLY valid JSON, no explanations or markdown
 `
 
+    // Limit line items in prompt to prevent token overflow
+    const maxItemsPerEstimate = 100 // Limit to prevent prompt from being too large
+    const adjusterItems = (adjusterData.lineItems || []).slice(0, maxItemsPerEstimate)
+    const contractorItems = (contractorData.lineItems || []).slice(0, maxItemsPerEstimate)
+
+    // Update the prompt with limited items
+    const limitedComparisonPrompt = comparisonPrompt
+      .replace(
+        /FULL ADJUSTER LINE ITEMS:[\s\S]*?FULL CONTRACTOR LINE ITEMS:/,
+        `FULL ADJUSTER LINE ITEMS (showing first ${Math.min(maxItemsPerEstimate, adjusterItems.length)} of ${adjusterData.lineItems?.length || 0}):
+${JSON.stringify(adjusterItems, null, 2)}
+
+FULL CONTRACTOR LINE ITEMS (showing first ${Math.min(maxItemsPerEstimate, contractorItems.length)} of ${contractorData.lineItems?.length || 0}):`
+      )
+
+    console.log('[Estimate Comparison] Calling AI with:', {
+      adjusterItems: adjusterItems.length,
+      contractorItems: contractorItems.length,
+      promptLength: limitedComparisonPrompt.length,
+    })
+
     const aiResponse = await callAI({
-      prompt: comparisonPrompt,
+      prompt: limitedComparisonPrompt,
       toolId: 'estimate-comparison',
       systemPrompt: `You are an expert construction estimator with deep knowledge of:
 - Construction terminology and abbreviations (R&R, demo, sq ft, lf, etc.)
@@ -206,9 +273,11 @@ IMPORTANT: Handle room name and sketch variations intelligently:
 - Focus on item matching, not exact room name matching
 - Sketch differences are expected - prioritize item codes and descriptions
 
-Be precise with calculations and prioritize critical issues that could affect project scope or safety.`,
+Be precise with calculations and prioritize critical issues that could affect project scope or safety.
+
+IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-JSON.`,
       temperature: 0.2, // Very low temperature for consistent, accurate results
-      maxTokens: 4000, // Allow for detailed analysis
+      maxTokens: 8000, // Increased to handle larger responses
     })
 
     if (aiResponse.error) {

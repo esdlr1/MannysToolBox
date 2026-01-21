@@ -168,7 +168,15 @@ export default function EstimateComparisonTool() {
         claimNumber,
       })
 
-      // Call API to process comparison
+      console.log('[Estimate Comparison] Starting comparison...', {
+        adjusterFileId: adjusterFile.id,
+        contractorFileId: contractorFile.id,
+      })
+
+      // Call API to process comparison with timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000) // 5 minute timeout
+
       const response = await fetch('/api/tools/estimate-comparison/compare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -178,14 +186,23 @@ export default function EstimateComparisonTool() {
           clientName,
           claimNumber,
         }),
+        signal: controller.signal,
       })
 
+      clearTimeout(timeoutId)
+
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to process comparison')
+        const data = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('[Estimate Comparison] API error:', data)
+        throw new Error(data.error || `Failed to process comparison (${response.status})`)
       }
 
       const result = await response.json()
+      console.log('[Estimate Comparison] Comparison completed:', {
+        missingItems: result.missingItems?.length || 0,
+        discrepancies: result.discrepancies?.length || 0,
+      })
+
       setComparisonResult(result)
       setStep(4)
 
@@ -193,11 +210,15 @@ export default function EstimateComparisonTool() {
       logUsage(session.user.id, 'estimate-comparison', 'comparison_completed', {
         clientName,
         claimNumber,
-        discrepanciesCount: result.summary.discrepanciesCount,
+        discrepanciesCount: result.summary?.discrepanciesCount || 0,
       })
     } catch (err: any) {
-      setError(err.message || 'An error occurred while processing the comparison')
-      console.error('Comparison error:', err)
+      console.error('[Estimate Comparison] Error:', err)
+      if (err.name === 'AbortError') {
+        setError('Comparison timed out. The estimates may be too large. Please try with smaller files or contact support.')
+      } else {
+        setError(err.message || 'An error occurred while processing the comparison. Please check the console for details.')
+      }
     } finally {
       setProcessing(false)
     }
