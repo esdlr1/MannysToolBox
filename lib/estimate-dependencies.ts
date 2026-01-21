@@ -545,31 +545,56 @@ export function checkDependencies(
       }
       
       // Missing required item - find related items that are actually in the same category/trade
-      // Only show items that are related to the category of the missing item
+      // Only show items that are STRICTLY related to the category of the missing item
       const categoryKeywords: Record<string, string[]> = {
-        'Roofing': ['roof', 'shingle', 'gutter', 'downspout', 'flashing', 'drip edge', 'ventilation', 'ridge', 'valley', 'eave', 'soffit', 'fascia'],
-        'Plumbing': ['plumb', 'pipe', 'fixture', 'toilet', 'sink', 'faucet', 'shower', 'tub', 'drain', 'waste', 'water', 'valve', 'supply', 'p-trap', 'trap'],
-        'Electrical': ['electrical', 'wire', 'wiring', 'circuit', 'breaker', 'outlet', 'switch', 'panel', 'ground', 'junction', 'conduit'],
-        'HVAC': ['hvac', 'furnace', 'air conditioner', 'heat pump', 'duct', 'vent', 'register', 'refrigerant', 'thermostat'],
-        'Flooring': ['floor', 'tile', 'carpet', 'hardwood', 'subfloor', 'underlayment', 'grout', 'padding'],
-        'Drywall': ['drywall', 'sheetrock', 'tape', 'mud', 'texture', 'paint', 'prime', 'joint compound'],
-        'Windows': ['window', 'glazing', 'sash', 'frame', 'casement', 'double hung'],
-        'Doors': ['door', 'entry', 'interior door', 'exterior door', 'slab', 'jamb'],
-        'Siding': ['siding', 'exterior', 'cladding', 'lap', 'board'],
-        'Water Damage': ['water', 'flood', 'moisture', 'mold', 'drying', 'dehumidifier'],
-        'Foundation': ['foundation', 'concrete', 'slab', 'footing', 'basement'],
+        'Roofing': ['roof', 'shingle', 'gutter', 'downspout', 'flashing', 'drip edge', 'ventilation', 'ridge', 'valley', 'eave', 'soffit', 'fascia', 'roofing', 'roof repair', 'roof replace'],
+        'Plumbing': ['plumb', 'pipe', 'fixture', 'toilet', 'sink', 'faucet', 'shower', 'tub', 'drain', 'waste', 'water line', 'valve', 'supply line', 'p-trap', 'trap', 'plumbing'],
+        'Electrical': ['electrical', 'wire', 'wiring', 'circuit', 'breaker', 'outlet', 'switch', 'panel', 'ground', 'junction box', 'conduit', 'electrical work'],
+        'HVAC': ['hvac', 'furnace', 'air conditioner', 'heat pump', 'duct', 'vent', 'register', 'refrigerant', 'thermostat', 'hvac system'],
+        'Flooring': ['floor', 'tile', 'carpet', 'hardwood', 'subfloor', 'underlayment', 'grout', 'padding', 'flooring'],
+        'Drywall': ['drywall', 'sheetrock', 'tape', 'mud', 'texture', 'joint compound', 'drywall repair', 'drywall install'],
+        'Windows': ['window', 'glazing', 'sash', 'window frame', 'casement', 'double hung', 'window install', 'window replace'],
+        'Doors': ['door', 'entry door', 'interior door', 'exterior door', 'door slab', 'door jamb', 'door install', 'door replace'],
+        'Siding': ['siding', 'exterior siding', 'cladding', 'lap siding', 'siding board'],
+        'Water Damage': ['water damage', 'flood', 'moisture', 'mold', 'drying', 'dehumidifier', 'water mitigation'],
+        'Foundation': ['foundation', 'concrete foundation', 'slab', 'footing', 'basement foundation'],
       }
       
       const categoryKeywordsList = categoryKeywords[rule.category] || []
       
       // Find items that match the category keywords (most relevant)
+      // Use stricter matching - must contain category-specific terms, not generic ones
       const relatedItems = itemTexts
-        .map((text, idx) => ({ text, idx, normalized: normalizedItems[idx] }))
-        .filter(({ normalized }) => {
+        .map((text, idx) => ({ text, idx, normalized: normalizedItems[idx], item: lineItems[idx] }))
+        .filter(({ normalized, item }) => {
           // Must match at least one category keyword
-          return categoryKeywordsList.some((keyword) =>
+          const matchesCategory = categoryKeywordsList.some((keyword) =>
             normalized.includes(keyword.toLowerCase())
           )
+          
+          // Exclude generic items that might match by accident
+          const excludePatterns = [
+            'project manager',
+            'schedule',
+            'coordinate',
+            'oversee',
+            'jobsite',
+            'policyholder',
+            'repair period',
+            'minimum charge',
+            'labor and material',
+          ]
+          
+          const isGeneric = excludePatterns.some((pattern) =>
+            normalized.includes(pattern.toLowerCase())
+          )
+          
+          // Also check if the item's category code matches (if available)
+          const itemCategory = item.category || ''
+          const ruleCategoryCode = rule.category.substring(0, 3).toUpperCase() // e.g., "Roofing" -> "ROO"
+          const categoryMatches = itemCategory && itemCategory.toUpperCase().includes(ruleCategoryCode)
+          
+          return matchesCategory && !isGeneric && (categoryMatches || !itemCategory)
         })
         .map(({ text }) => text)
         .slice(0, 3) // Limit to 3 most relevant items
