@@ -9,12 +9,40 @@ import { callAI } from './ai'
  */
 export async function extractPDFText(filePath: string): Promise<string> {
   try {
+    console.log('[PDF Parser] Reading file:', filePath)
     const dataBuffer = await readFile(filePath)
+    console.log('[PDF Parser] File size:', dataBuffer.length, 'bytes')
+    
+    if (dataBuffer.length === 0) {
+      throw new Error('PDF file is empty')
+    }
+    
+    console.log('[PDF Parser] Parsing PDF...')
     const data = await pdfParse(dataBuffer)
-    return data.text
-  } catch (error) {
-    console.error('PDF extraction error:', error)
-    throw new Error('Failed to extract text from PDF')
+    const extractedText = data.text || ''
+    console.log('[PDF Parser] Extracted text length:', extractedText.length, 'characters')
+    
+    if (!extractedText || extractedText.trim().length === 0) {
+      throw new Error('PDF appears to be image-based (scanned document). No text could be extracted. Please use a PDF with selectable text or convert the scanned PDF using OCR.')
+    }
+    
+    return extractedText
+  } catch (error: any) {
+    console.error('[PDF Parser] Extraction error:', {
+      message: error.message,
+      code: error.code,
+      path: filePath,
+    })
+    
+    if (error.code === 'ENOENT') {
+      throw new Error(`PDF file not found: ${filePath}`)
+    }
+    
+    if (error.message?.includes('image-based') || error.message?.includes('scanned')) {
+      throw error
+    }
+    
+    throw new Error(`Failed to extract text from PDF: ${error.message || 'Unknown error'}`)
   }
 }
 
@@ -135,6 +163,11 @@ IMPORTANT:
 `
 
   try {
+    console.log('[PDF Parser] Calling AI to parse estimate text...', {
+      textLength: processedText.length,
+      format,
+    })
+    
     const aiResponse = await callAI({
       prompt: parsePrompt,
       toolId: 'estimate-comparison',
@@ -152,8 +185,14 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
     })
 
     if (aiResponse.error) {
-      throw new Error(aiResponse.error)
+      console.error('[PDF Parser] AI returned error:', aiResponse.error)
+      throw new Error(`AI parsing failed: ${aiResponse.error}`)
     }
+    
+    console.log('[PDF Parser] AI response received:', {
+      responseLength: aiResponse.result?.length || 0,
+      hasResult: !!aiResponse.result,
+    })
 
     // Parse AI response
     let parsedData: ParsedEstimate
@@ -222,6 +261,8 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
  */
 export async function parseEstimatePDF(filePath: string): Promise<ParsedEstimate> {
   try {
+    console.log('[PDF Parser] Starting PDF parsing for:', filePath)
+    
     // Step 1: Extract text from PDF
     const text = await extractPDFText(filePath)
     
@@ -231,13 +272,32 @@ export async function parseEstimatePDF(filePath: string): Promise<ParsedEstimate
     
     // Step 2: Detect format
     const format = detectEstimateFormat(text)
+    console.log('[PDF Parser] Detected format:', format)
     
     // Step 3: Parse with AI
+    console.log('[PDF Parser] Parsing with AI...')
     const parsedData = await parseEstimateTextWithAI(text, format)
+    console.log('[PDF Parser] Parsing completed:', {
+      lineItems: parsedData.lineItems?.length || 0,
+      totalCost: parsedData.totalCost,
+    })
     
     return parsedData
   } catch (error: any) {
-    console.error('PDF parsing error:', error)
-    throw new Error(`Failed to parse PDF: ${error.message}`)
+    console.error('[PDF Parser] PDF parsing error:', {
+      message: error.message,
+      stack: error.stack,
+      filePath,
+    })
+    
+    // Preserve specific error messages
+    if (error.message?.includes('image-based') || 
+        error.message?.includes('scanned') ||
+        error.message?.includes('not found') ||
+        error.message?.includes('empty')) {
+      throw error
+    }
+    
+    throw new Error(`Failed to parse PDF: ${error.message || 'Unknown error'}`)
   }
 }
