@@ -81,6 +81,14 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
         : `You are a helpful AI assistant. ${request.context || ''}`
       )
 
+    console.log('[OpenAI] Making API call...', {
+      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      promptLength: request.prompt.length,
+      systemPromptLength: systemPrompt.length,
+      maxTokens: request.maxTokens ?? 2000,
+    })
+
+    const startTime = Date.now()
     const completion = await client.chat.completions.create({
       // Default to cheaper model, but can be overridden via OPENAI_MODEL env var
       // Options: 'gpt-4o-mini' (cheapest, recommended), 'gpt-3.5-turbo' (very cheap), 'gpt-4-turbo' (most accurate but expensive)
@@ -91,6 +99,12 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
       ],
       temperature: request.temperature ?? 0.7,
       max_tokens: request.maxTokens ?? 2000, // Increased for detailed comparisons
+      timeout: 180000, // 3 minute timeout
+    })
+    const apiTime = Date.now() - startTime
+    console.log('[OpenAI] API call completed:', {
+      time: `${apiTime}ms`,
+      tokens: completion.usage?.total_tokens || 0,
     })
 
     const result = completion.choices[0]?.message?.content || 'No response from AI'

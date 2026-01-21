@@ -70,14 +70,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Parse both estimates from file paths
+    // Parse both estimates from file paths with timeout
     let adjusterData, contractorData
     try {
-      console.log('[Estimate Comparison] Parsing adjuster file...')
-      adjusterData = await parseEstimatePDF(adjusterFile.path)
+      console.log('[Estimate Comparison] Parsing adjuster file...', adjusterFile.path)
+      const adjusterStartTime = Date.now()
+      adjusterData = await Promise.race([
+        parseEstimatePDF(adjusterFile.path),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Adjuster file parsing timed out after 2 minutes')), 2 * 60 * 1000)
+        )
+      ]) as any
+      const adjusterParseTime = Date.now() - adjusterStartTime
       console.log('[Estimate Comparison] Adjuster file parsed:', {
         lineItems: adjusterData.lineItems?.length || 0,
         totalCost: adjusterData.totalCost,
+        parseTime: `${adjusterParseTime}ms`,
       })
     } catch (parseError: any) {
       console.error('[Estimate Comparison] Failed to parse adjuster file:', parseError)
@@ -88,11 +96,19 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      console.log('[Estimate Comparison] Parsing contractor file...')
-      contractorData = await parseEstimatePDF(contractorFile.path)
+      console.log('[Estimate Comparison] Parsing contractor file...', contractorFile.path)
+      const contractorStartTime = Date.now()
+      contractorData = await Promise.race([
+        parseEstimatePDF(contractorFile.path),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Contractor file parsing timed out after 2 minutes')), 2 * 60 * 1000)
+        )
+      ]) as any
+      const contractorParseTime = Date.now() - contractorStartTime
       console.log('[Estimate Comparison] Contractor file parsed:', {
         lineItems: contractorData.lineItems?.length || 0,
         totalCost: contractorData.totalCost,
+        parseTime: `${contractorParseTime}ms`,
       })
     } catch (parseError: any) {
       console.error('[Estimate Comparison] Failed to parse contractor file:', parseError)
@@ -247,12 +263,17 @@ FULL CONTRACTOR LINE ITEMS (showing first ${Math.min(maxItemsPerEstimate, contra
       adjusterItems: adjusterItems.length,
       contractorItems: contractorItems.length,
       promptLength: limitedComparisonPrompt.length,
+      promptSizeKB: Math.round(limitedComparisonPrompt.length / 1024),
     })
 
-    const aiResponse = await callAI({
-      prompt: limitedComparisonPrompt,
-      toolId: 'estimate-comparison',
-      systemPrompt: `You are an expert construction estimator with deep knowledge of:
+    const aiStartTime = Date.now()
+    let aiResponse
+    try {
+      aiResponse = await Promise.race([
+        callAI({
+          prompt: limitedComparisonPrompt,
+          toolId: 'estimate-comparison',
+          systemPrompt: `You are an expert construction estimator with deep knowledge of:
 - Construction terminology and abbreviations (R&R, demo, sq ft, lf, etc.)
 - Standard construction line items and codes
 - Xactimate and Symbility estimate formats
@@ -276,9 +297,26 @@ IMPORTANT: Handle room name and sketch variations intelligently:
 Be precise with calculations and prioritize critical issues that could affect project scope or safety.
 
 IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-JSON.`,
-      temperature: 0.2, // Very low temperature for consistent, accurate results
-      maxTokens: 8000, // Increased to handle larger responses
-    })
+          temperature: 0.2, // Very low temperature for consistent, accurate results
+          maxTokens: 8000, // Increased to handle larger responses
+        }),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('AI call timed out after 3 minutes')), 3 * 60 * 1000)
+        )
+      ]) as any
+      const aiTime = Date.now() - aiStartTime
+      console.log('[Estimate Comparison] AI call completed:', {
+        hasError: !!aiResponse.error,
+        responseLength: aiResponse.result?.length || 0,
+        aiTime: `${aiTime}ms`,
+      })
+    } catch (aiError: any) {
+      console.error('[Estimate Comparison] AI call failed:', aiError)
+      return NextResponse.json(
+        { error: `AI processing failed: ${aiError.message}` },
+        { status: 500 }
+      )
+    }
 
     if (aiResponse.error) {
       return NextResponse.json(
