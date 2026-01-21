@@ -145,9 +145,10 @@ IMPORTANT:
 - Construction terminology and abbreviations
 - How to extract line items, quantities, prices, and measurements accurately
 
-Your task is to extract structured data from estimate text and return it as valid JSON.`,
+Your task is to extract structured data from estimate text and return it as valid JSON.
+IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-JSON.`,
       temperature: 0.1, // Very low for accuracy
-      maxTokens: 4000,
+      maxTokens: 8000, // Increased to handle larger estimates
     })
 
     if (aiResponse.error) {
@@ -197,7 +198,15 @@ Your task is to extract structured data from estimate text and return it as vali
       
     } catch (parseError: any) {
       console.error('Failed to parse AI response:', parseError)
-      console.error('AI Response:', aiResponse.result.substring(0, 500))
+      console.error('AI Response length:', aiResponse.result?.length || 0)
+      console.error('AI Response preview:', aiResponse.result?.substring(0, 500) || 'No response')
+      console.error('AI Response end:', aiResponse.result?.substring(Math.max(0, (aiResponse.result?.length || 0) - 200)) || 'No response')
+      
+      // If JSON is incomplete, provide helpful error
+      if (parseError.message?.includes('Unexpected end of JSON') || parseError.message?.includes('end of JSON')) {
+        throw new Error(`AI response was truncated. The response may be too long. Try reducing the estimate size or contact support. Error: ${parseError.message}`)
+      }
+      
       throw new Error(`Failed to parse estimate data: ${parseError.message}`)
     }
 

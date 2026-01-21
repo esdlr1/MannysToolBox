@@ -221,9 +221,10 @@ IMPORTANT:
 - Scope dependencies (e.g., prep + finish + paint)
 - Construction terminology and abbreviations
 
-Return only valid JSON matching the requested schema.`,
+Return only valid JSON matching the requested schema.
+IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-JSON.`,
       temperature: 0.2,
-      maxTokens: 2000,
+      maxTokens: 4000, // Increased to handle more detailed responses
     })
 
     if (aiResponse.error) {
