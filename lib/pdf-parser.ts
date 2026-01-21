@@ -5,6 +5,31 @@ import { ParsedEstimate, LineItem, Measurement } from './estimate-parser'
 import { callAI } from './ai'
 
 /**
+ * Fix duplicate keys in JSON string by keeping the last occurrence
+ */
+function fixDuplicateKeys(jsonString: string): string {
+  try {
+    // Try to parse and stringify to remove duplicates (JSON.parse automatically keeps last)
+    // But we need to handle the case where it's already invalid
+    // So we'll use a regex approach for common cases
+    
+    // Fix duplicate keys in objects (simple case: same key appears twice in a row)
+    let fixed = jsonString
+    
+    // Remove duplicate consecutive keys (keep last)
+    fixed = fixed.replace(/"([^"]+)":\s*([^,}\]]+),?\s*"([^"]+)":\s*\2(?=\s*[,}])/g, '"$3": $2')
+    
+    // Fix common patterns like "unitPrice": 0.37, "unitPrice": 187.08 -> keep last
+    const duplicateKeyPattern = /"([^"]+)":\s*([^,}\]]+),?\s*"(\1)":\s*([^,}\]]+)/g
+    fixed = fixed.replace(duplicateKeyPattern, '"$1": $4')
+    
+    return fixed
+  } catch {
+    return jsonString
+  }
+}
+
+/**
  * Extract text from PDF file
  */
 export async function extractPDFText(filePath: string): Promise<string> {
@@ -202,13 +227,43 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
       let cleanedResponse = aiResponse.result.trim()
       cleanedResponse = cleanedResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '')
       
+      // Fix common AI JSON errors
+      // Fix truncated null values
+      cleanedResponse = cleanedResponse.replace(/:\s*nul\b/g, ': null')
+      cleanedResponse = cleanedResponse.replace(/:\s*"nul"/g, ': null')
+      
+      // Fix duplicate keys by removing duplicates (keep last occurrence)
+      // This is a simple approach - for complex cases, we'd need a proper JSON parser
+      // But first, let's try to extract and fix the JSON
+      
       // Extract JSON
       const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {
         throw new Error('No JSON found in AI response')
       }
       
-      parsedData = JSON.parse(jsonMatch[0])
+      let jsonString = jsonMatch[0]
+      
+      // Try to fix duplicate keys in lineItems array
+      // This regex finds duplicate keys within objects and removes the first occurrence
+      // Note: This is a heuristic approach - proper solution would require a full JSON parser
+      jsonString = jsonString.replace(/"([^"]+)":\s*([^,}\]]+),?\s*"([^"]+)":\s*\2/g, '"$3": $2')
+      
+      // Try parsing - if it fails, attempt to fix common issues
+      try {
+        parsedData = JSON.parse(jsonString)
+      } catch (parseError: any) {
+        console.warn('[PDF Parser] Initial JSON parse failed, attempting to fix...', {
+          error: parseError.message,
+          position: parseError.message.match(/position (\d+)/)?.[1],
+        })
+        
+        // More aggressive fixes
+        // Remove duplicate keys by parsing as object and reconstructing
+        // This is a fallback - try to extract valid parts
+        const fixedJson = fixDuplicateKeys(jsonString)
+        parsedData = JSON.parse(fixedJson)
+      }
       
       // Validate and set defaults
       if (!parsedData.lineItems) parsedData.lineItems = []
