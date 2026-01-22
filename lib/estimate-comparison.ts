@@ -54,21 +54,32 @@ export function preprocessComparison(
   const normalizeCode = (code: string | undefined): string | null => {
     if (!code) return null
     const cleaned = code.toString().trim().toUpperCase()
-    // Try to find in Xactimate database
+    // Try to find in Xactimate database - if found, use canonical code
     const xactItem = findByCode(cleaned)
-    if (xactItem) return cleaned
+    if (xactItem) return xactItem.code.toUpperCase()
     return cleaned
   }
 
+  // Build code maps with Xactimate-enhanced matching
   adjusterData.lineItems.forEach(item => {
     if (item.code) {
-      adjusterByCode.set(item.code, item)
+      const normalized = normalizeCode(item.code)
+      if (normalized) {
+        adjusterByCode.set(normalized, item)
+        // Also store with original code for fallback
+        adjusterByCode.set(item.code.toString().toUpperCase(), item)
+      }
     }
   })
 
   contractorData.lineItems.forEach(item => {
     if (item.code) {
-      contractorByCode.set(item.code, item)
+      const normalized = normalizeCode(item.code)
+      if (normalized) {
+        contractorByCode.set(normalized, item)
+        // Also store with original code for fallback
+        contractorByCode.set(item.code.toString().toUpperCase(), item)
+      }
     }
   })
 
