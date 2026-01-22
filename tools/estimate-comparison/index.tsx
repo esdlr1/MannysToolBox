@@ -1204,7 +1204,7 @@ export default function EstimateComparisonTool() {
                       </div>
                     </div>
                     
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 flex-wrap">
                       <button
                         onClick={handleSave}
                         className="px-5 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap border border-gray-200 dark:border-gray-700"
@@ -1218,6 +1218,38 @@ export default function EstimateComparisonTool() {
                       >
                         <Download className="w-4 h-4" />
                         Export PDF
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/tools/estimate-comparison/export-excel', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                clientName,
+                                claimNumber,
+                                comparisonResult,
+                                notes,
+                              }),
+                            })
+                            if (response.ok) {
+                              const blob = await response.blob()
+                              const url = window.URL.createObjectURL(blob)
+                              const a = document.createElement('a')
+                              a.href = url
+                              a.download = `Estimate_Comparison_${clientName}_${claimNumber}.xlsx`
+                              a.click()
+                              window.URL.revokeObjectURL(url)
+                            }
+                          } catch (err) {
+                            console.error('Excel export error:', err)
+                            alert('Failed to export Excel')
+                          }
+                        }}
+                        className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md transition-all flex items-center gap-2 whitespace-nowrap"
+                      >
+                        <FileBarChart className="w-4 h-4" />
+                        Export Excel
                       </button>
                     </div>
                   </div>

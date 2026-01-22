@@ -54,6 +54,7 @@
     "typescript": "^5.3.3",
     "uuid": "^13.0.0",
     "xlsx": "^0.18.5",
+    "@types/xlsx": "^0.0.35",
     "zod": "^3.22.4"
   },
   "devDependencies": {
