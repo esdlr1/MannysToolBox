@@ -123,10 +123,15 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute w-full mt-2 rounded-2xl border-2 overflow-hidden shadow-2xl bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 z-50 max-h-[70vh] flex flex-col"
+            className="absolute w-full mt-2 rounded-2xl border-2 overflow-hidden shadow-2xl bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 z-50 max-h-[calc(100vh-200px)] flex flex-col"
+            style={{
+              maxHeight: 'calc(100vh - 200px)',
+              top: '100%',
+              marginTop: '0.5rem',
+            }}
           >
             {/* Search Input */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <input
@@ -141,8 +146,8 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
               </div>
             </div>
 
-            {/* Tools List */}
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+            {/* Tools List - Scrollable */}
+            <div className="flex-1 overflow-y-auto overscroll-contain" style={{ maxHeight: 'calc(100vh - 300px)' }}>
               {Object.keys(toolsByCategory).length === 0 ? (
                 <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                   <p>No tools found matching &quot;{searchQuery}&quot;</p>
