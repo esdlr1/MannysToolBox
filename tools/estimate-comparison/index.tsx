@@ -316,6 +316,164 @@ export default function EstimateComparisonTool() {
     }
   }
 
+  // Copy to clipboard helper
+  const copyToClipboard = async (text: string, itemId: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedItem(itemId)
+      setTimeout(() => setCopiedItem(null), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  // Get Xactimate item info helper (lazy loaded to avoid SSR issues)
+  const getXactimateInfo = useMemo(() => {
+    return (code?: string) => {
+      if (!code) return null
+      try {
+        // This will be loaded client-side only
+        if (typeof window !== 'undefined') {
+          const xactimateLookup = require('@/lib/xactimate-lookup')
+          return xactimateLookup.findByCode(code)
+        }
+        return null
+      } catch {
+        return null
+      }
+    }
+  }, [])
+
+  // Get unique categories from items
+  const getUniqueCategories = useMemo(() => {
+    if (!comparisonResult) return []
+    const categories = new Set<string>()
+    comparisonResult.missingItems?.forEach(item => {
+      if (item.category) categories.add(item.category)
+      // Also try to get category from Xactimate if code exists
+      if (item.code && getXactimateInfo(item.code)) {
+        const xactInfo = getXactimateInfo(item.code)
+        if (xactInfo?.category) categories.add(xactInfo.category)
+      }
+    })
+    comparisonResult.adjusterOnlyItems?.forEach(item => {
+      if (item.category) categories.add(item.category)
+      if (item.code && getXactimateInfo(item.code)) {
+        const xactInfo = getXactimateInfo(item.code)
+        if (xactInfo?.category) categories.add(xactInfo.category)
+      }
+    })
+    comparisonResult.discrepancies?.forEach(item => {
+      if (item.code && getXactimateInfo(item.code)) {
+        const xactInfo = getXactimateInfo(item.code)
+        if (xactInfo?.category) categories.add(xactInfo.category)
+      }
+    })
+    return Array.from(categories).sort()
+  }, [comparisonResult, getXactimateInfo])
+
+  // Get unique rooms from items
+  const getUniqueRooms = useMemo(() => {
+    if (!comparisonResult) return []
+    const rooms = new Set<string>()
+    comparisonResult.missingItems?.forEach(item => {
+      const room = item.room || extractRoom(item.item)
+      rooms.add(room)
+    })
+    comparisonResult.adjusterOnlyItems?.forEach(item => {
+      const room = item.room || extractRoom(item.item)
+      rooms.add(room)
+    })
+    comparisonResult.discrepancies?.forEach(item => {
+      rooms.add(extractRoom(item.item))
+    })
+    return Array.from(rooms).sort()
+  }, [comparisonResult])
+
+  // Batch selection helpers
+  const toggleItemSelection = (itemId: string) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId)
+      } else {
+        newSet.add(itemId)
+      }
+      return newSet
+    })
+  }
+
+  const selectAllItems = () => {
+    if (!comparisonResult) return
+    const allIds = new Set<string>()
+    comparisonResult.missingItems?.forEach((item, idx) => {
+      allIds.add(`missing-${idx}`)
+    })
+    comparisonResult.adjusterOnlyItems?.forEach((item, idx) => {
+      allIds.add(`adjuster-${idx}`)
+    })
+    comparisonResult.discrepancies?.forEach((item, idx) => {
+      allIds.add(`discrepancy-${idx}`)
+    })
+    setSelectedItems(allIds)
+    setSelectAllMode(true)
+  }
+
+  const clearSelection = () => {
+    setSelectedItems(new Set())
+    setSelectAllMode(false)
+  }
+
+  // Export selected items
+  const exportSelectedItems = async (format: 'csv' | 'excel' | 'pdf') => {
+    if (selectedItems.size === 0) {
+      alert('Please select items to export')
+      return
+    }
+    
+    const selectedData: any[] = []
+    comparisonResult?.missingItems?.forEach((item, idx) => {
+      if (selectedItems.has(`missing-${idx}`)) {
+        selectedData.push({ type: 'missing', ...item })
+      }
+    })
+    comparisonResult?.adjusterOnlyItems?.forEach((item, idx) => {
+      if (selectedItems.has(`adjuster-${idx}`)) {
+        selectedData.push({ type: 'adjuster_only', ...item })
+      }
+    })
+    comparisonResult?.discrepancies?.forEach((item, idx) => {
+      if (selectedItems.has(`discrepancy-${idx}`)) {
+        selectedData.push({ type: 'discrepancy', ...item })
+      }
+    })
+
+    if (format === 'csv') {
+      const headers = ['Type', 'Item', 'Code', 'Quantity', 'Unit Price', 'Total Price', 'Priority', 'Category']
+      const rows = selectedData.map(item => [
+        item.type,
+        item.item,
+        item.code || '',
+        item.quantity,
+        item.unitPrice,
+        item.totalPrice,
+        item.priority,
+        item.category || ''
+      ])
+      const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Selected_Items_${clientName}_${claimNumber}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } else if (format === 'pdf') {
+      // Use existing PDF export but with selected items only
+      handleExportPDF()
+    }
+  }
+
   // Helper function to extract room from item name
   const extractRoom = (itemName: string): string => {
     // Common patterns: "Kitchen - Floor", "Kit - Floor", "Living Room - Paint", etc.
