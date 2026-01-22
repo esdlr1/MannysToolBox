@@ -363,19 +363,18 @@ export default function EstimateComparisonTool() {
   }
 
   // Get Xactimate item info helper (lazy loaded to avoid SSR issues)
-  const getXactimateInfo = useMemo(() => {
-    return (code?: string) => {
-      if (!code) return null
-      try {
-        // This will be loaded client-side only
-        if (typeof window !== 'undefined') {
-          const xactimateLookup = require('@/lib/xactimate-lookup')
-          return xactimateLookup.findByCode(code)
-        }
-        return null
-      } catch {
-        return null
+  // Using useCallback to ensure stable function reference
+  const getXactimateInfo = useCallback((code?: string) => {
+    if (!code) return null
+    try {
+      // This will be loaded client-side only
+      if (typeof window !== 'undefined') {
+        const xactimateLookup = require('@/lib/xactimate-lookup')
+        return xactimateLookup.findByCode(code)
       }
+      return null
+    } catch {
+      return null
     }
   }, [])
 
