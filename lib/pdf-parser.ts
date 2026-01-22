@@ -266,6 +266,10 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
         fixedJson = fixedJson.replace(/\}\s*\{/g, '}, {')
         fixedJson = fixedJson.replace(/\}\s*"/g, '}, "')
         
+        // Fix missing commas after numbers before strings/objects
+        fixedJson = fixedJson.replace(/(\d)\s*"([^"]+)":/g, '$1, "$2":')
+        fixedJson = fixedJson.replace(/(\d)\s*\{/g, '$1, {')
+        
         // Fix unquoted keys (if any)
         fixedJson = fixedJson.replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":')
         
