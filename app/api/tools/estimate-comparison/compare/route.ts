@@ -424,19 +424,34 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
       }
 
       // Validate and enhance the result structure
+      if (!comparisonResult.matchedItems) comparisonResult.matchedItems = []
       if (!comparisonResult.missingItems) comparisonResult.missingItems = []
       if (!comparisonResult.discrepancies) comparisonResult.discrepancies = []
       if (!comparisonResult.summary) {
         comparisonResult.summary = {
           totalCostDifference: 0,
+          matchedItemsCount: 0,
           missingItemsCount: 0,
           discrepanciesCount: 0,
           criticalIssues: 0,
           minorIssues: 0,
         }
       }
+      
+      // If AI didn't provide matchedItems, populate from preprocessing
+      if (!comparisonResult.matchedItems || comparisonResult.matchedItems.length === 0) {
+        comparisonResult.matchedItems = preprocessing.suggestedMatches.slice(0, 50).map(m => ({
+          contractorItem: `${m.contractorItem.item} ${m.contractorItem.description || ''}`.trim(),
+          adjusterItem: `${m.adjusterItem.item} ${m.adjusterItem.description || ''}`.trim(),
+          confidence: m.confidence,
+          matchReason: m.confidence >= 0.95 ? 'code_match' : m.confidence >= 0.8 ? 'description_match' : 'similarity_match',
+        }))
+      }
 
       // Calculate summary if not provided
+      if (comparisonResult.summary.matchedItemsCount === undefined || comparisonResult.summary.matchedItemsCount === 0) {
+        comparisonResult.summary.matchedItemsCount = comparisonResult.matchedItems?.length || 0
+      }
       if (comparisonResult.summary.missingItemsCount === 0) {
         comparisonResult.summary.missingItemsCount = comparisonResult.missingItems.length
       }
