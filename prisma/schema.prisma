@@ -41,6 +41,10 @@ model User {
   managedEmployees                ManagerAssignment[]          @relation("ManagerAssignments")
   managers                        ManagerAssignment[]          @relation("EmployeeAssignments")
   estimateComparisonFeedback      EstimateComparisonFeedback[]
+  createdCourses                  TrainingCourse[]             @relation("CourseCreator")
+  assignedTrainings               EmployeeTraining[]           @relation("TrainingAssigner")
+  employeeTrainings               EmployeeTraining[]           @relation("EmployeeTrainings")
+  certifications                  Certification[]              @relation("EmployeeCertifications")
 
   @@index([departmentId])
   @@map("users")
@@ -355,4 +359,95 @@ model EstimateComparisonFeedback {
   @@index([isCorrect])
   @@index([createdAt])
   @@map("estimate_comparison_feedback")
+}
+
+model TrainingCourse {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  category    String? // e.g., "Safety", "Technical", "Compliance"
+  duration    Int? // Duration in minutes
+  createdById String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy      User               @relation("CourseCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  materials      TrainingMaterial[]
+  assignments    EmployeeTraining[]
+  certifications Certification[]
+
+  @@index([createdById])
+  @@index([category])
+  @@index([isActive])
+  @@map("training_courses")
+}
+
+model TrainingMaterial {
+  id          String   @id @default(cuid())
+  courseId    String
+  title       String
+  description String?  @db.Text
+  fileUrl     String? // URL/path to uploaded file
+  fileType    String? // "pdf", "video", "document", "link"
+  order       Int      @default(0) // Order within course
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  course TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@index([order])
+  @@map("training_materials")
+}
+
+model EmployeeTraining {
+  id           String    @id @default(cuid())
+  employeeId   String
+  courseId     String
+  assignedById String? // Manager/Owner who assigned it
+  assignedAt   DateTime  @default(now())
+  dueDate      DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  progress     Int       @default(0) // 0-100 percentage
+  status       String    @default("assigned") // "assigned" | "in_progress" | "completed" | "overdue"
+  notes        String?   @db.Text
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  employee   User           @relation("EmployeeTrainings", fields: [employeeId], references: [id], onDelete: Cascade)
+  course     TrainingCourse @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  assignedBy User?          @relation("TrainingAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  @@unique([employeeId, courseId])
+  @@index([employeeId])
+  @@index([courseId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("employee_trainings")
+}
+
+model Certification {
+  id             String    @id @default(cuid())
+  courseId       String?
+  employeeId     String
+  name           String
+  description    String?   @db.Text
+  issuedDate     DateTime
+  expiryDate     DateTime?
+  issuer         String? // Who issued the certification
+  certificateUrl String? // URL/path to certificate file
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  course   TrainingCourse? @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  employee User            @relation("EmployeeCertifications", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([courseId])
+  @@index([isActive])
+  @@index([expiryDate])
+  @@map("certifications")
 }

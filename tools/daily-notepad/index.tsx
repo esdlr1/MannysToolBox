@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRoleView } from '@/contexts/RoleViewContext'
-import { Upload, Camera, CheckCircle2, X, Calendar, Clock, AlertCircle, FileImage, Users, TrendingUp, Filter, Search, ChevronLeft, ChevronRight, MessageSquare, Download, Eye, Loader2, Bell } from 'lucide-react'
+import { Upload, Camera, CheckCircle2, X, Calendar, Clock, AlertCircle, FileImage, Users, TrendingUp, Filter, Search, ChevronLeft, ChevronRight, MessageSquare, Download, Eye, Loader2, Bell, BookOpen, GraduationCap, Award, Plus, Edit, Trash2, Play, FileText, Video, Link as LinkIcon } from 'lucide-react'
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, isToday, isWeekend, addDays, subDays, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns'
 
 interface Submission {
