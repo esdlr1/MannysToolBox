@@ -93,7 +93,7 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
   }
 
   return (
-    <div className="relative w-full max-w-2xl" ref={dropdownRef}>
+    <div className="relative w-full max-w-2xl z-50" ref={dropdownRef}>
       {/* Dropdown Button */}
       <motion.button
         whileHover={{ scale: 1.01 }}
