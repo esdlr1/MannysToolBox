@@ -1,6 +1,14 @@
 // Type definitions for estimate comparison
 
+export interface MatchedItem {
+  contractorItem: string
+  adjusterItem: string
+  confidence: number
+  matchReason: 'code_match' | 'description_match' | 'quantity_price_match' | 'similarity_match'
+}
+
 export interface ComparisonResult {
+  matchedItems?: MatchedItem[]
   missingItems: Array<{
     item: string
     quantity: number
@@ -20,6 +28,7 @@ export interface ComparisonResult {
   }>
   summary: {
     totalCostDifference: number
+    matchedItemsCount?: number
     missingItemsCount: number
     discrepanciesCount: number
     criticalIssues: number
