@@ -4,6 +4,8 @@ import { useSession } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
+import Link from 'next/link'
+import { FileText, Download, Eye, CheckCircle2, Clock, File, ExternalLink } from 'lucide-react'
 
 interface UsageHistoryItem {
   id: string
@@ -13,11 +15,33 @@ interface UsageHistoryItem {
   createdAt: string
 }
 
+interface SavedWorkItem {
+  id: string
+  toolId: string
+  title: string
+  description: string | null
+  data: any
+  createdAt: string
+  updatedAt: string
+}
+
+interface FileItem {
+  id: string
+  toolId: string | null
+  originalName: string
+  filename: string
+  size: number
+  createdAt: string
+}
+
 export default function HistoryPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [history, setHistory] = useState<UsageHistoryItem[]>([])
+  const [savedWork, setSavedWork] = useState<SavedWorkItem[]>([])
+  const [files, setFiles] = useState<FileItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'all' | 'reports' | 'files' | 'activity'>('all')
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -35,12 +59,40 @@ export default function HistoryPage() {
       const response = await fetch('/api/history')
       if (response.ok) {
         const data = await response.json()
-        setHistory(data)
+        setHistory(data.history || [])
+        setSavedWork(data.savedWork || [])
+        setFiles(data.files || [])
       }
     } catch (error) {
       console.error('Error fetching history:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+  }
+
+  const getToolName = (toolId: string): string => {
+    const toolNames: Record<string, string> = {
+      'estimate-comparison': 'Estimate Comparison',
+      'estimate-audit': 'Estimate Completeness Audit',
+      'daily-notepad': 'Yellow Notepad',
+    }
+    return toolNames[toolId] || toolId
+  }
+
+  const handleViewReport = (savedItem: SavedWorkItem) => {
+    // Navigate to the tool with the saved data
+    if (savedItem.toolId === 'estimate-comparison') {
+      router.push(`/tools/${savedItem.toolId}?saved=${savedItem.id}`)
+    } else if (savedItem.toolId === 'estimate-audit') {
+      router.push(`/tools/${savedItem.toolId}?saved=${savedItem.id}`)
     }
   }
 

@@ -16,13 +16,40 @@ export async function GET() {
       )
     }
 
+    // Get usage history
     const history = await prisma.usageHistory.findMany({
       where: { userId: session.user.id },
       orderBy: { createdAt: 'desc' },
       take: 100, // Limit to last 100 entries
     })
 
-    return NextResponse.json(history)
+    // Get saved work (completed reports)
+    const savedWork = await prisma.savedWork.findMany({
+      where: { userId: session.user.id },
+      orderBy: { updatedAt: 'desc' },
+      take: 50,
+    })
+
+    // Get uploaded files
+    const files = await prisma.file.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: {
+        id: true,
+        toolId: true,
+        originalName: true,
+        filename: true,
+        size: true,
+        createdAt: true,
+      },
+    })
+
+    return NextResponse.json({
+      history,
+      savedWork,
+      files,
+    })
   } catch (error) {
     console.error('History fetch error:', error)
     return NextResponse.json(
