@@ -383,24 +383,26 @@ export default function EstimateComparisonTool() {
   const getUniqueCategories = useMemo(() => {
     if (!comparisonResult) return []
     const categories = new Set<string>()
+    const lookupFn = getXactimateInfo
+    
     comparisonResult.missingItems?.forEach(item => {
       if (item.category) categories.add(item.category)
       // Also try to get category from Xactimate if code exists
-      if (item.code && getXactimateInfo(item.code)) {
-        const xactInfo = getXactimateInfo(item.code)
+      if (item.code) {
+        const xactInfo = lookupFn(item.code)
         if (xactInfo?.category) categories.add(xactInfo.category)
       }
     })
     comparisonResult.adjusterOnlyItems?.forEach(item => {
       if (item.category) categories.add(item.category)
-      if (item.code && getXactimateInfo(item.code)) {
-        const xactInfo = getXactimateInfo(item.code)
+      if (item.code) {
+        const xactInfo = lookupFn(item.code)
         if (xactInfo?.category) categories.add(xactInfo.category)
       }
     })
     comparisonResult.discrepancies?.forEach(item => {
-      if (item.code && getXactimateInfo(item.code)) {
-        const xactInfo = getXactimateInfo(item.code)
+      if (item.code) {
+        const xactInfo = lookupFn(item.code)
         if (xactInfo?.category) categories.add(xactInfo.category)
       }
     })
