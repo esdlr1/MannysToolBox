@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import { FileUpload } from '@/components/FileUpload'
 import { logUsage } from '@/lib/utils'
 import { ComparisonResult } from '@/types/estimate-comparison'
-import { Upload, FileText, User, CheckCircle2, Loader2, AlertCircle, DollarSign, TrendingUp, FileCheck, Download, Save, Eye, Search, Filter, ArrowUpDown, X, Calendar, Clock, Info, FileBarChart, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, Copy, Check, Xactimate, BarChart3, PieChart, TrendingDown, Layers, Tag, MapPin, DollarSign as DollarIcon, Zap, History, BookOpen, Lightbulb, Settings } from 'lucide-react'
+import { Upload, FileText, User, CheckCircle2, Loader2, AlertCircle, DollarSign, TrendingUp, FileCheck, Download, Save, Eye, Search, Filter, ArrowUpDown, X, Calendar, Clock, Info, FileBarChart, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, Copy, Check, BarChart3, PieChart, TrendingDown, Layers, Tag, MapPin, DollarSign as DollarIcon, Zap, History, BookOpen, Lightbulb, Settings } from 'lucide-react'
 import { format } from 'date-fns'
 import { FeedbackModal } from '@/components/estimate-comparison/FeedbackModal'
 
