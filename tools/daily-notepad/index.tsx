@@ -129,6 +129,44 @@ export default function DailyNotepadTool() {
   const [submittingComment, setSubmittingComment] = useState(false)
   const [submissionComments, setSubmissionComments] = useState<any[]>([])
   
+  // Training state
+  const [courses, setCourses] = useState<Array<{
+    id: string
+    title: string
+    description: string | null
+    category: string | null
+    duration: number | null
+    isActive: boolean
+    createdBy: { id: string; name: string | null; email: string }
+    materialsCount: number
+    assignmentsCount: number
+    createdAt: string
+    updatedAt: string
+  }>>([])
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null)
+  const [assignments, setAssignments] = useState<Array<{
+    id: string
+    employee: { id: string; name: string | null; email: string }
+    course: { id: string; title: string; category: string | null; duration: number | null }
+    progress: number
+    status: string
+    dueDate: string | null
+    startedAt: string | null
+    completedAt: string | null
+  }>>([])
+  const [certifications, setCertifications] = useState<Array<{
+    id: string
+    employee: { id: string; name: string | null; email: string }
+    course: { id: string; title: string } | null
+    name: string
+    issuedDate: string
+    expiryDate: string | null
+    isActive: boolean
+  }>>([])
+  const [loadingTraining, setLoadingTraining] = useState(false)
+  const [showCreateCourse, setShowCreateCourse] = useState(false)
+  const [newCourse, setNewCourse] = useState({ title: '', description: '', category: '', duration: '' })
+  
   // Error state
   const [error, setError] = useState('')
 
