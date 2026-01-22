@@ -369,6 +369,77 @@ export default function DailyNotepadTool() {
     }
   }
 
+  const loadCourses = async () => {
+    setLoadingTraining(true)
+    try {
+      const response = await fetch('/api/training/courses')
+      if (response.ok) {
+        const data = await response.json()
+        setCourses(data.courses || [])
+      }
+    } catch (error) {
+      console.error('Error loading courses:', error)
+    } finally {
+      setLoadingTraining(false)
+    }
+  }
+
+  const loadAssignments = async () => {
+    try {
+      const response = await fetch('/api/training/assignments')
+      if (response.ok) {
+        const data = await response.json()
+        setAssignments(data.assignments || [])
+      }
+    } catch (error) {
+      console.error('Error loading assignments:', error)
+    }
+  }
+
+  const loadCertifications = async () => {
+    try {
+      const response = await fetch('/api/training/certifications')
+      if (response.ok) {
+        const data = await response.json()
+        setCertifications(data.certifications || [])
+      }
+    } catch (error) {
+      console.error('Error loading certifications:', error)
+    }
+  }
+
+  const handleCreateCourse = async () => {
+    if (!newCourse.title.trim()) {
+      setError('Course title is required')
+      return
+    }
+
+    setLoadingTraining(true)
+    try {
+      const response = await fetch('/api/training/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCourse),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCourses([data.course, ...courses])
+        setNewCourse({ title: '', description: '', category: '', duration: '' })
+        setShowCreateCourse(false)
+        setError('')
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to create course')
+      }
+    } catch (error) {
+      console.error('Error creating course:', error)
+      setError('Failed to create course')
+    } finally {
+      setLoadingTraining(false)
+    }
+  }
+
   const loadNotifications = async () => {
     try {
       const response = await fetch('/api/notifications?unreadOnly=true')
