@@ -70,6 +70,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const processingStartTime = Date.now()
+
     // Parse both estimates from file paths with timeout
     let adjusterData, contractorData
     try {
