@@ -259,10 +259,27 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
         })
         
         // More aggressive fixes
-        // Remove duplicate keys by parsing as object and reconstructing
-        // This is a fallback - try to extract valid parts
-        const fixedJson = fixDuplicateKeys(jsonString)
-        parsedData = JSON.parse(fixedJson)
+        let fixedJson = fixDuplicateKeys(jsonString)
+        
+        // Additional fixes for common JSON errors
+        // Fix missing commas between array elements
+        fixedJson = fixedJson.replace(/\}\s*\{/g, '}, {')
+        fixedJson = fixedJson.replace(/\}\s*"/g, '}, "')
+        
+        // Fix unquoted keys (if any)
+        fixedJson = fixedJson.replace(/([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":')
+        
+        // Try parsing again
+        try {
+          parsedData = JSON.parse(fixedJson)
+        } catch (secondError: any) {
+          // If still failing, try to extract just the lineItems array
+          console.warn('[PDF Parser] Second parse attempt failed, trying to extract lineItems...', {
+            error: secondError.message,
+            position: secondError.message.match(/position (\d+)/)?.[1],
+          })
+          throw secondError // Will be caught by outer catch
+        }
       }
       
       // Validate and set defaults
