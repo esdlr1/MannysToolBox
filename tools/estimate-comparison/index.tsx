@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { FileUpload } from '@/components/FileUpload'
 import { logUsage } from '@/lib/utils'
