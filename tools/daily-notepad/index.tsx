@@ -73,7 +73,7 @@ export default function DailyNotepadTool() {
   // View state
   const [view, setView] = useState<'employee' | 'manager'>('employee')
   const [currentView, setCurrentView] = useState<'upload' | 'history' | 'calendar'>('upload')
-  const [managerView, setManagerView] = useState<'dashboard' | 'list' | 'calendar' | 'detail' | 'training' | 'contacts' | 'survey'>('dashboard')
+  const [managerView, setManagerView] = useState<'dashboard' | 'list' | 'calendar' | 'detail'>('dashboard')
   
   // Employee calendar state
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date())
@@ -1258,36 +1258,6 @@ export default function DailyNotepadTool() {
             }`}
           >
             Calendar
-          </button>
-          <button
-            onClick={() => setManagerView('training')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-              managerView === 'training'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            Training
-          </button>
-          <button
-            onClick={() => setManagerView('contacts')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-              managerView === 'contacts'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            Contacts
-          </button>
-          <button
-            onClick={() => setManagerView('survey')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-              managerView === 'survey'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
-          >
-            Survey
           </button>
         </div>
 
