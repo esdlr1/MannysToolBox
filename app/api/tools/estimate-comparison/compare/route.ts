@@ -483,8 +483,8 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
       // Add processing metadata
       const processingEndTime = Date.now()
       comparisonResult.processingTime = processingEndTime - processingStartTime
-      if (aiResponse.tokensUsed) {
-        comparisonResult.tokenUsage = aiResponse.tokensUsed
+      if (aiResponse.usage?.totalTokens) {
+        comparisonResult.tokenUsage = aiResponse.usage.totalTokens
       }
       if (comparisonResult.summary.criticalIssues === 0) {
         comparisonResult.summary.criticalIssues = 
