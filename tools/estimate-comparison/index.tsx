@@ -187,6 +187,8 @@ export default function EstimateComparisonTool() {
 
     setProcessing(true)
     setError('')
+    setProcessingProgress(0)
+    setProcessingStage('Initializing...')
 
     try {
       // Log usage
@@ -200,9 +202,26 @@ export default function EstimateComparisonTool() {
         contractorFileId: contractorFile.id,
       })
 
+      setProcessingProgress(10)
+      setProcessingStage('Parsing adjuster estimate...')
+
+      // Simulate progress updates (actual progress would come from server-sent events in production)
+      const progressInterval = setInterval(() => {
+        setProcessingProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval)
+            return prev
+          }
+          return prev + 5
+        })
+      }, 2000)
+
       // Call API to process comparison with timeout
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000) // 5 minute timeout
+
+      setProcessingStage('Parsing contractor estimate...')
+      setProcessingProgress(30)
 
       const response = await fetch('/api/tools/estimate-comparison/compare', {
         method: 'POST',
@@ -217,6 +236,10 @@ export default function EstimateComparisonTool() {
       })
 
       clearTimeout(timeoutId)
+      clearInterval(progressInterval)
+
+      setProcessingProgress(70)
+      setProcessingStage('Analyzing differences...')
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({ error: 'Unknown error' }))
@@ -224,14 +247,24 @@ export default function EstimateComparisonTool() {
         throw new Error(data.error || `Failed to process comparison (${response.status})`)
       }
 
+      setProcessingProgress(85)
+      setProcessingStage('Finalizing results...')
+
       const result = await response.json()
       console.log('[Estimate Comparison] Comparison completed:', {
         missingItems: result.missingItems?.length || 0,
         discrepancies: result.discrepancies?.length || 0,
       })
 
-      setComparisonResult(result)
-      setStep(4)
+      setProcessingProgress(100)
+      setProcessingStage('Complete!')
+
+      setTimeout(() => {
+        setComparisonResult(result)
+        setStep(4)
+        setProcessingProgress(0)
+        setProcessingStage('')
+      }, 500)
 
       // Log successful comparison
       logUsage(session.user.id, 'estimate-comparison', 'comparison_completed', {
@@ -241,6 +274,8 @@ export default function EstimateComparisonTool() {
       })
     } catch (err: any) {
       console.error('[Estimate Comparison] Error:', err)
+      setProcessingProgress(0)
+      setProcessingStage('')
       if (err.name === 'AbortError') {
         setError('Comparison timed out. The estimates may be too large. Please try with smaller files or contact support.')
       } else {
@@ -972,8 +1007,93 @@ export default function EstimateComparisonTool() {
             </div>
           )}
 
-          {/* Step 3: Processing */}
+          {/* Step 3: Processing with Progress */}
           {step === 3 && (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+                <div className="text-center mb-8">
+                  <Loader2 className="w-16 h-16 text-red-600 dark:text-red-400 animate-spin mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    Processing Comparison
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {processingStage || 'Analyzing your estimates...'}
+                  </p>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Progress
+                    </span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {processingProgress}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-red-600 to-red-700 h-3 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${processingProgress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Processing Steps */}
+                <div className="space-y-3">
+                  <div className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                    processingProgress >= 10 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-gray-50 dark:bg-gray-700/50'
+                  }`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      processingProgress >= 10 ? 'bg-green-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500'
+                    }`}>
+                      {processingProgress >= 10 ? <Check className="w-4 h-4" /> : <span className="text-xs">1</span>}
+                    </div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Parsing adjuster estimate</span>
+                  </div>
+                  <div className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                    processingProgress >= 30 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-gray-50 dark:bg-gray-700/50'
+                  }`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      processingProgress >= 30 ? 'bg-green-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500'
+                    }`}>
+                      {processingProgress >= 30 ? <Check className="w-4 h-4" /> : <span className="text-xs">2</span>}
+                    </div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Parsing contractor estimate</span>
+                  </div>
+                  <div className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                    processingProgress >= 70 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-gray-50 dark:bg-gray-700/50'
+                  }`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      processingProgress >= 70 ? 'bg-green-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500'
+                    }`}>
+                      {processingProgress >= 70 ? <Check className="w-4 h-4" /> : <span className="text-xs">3</span>}
+                    </div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Analyzing differences with AI</span>
+                  </div>
+                  <div className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                    processingProgress >= 85 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-gray-50 dark:bg-gray-700/50'
+                  }`}>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      processingProgress >= 85 ? 'bg-green-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-gray-500'
+                    }`}>
+                      {processingProgress >= 85 ? <Check className="w-4 h-4" /> : <span className="text-xs">4</span>}
+                    </div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Finalizing results</span>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Processing (Old - keeping for fallback) */}
+          {step === 3 && !processingProgress && (
             <div className="p-16 lg:p-24 text-center">
               <div className="mb-8">
                 <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/50">
