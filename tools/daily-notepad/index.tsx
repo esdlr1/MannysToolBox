@@ -1537,6 +1537,93 @@ export default function DailyNotepadTool() {
           </div>
         )}
 
+        {/* Training View */}
+        {managerView === 'training' && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Training Center</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">
+                Manage training materials, courses, and employee certifications
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Training Materials</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Upload and organize training documents</p>
+                </div>
+                <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Course Management</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Create and assign training courses</p>
+                </div>
+                <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Certifications</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Track employee certifications and compliance</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-8 italic">
+                Training features coming soon...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Contacts View */}
+        {managerView === 'contacts' && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Employee Contacts</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">
+                Quick access to employee contact information and directories
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Employee Directory</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">View all employee contact details</p>
+                </div>
+                <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Emergency Contacts</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Access emergency contact information</p>
+                </div>
+                <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Department Contacts</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Organize contacts by department</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-8 italic">
+                Contact management features coming soon...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Survey View */}
+        {managerView === 'survey' && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Surveys & Feedback</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">
+                Create surveys, collect feedback, and analyze employee responses
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Create Survey</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Design and publish employee surveys</p>
+                </div>
+                <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Response Analytics</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">View and analyze survey responses</p>
+                </div>
+                <div className="p-6 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Feedback Management</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Manage employee feedback and suggestions</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-500 mt-8 italic">
+                Survey features coming soon...
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Detail View */}
         {managerView === 'detail' && selectedSubmission && (
           <div className="space-y-6">
