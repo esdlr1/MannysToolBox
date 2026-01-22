@@ -468,6 +468,31 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
       },
     })
 
+    // Auto-save the comparison result
+    try {
+      await prisma.savedWork.create({
+        data: {
+          userId: session.user.id,
+          toolId: 'estimate-comparison',
+          title: `Estimate Comparison - ${clientName}`,
+          description: `Claim #${claimNumber}`,
+          data: {
+            clientName,
+            claimNumber,
+            comparisonResult,
+            adjusterFile: adjusterFile.originalName,
+            contractorFile: contractorFile.originalName,
+            createdAt: new Date().toISOString(),
+          },
+          files: [adjusterFile.id, contractorFile.id],
+        },
+      })
+      console.log('[Estimate Comparison] Auto-saved comparison result')
+    } catch (saveError) {
+      // Don't fail the request if save fails, just log it
+      console.error('[Estimate Comparison] Failed to auto-save:', saveError)
+    }
+
     return NextResponse.json(comparisonResult)
   } catch (error: any) {
     console.error('Comparison error:', error)

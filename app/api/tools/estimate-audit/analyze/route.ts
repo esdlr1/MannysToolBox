@@ -287,6 +287,34 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
       )
     }
 
+    // Auto-save the audit result
+    try {
+      const fileRecord = await prisma.file.findUnique({
+        where: { id: fileId },
+      })
+
+      await prisma.savedWork.create({
+        data: {
+          userId: session.user.id,
+          toolId: 'estimate-audit',
+          title: `Estimate Audit${projectName ? ` - ${projectName}` : ''}`,
+          description: projectName || `Audit completed on ${new Date().toLocaleDateString()}`,
+          data: {
+            projectName: projectName || '',
+            notes: notes || '',
+            auditResult: result,
+            fileName: fileRecord?.originalName || 'Unknown',
+            createdAt: new Date().toISOString(),
+          },
+          files: [fileId],
+        },
+      })
+      console.log('[Estimate Audit] Auto-saved audit result')
+    } catch (saveError) {
+      // Don't fail the request if save fails, just log it
+      console.error('[Estimate Audit] Failed to auto-save:', saveError)
+    }
+
     return NextResponse.json(result)
   } catch (error: any) {
     console.error('[Estimate Audit] Error:', error)
