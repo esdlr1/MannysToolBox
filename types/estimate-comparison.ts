@@ -3,8 +3,16 @@
 export interface MatchedItem {
   contractorItem: string
   adjusterItem: string
+  contractorCode?: string
+  adjusterCode?: string
+  contractorQuantity?: number
+  adjusterQuantity?: number
+  contractorPrice?: number
+  adjusterPrice?: number
   confidence: number
-  matchReason: 'code_match' | 'description_match' | 'quantity_price_match' | 'similarity_match'
+  matchReason: 'code_match' | 'description_match' | 'quantity_price_match' | 'similarity_match' | 'manual_match'
+  manuallyMatched?: boolean
+  manuallyUnmatched?: boolean
 }
 
 export interface ComparisonResult {
@@ -17,6 +25,8 @@ export interface ComparisonResult {
     category?: string
     priority: 'critical' | 'minor'
     code?: string
+    room?: string
+    selected?: boolean
   }>
   adjusterOnlyItems?: Array<{
     item: string
@@ -26,6 +36,8 @@ export interface ComparisonResult {
     category?: string
     priority: 'critical' | 'minor'
     code?: string
+    room?: string
+    selected?: boolean
   }>
   discrepancies: Array<{
     item: string
@@ -35,6 +47,8 @@ export interface ComparisonResult {
     differencePercent: number
     type: 'quantity' | 'price' | 'measurement'
     priority: 'critical' | 'minor'
+    code?: string
+    selected?: boolean
   }>
   summary: {
     totalCostDifference: number
@@ -45,4 +59,6 @@ export interface ComparisonResult {
     criticalIssues: number
     minorIssues: number
   }
+  processingTime?: number
+  tokenUsage?: number
 }

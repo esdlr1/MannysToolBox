@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import { FileUpload } from '@/components/FileUpload'
 import { logUsage } from '@/lib/utils'
 import { ComparisonResult } from '@/types/estimate-comparison'
-import { Upload, FileText, User, CheckCircle2, Loader2, AlertCircle, DollarSign, TrendingUp, FileCheck, Download, Save, Eye, Search, Filter, ArrowUpDown, X, Calendar, Clock, Info, FileBarChart, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react'
+import { Upload, FileText, User, CheckCircle2, Loader2, AlertCircle, DollarSign, TrendingUp, FileCheck, Download, Save, Eye, Search, Filter, ArrowUpDown, X, Calendar, Clock, Info, FileBarChart, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, Copy, Check, Xactimate, BarChart3, PieChart, TrendingDown, Layers, Tag, MapPin, DollarSign as DollarIcon, Zap, History, BookOpen, Lightbulb, Settings } from 'lucide-react'
 import { format } from 'date-fns'
 import { FeedbackModal } from '@/components/estimate-comparison/FeedbackModal'
 
@@ -105,12 +105,32 @@ export default function EstimateComparisonTool() {
   const [showHighlighted, setShowHighlighted] = useState(false)
   const [notes, setNotes] = useState('')
   const [error, setError] = useState('')
+  const [processingProgress, setProcessingProgress] = useState(0)
+  const [processingStage, setProcessingStage] = useState('')
   
   // Filtering and sorting state
   const [searchQuery, setSearchQuery] = useState('')
   const [priorityFilter, setPriorityFilter] = useState<'all' | 'critical' | 'minor'>('all')
-  const [sortBy, setSortBy] = useState<'priority' | 'cost' | 'name'>('priority')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [priceRangeFilter, setPriceRangeFilter] = useState<{ min: number; max: number }>({ min: 0, max: Infinity })
+  const [roomFilter, setRoomFilter] = useState<string>('all')
+  const [codeSearch, setCodeSearch] = useState('')
+  const [sortBy, setSortBy] = useState<'priority' | 'cost' | 'name' | 'code'>('priority')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  
+  // Batch operations state
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
+  const [selectAllMode, setSelectAllMode] = useState(false)
+  
+  // Manual matching state
+  const [manualMatches, setManualMatches] = useState<Map<string, string>>(new Map()) // contractor item -> adjuster item
+  const [manualUnmatches, setManualUnmatches] = useState<Set<string>>(new Set()) // item IDs to unmatch
+  
+  // View mode state
+  const [viewMode, setViewMode] = useState<'list' | 'side-by-side' | 'charts'>('list')
+  
+  // Copy to clipboard state
+  const [copiedItem, setCopiedItem] = useState<string | null>(null)
   
   // Pagination state
   const [discrepanciesPage, setDiscrepanciesPage] = useState(1)
@@ -371,7 +391,7 @@ export default function EstimateComparisonTool() {
     setDiscrepanciesPage(1)
   }, [searchQuery, priorityFilter, sortBy, sortOrder])
 
-  // Filter and sort missing items
+  // Filter and sort missing items with enhanced filters
   const filteredAndSortedMissingItems = useMemo(() => {
     if (!comparisonResult) return []
     
@@ -381,9 +401,36 @@ export default function EstimateComparisonTool() {
     if (searchQuery) {
       items = items.filter(item => 
         item.item.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.category?.toLowerCase().includes(searchQuery.toLowerCase())
+        item.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.code?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
+    
+    // Filter by Xactimate code search
+    if (codeSearch) {
+      items = items.filter(item => 
+        item.code?.toUpperCase().includes(codeSearch.toUpperCase())
+      )
+    }
+    
+    // Filter by category
+    if (categoryFilter !== 'all') {
+      items = items.filter(item => item.category === categoryFilter)
+    }
+    
+    // Filter by room
+    if (roomFilter !== 'all') {
+      items = items.filter(item => {
+        const room = item.room || extractRoom(item.item)
+        return room === roomFilter
+      })
+    }
+    
+    // Filter by price range
+    items = items.filter(item => 
+      item.totalPrice >= priceRangeFilter.min && 
+      item.totalPrice <= priceRangeFilter.max
+    )
     
     // Filter by priority
     if (priorityFilter !== 'all') {
@@ -399,6 +446,11 @@ export default function EstimateComparisonTool() {
       } else if (sortBy === 'cost') {
         const diff = b.totalPrice - a.totalPrice
         return sortOrder === 'desc' ? diff : -diff
+      } else if (sortBy === 'code') {
+        const aCode = a.code || ''
+        const bCode = b.code || ''
+        const diff = aCode.localeCompare(bCode)
+        return sortOrder === 'desc' ? -diff : diff
       } else {
         const diff = a.item.localeCompare(b.item)
         return sortOrder === 'desc' ? -diff : diff
@@ -406,7 +458,7 @@ export default function EstimateComparisonTool() {
     })
     
     return items
-  }, [comparisonResult, searchQuery, priorityFilter, sortBy, sortOrder])
+  }, [comparisonResult, searchQuery, codeSearch, categoryFilter, roomFilter, priceRangeFilter, priorityFilter, sortBy, sortOrder])
 
   // Filter and sort discrepancies
   const filteredAndSortedDiscrepancies = useMemo(() => {
@@ -1032,6 +1084,52 @@ export default function EstimateComparisonTool() {
                             )}
                           </div>
 
+                          {/* Xactimate Code Search */}
+                          <div className="flex items-center gap-2">
+                            <Tag className="w-4 h-4 text-gray-400" />
+                            <input
+                              type="text"
+                              value={codeSearch}
+                              onChange={(e) => setCodeSearch(e.target.value)}
+                              placeholder="Search by code..."
+                              className="px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent w-32"
+                            />
+                          </div>
+
+                          {/* Category Filter */}
+                          {getUniqueCategories.length > 0 && (
+                            <div className="flex items-center gap-2">
+                              <Layers className="w-4 h-4 text-gray-400" />
+                              <select
+                                value={categoryFilter}
+                                onChange={(e) => setCategoryFilter(e.target.value)}
+                                className="px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="all">All Categories</option>
+                                {getUniqueCategories.map(cat => (
+                                  <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          {/* Room Filter */}
+                          {getUniqueRooms.length > 0 && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-gray-400" />
+                              <select
+                                value={roomFilter}
+                                onChange={(e) => setRoomFilter(e.target.value)}
+                                className="px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              >
+                                <option value="all">All Rooms</option>
+                                {getUniqueRooms.map(room => (
+                                  <option key={room} value={room}>{room}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
                           {/* Priority Filter */}
                           <div className="flex items-center gap-2">
                             <Filter className="w-4 h-4 text-gray-400" />
@@ -1051,12 +1149,13 @@ export default function EstimateComparisonTool() {
                             <ArrowUpDown className="w-4 h-4 text-gray-400" />
                             <select
                               value={sortBy}
-                              onChange={(e) => setSortBy(e.target.value as 'priority' | 'cost' | 'name')}
+                              onChange={(e) => setSortBy(e.target.value as 'priority' | 'cost' | 'name' | 'code')}
                               className="px-3 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                               <option value="priority">Sort by Priority</option>
                               <option value="cost">Sort by Cost</option>
                               <option value="name">Sort by Name</option>
+                              <option value="code">Sort by Code</option>
                             </select>
                             <button
                               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
@@ -1071,33 +1170,70 @@ export default function EstimateComparisonTool() {
                           <table className="w-full">
                             <thead>
                               <tr className="border-b-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Item Description</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectAllMode && selectedItems.size > 0}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        selectAllItems()
+                                        setSelectAllMode(true)
+                                      } else {
+                                        clearSelection()
+                                        setSelectAllMode(false)
+                                      }
+                                    }}
+                                    className="mr-2"
+                                  />
+                                  Item Description
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Code</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Quantity</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Unit Price</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Total Price</th>
                                 <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Priority</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
                               {paginatedMissingItems.paginatedItems.length > 0 ? (
                                 paginatedMissingItems.paginatedItems.map((item, idx) => (
-                                <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <tr key={idx} className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${selectedItems.has(`missing-${idx}`) ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}>
                                   <td className="px-6 py-4">
                                     <div className="flex items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedItems.has(`missing-${idx}`)}
+                                        onChange={() => toggleItemSelection(`missing-${idx}`)}
+                                        className="mr-2"
+                                      />
                                       <span className="text-sm font-medium text-gray-900 dark:text-white">{item.item}</span>
-                                      <button
-                                        onClick={() => {
-                                          setFeedbackItemType('missing_item')
-                                          setFeedbackItemIndex(idx)
-                                          setFeedbackItemDescription(item.item)
-                                          setFeedbackModalOpen(true)
-                                        }}
-                                        className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                                        title="Provide feedback on this item"
-                                      >
-                                        <MessageSquare className="w-4 h-4" />
-                                      </button>
+                                      {item.category && (
+                                        <span className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                                          {item.category}
+                                        </span>
+                                      )}
                                     </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    {item.code ? (
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs font-mono text-gray-600 dark:text-gray-400">{item.code}</span>
+                                        <button
+                                          onClick={() => copyToClipboard(item.code || '', `code-${idx}`)}
+                                          className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded transition-colors"
+                                          title="Copy code"
+                                        >
+                                          {copiedItem === `code-${idx}` ? (
+                                            <Check className="w-3 h-3 text-green-600" />
+                                          ) : (
+                                            <Copy className="w-3 h-3" />
+                                          )}
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <span className="text-xs text-gray-400">—</span>
+                                    )}
                                   </td>
                                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">{item.quantity}</td>
                                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">${item.unitPrice.toFixed(2)}</td>
@@ -1112,6 +1248,33 @@ export default function EstimateComparisonTool() {
                                     >
                                       {item.priority}
                                     </span>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => copyToClipboard(`${item.item} | Qty: ${item.quantity} | Price: $${item.totalPrice.toFixed(2)}`, `item-${idx}`)}
+                                        className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                        title="Copy item details"
+                                      >
+                                        {copiedItem === `item-${idx}` ? (
+                                          <Check className="w-4 h-4 text-green-600" />
+                                        ) : (
+                                          <Copy className="w-4 h-4" />
+                                        )}
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setFeedbackItemType('missing_item')
+                                          setFeedbackItemIndex(idx)
+                                          setFeedbackItemDescription(item.item)
+                                          setFeedbackModalOpen(true)
+                                        }}
+                                        className="p-1.5 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                                        title="Provide feedback"
+                                      >
+                                        <MessageSquare className="w-4 h-4" />
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                                 ))
