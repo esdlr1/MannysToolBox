@@ -1139,6 +1139,46 @@ export default function EstimateComparisonTool() {
                         </div>
                       </div>
                       
+                      {/* View Mode Switcher */}
+                      <div className="mt-4 flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">View:</span>
+                        <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-700">
+                          <button
+                            onClick={() => setViewMode('list')}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                              viewMode === 'list'
+                                ? 'bg-white dark:bg-gray-700 text-red-600 dark:text-red-400 shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                            }`}
+                          >
+                            <FileText className="w-4 h-4" />
+                            List
+                          </button>
+                          <button
+                            onClick={() => setViewMode('side-by-side')}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                              viewMode === 'side-by-side'
+                                ? 'bg-white dark:bg-gray-700 text-red-600 dark:text-red-400 shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                            }`}
+                          >
+                            <Eye className="w-4 h-4" />
+                            Side-by-Side
+                          </button>
+                          <button
+                            onClick={() => setViewMode('charts')}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                              viewMode === 'charts'
+                                ? 'bg-white dark:bg-gray-700 text-red-600 dark:text-red-400 shadow-sm'
+                                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                            }`}
+                          >
+                            <BarChart3 className="w-4 h-4" />
+                            Charts
+                          </button>
+                        </div>
+                      </div>
+                      
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                         <div className="flex items-start gap-3">
                           <User className="w-5 h-5 text-gray-400 mt-0.5" />

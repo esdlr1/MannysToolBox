@@ -108,11 +108,12 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
       )
     ]) as any
     
-    const apiTime = Date.now() - startTime
-    console.log('[OpenAI] API call completed:', {
-      time: `${apiTime}ms`,
-      tokens: completion.usage?.total_tokens || 0,
-    })
+      const apiTime = Date.now() - startTime
+      const tokensUsed = completion.usage?.total_tokens || 0
+      console.log('[OpenAI] API call completed:', {
+        time: `${apiTime}ms`,
+        tokens: tokensUsed,
+      })
 
     const result = completion.choices[0]?.message?.content || 'No response from AI'
 
