@@ -1493,8 +1493,8 @@ export default function EstimateComparisonTool() {
                             />
                           </div>
 
-                          {/* Category Filter */}
-                          {comparisonResult && getUniqueCategories && Array.isArray(getUniqueCategories) && getUniqueCategories.length > 0 && (
+                          {/* Category Filter - Temporarily disabled to debug initialization issue */}
+                          {false && comparisonResult && getUniqueCategories && Array.isArray(getUniqueCategories) && getUniqueCategories.length > 0 && (
                             <div className="flex items-center gap-2">
                               <Layers className="w-4 h-4 text-gray-400" />
                               <select
@@ -1510,8 +1510,8 @@ export default function EstimateComparisonTool() {
                             </div>
                           )}
 
-                          {/* Room Filter */}
-                          {comparisonResult && getUniqueRooms && Array.isArray(getUniqueRooms) && getUniqueRooms.length > 0 && (
+                          {/* Room Filter - Temporarily disabled to debug initialization issue */}
+                          {false && comparisonResult && getUniqueRooms && Array.isArray(getUniqueRooms) && getUniqueRooms.length > 0 && (
                             <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4 text-gray-400" />
                               <select
