@@ -221,9 +221,21 @@ export function preprocessComparison(
       }
     }
 
-    // Only mark as potentially missing if similarity is very low (< 0.6)
-    // This is conservative - we want to avoid false positives
-    if (!bestMatch || bestMatch.similarity < 0.6) {
+    // MUCH MORE CONSERVATIVE: Only mark as potentially missing if similarity is VERY low (< 0.7)
+    // Also check if quantity/price are close - if they are, it's likely the same item
+    const qtyClose = bestMatch ? Math.abs(item.quantity - bestMatch.item.quantity) / Math.max(item.quantity, bestMatch.item.quantity, 1) < 0.1 : false
+    const priceClose = bestMatch ? Math.abs(item.unitPrice - bestMatch.item.unitPrice) / Math.max(item.unitPrice, bestMatch.item.unitPrice, 1) < 0.1 : false
+    
+    // If quantity AND price are very close, it's almost certainly the same item
+    if (bestMatch && qtyClose && priceClose) {
+      // Add to suggested matches - these are definitely the same
+      suggestedMatches.push({
+        adjusterItem: bestMatch.item,
+        contractorItem: item,
+        confidence: 0.95, // High confidence when qty and price match
+      })
+    } else if (!bestMatch || bestMatch.similarity < 0.7) {
+      // Only mark as missing if no good match found AND similarity is very low
       potentialMissingItems.push(item)
     } else {
       // Add to suggested matches with lower confidence

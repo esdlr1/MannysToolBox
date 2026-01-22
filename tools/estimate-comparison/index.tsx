@@ -868,6 +868,46 @@ export default function EstimateComparisonTool() {
                   </div>
                 </div>
 
+                {/* Matched Items Section - Show what was successfully matched */}
+                {comparisonResult.matchedItems && comparisonResult.matchedItems.length > 0 && (
+                  <div className="mb-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
+                      <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                        Successfully Matched Items ({comparisonResult.matchedItems.length})
+                      </h2>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      These items were found in both estimates (they match, just worded differently):
+                    </p>
+                    <div className="max-h-60 overflow-y-auto space-y-2">
+                      {comparisonResult.matchedItems.slice(0, 20).map((match, idx) => (
+                        <div key={idx} className="bg-white dark:bg-gray-800 rounded p-3 border border-green-200 dark:border-green-700">
+                          <div className="flex items-start gap-3">
+                            <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1 text-sm">
+                              <div className="font-medium text-gray-900 dark:text-white mb-1">
+                                Contractor: {match.contractorItem}
+                              </div>
+                              <div className="text-gray-600 dark:text-gray-400">
+                                Adjuster: {match.adjusterItem}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                Match: {match.matchReason.replace('_', ' ')} ({Math.round(match.confidence * 100)}% confidence)
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {comparisonResult.matchedItems.length > 20 && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+                          ... and {comparisonResult.matchedItems.length - 20} more matched items
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Executive Summary Section */}
                 <div className="mb-10">
                   <div className="flex items-center gap-3 mb-6">

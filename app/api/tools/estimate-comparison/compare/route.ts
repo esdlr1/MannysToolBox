@@ -151,10 +151,21 @@ CRITICAL: Be VERY CONSERVATIVE. Only flag items as "missing" if you are ABSOLUTE
 
 TASK: Compare the adjuster's estimate with the contractor's estimate and identify ONLY GENUINE differences.
 
-PREPROCESSING RESULTS (Use these as hints, but verify yourself):
+PREPROCESSING RESULTS - ITEMS ALREADY MATCHED (DO NOT FLAG THESE AS MISSING):
+${JSON.stringify(preprocessing.suggestedMatches.slice(0, 100).map(m => ({
+  contractor: `${m.contractorItem.code || 'NO CODE'} - ${m.contractorItem.item} ${m.contractorItem.description || ''} (Qty: ${m.contractorItem.quantity}, Price: $${m.contractorItem.unitPrice})`,
+  adjuster: `${m.adjusterItem.code || 'NO CODE'} - ${m.adjusterItem.item} ${m.adjusterItem.description || ''} (Qty: ${m.adjusterItem.quantity}, Price: $${m.adjusterItem.unitPrice})`,
+  confidence: m.confidence,
+  matchReason: m.confidence >= 0.95 ? 'CODE_MATCH' : m.confidence >= 0.8 ? 'HIGH_SIMILARITY' : 'SIMILARITY_MATCH'
+})), null, 2)}
+
+IMPORTANT: The items listed above are ALREADY MATCHED. DO NOT include them in "missing items" - they exist in both estimates, just worded differently.
+
+Preprocessing Statistics:
 - Items matched by code: ${preprocessing.suggestedMatches.filter(m => m.confidence >= 0.95).length}
-- Items matched by description similarity: ${preprocessing.suggestedMatches.filter(m => m.confidence < 0.95).length}
-- Potential missing items (unverified): ${preprocessing.potentialMissingItems.length}
+- Items matched by description similarity: ${preprocessing.suggestedMatches.filter(m => m.confidence < 0.95 && m.confidence >= 0.7).length}
+- Items matched by quantity/price: ${preprocessing.suggestedMatches.filter(m => m.confidence >= 0.9).length}
+- Potential missing items (unverified - be VERY careful): ${preprocessing.potentialMissingItems.length}
 - Potential discrepancies (unverified): ${preprocessing.potentialDiscrepancies.length}
 
 MATCHING RULES (Apply these STRICTLY):
@@ -211,12 +222,17 @@ COMPARISON RULES:
    - Examples: "Kitchen - Floor" matches "Kit - Floor", "Living Room" matches "LR"
    - Prioritize matching by item code and description over room name
 
-VALIDATION CHECKLIST (Before flagging as missing):
-- [ ] Did I check if the item code exists in adjuster estimate?
-- [ ] Did I check if a similar description exists (accounting for synonyms)?
-- [ ] Did I check if the same quantity/price combination exists?
-- [ ] Did I account for abbreviations and terminology variations?
-- [ ] Am I 100% certain this is truly missing and not just worded differently?
+CRITICAL VALIDATION CHECKLIST (Before flagging as missing - ALL must be YES):
+- [ ] Did I check the PREPROCESSING RESULTS above to see if this item is already matched?
+- [ ] Did I search the FULL adjuster line items list for this exact item or very similar wording?
+- [ ] Did I check if the item code exists in adjuster estimate (even if description differs)?
+- [ ] Did I check if a similar description exists (accounting for ALL synonyms and abbreviations)?
+- [ ] Did I check if the same quantity/price combination exists (within 10%)?
+- [ ] Did I account for ALL abbreviations and terminology variations?
+- [ ] Did I check if it's just a different room name but same item?
+- [ ] Am I ABSOLUTELY 100% CERTAIN this is truly missing and not just worded differently?
+
+IF ANY ANSWER IS NO OR UNCERTAIN, DO NOT FLAG AS MISSING. It's better to miss a real difference than to incorrectly flag an item.
 
 ADJUSTER ESTIMATE SUMMARY:
 ${JSON.stringify(adjusterSummary, null, 2)}
@@ -243,6 +259,14 @@ Use these hints to validate your analysis, but perform your own thorough compari
 
 RETURN FORMAT (JSON only, no markdown):
 {
+  "matchedItems": [
+    {
+      "contractorItem": "string (item description from contractor)",
+      "adjusterItem": "string (item description from adjuster)",
+      "confidence": number (0-1),
+      "matchReason": "string (code_match | description_match | quantity_price_match)"
+    }
+  ],
   "missingItems": [
     {
       "item": "string (item description)",
@@ -266,12 +290,18 @@ RETURN FORMAT (JSON only, no markdown):
   ],
   "summary": {
     "totalCostDifference": number (contractor total - adjuster total),
+    "matchedItemsCount": number,
     "missingItemsCount": number,
     "discrepanciesCount": number,
     "criticalIssues": number,
     "minorIssues": number
   }
 }
+
+IMPORTANT: 
+- Include ALL matched items in the "matchedItems" array so users can see what was successfully matched
+- Only include items in "missingItems" if you've verified they're NOT in the adjuster estimate after checking ALL items
+- Be EXTREMELY conservative - when in doubt, mark as matched, not missing
 
 IMPORTANT:
 - Be thorough - check every item
