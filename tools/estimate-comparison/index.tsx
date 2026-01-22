@@ -556,50 +556,6 @@ export default function EstimateComparisonTool() {
     }
   }
 
-  // Helper function to extract room from item name
-  const extractRoom = (itemName: string): string => {
-    // Common patterns: "Kitchen - Floor", "Kit - Floor", "Living Room - Paint", etc.
-    // First try to match "Room - Item" pattern
-    const dashMatch = itemName.match(/^([^-]+?)\s*-\s*/i)
-    if (dashMatch) {
-      const room = dashMatch[1].trim()
-      // Normalize common abbreviations
-      const normalized = room.toLowerCase()
-      if (normalized.includes('kit') && !normalized.includes('bath')) return 'Kitchen'
-      if (normalized.includes('living') || normalized === 'lr') return 'Living Room'
-      if ((normalized.includes('bedroom') || normalized === 'br') && !normalized.includes('bath')) return 'Bedroom'
-      if (normalized.includes('bath')) return 'Bathroom'
-      if (normalized.includes('dining') || normalized === 'dr') return 'Dining Room'
-      if (normalized.includes('master')) return 'Master Bedroom'
-      if (normalized.includes('garage')) return 'Garage'
-      if (normalized.includes('basement')) return 'Basement'
-      if (normalized.includes('attic')) return 'Attic'
-      if (normalized.includes('hall')) return 'Hallway'
-      if (normalized.includes('office')) return 'Office'
-      return room
-    }
-    
-    // Try to match common room names at the start
-    const roomMatch = itemName.match(/^(Kitchen|Kit|K|Living Room|LR|Bedroom|BR|Bathroom|Bath|Master Bedroom|Master BR|Dining Room|DR|Office|Garage|Basement|Attic|Hallway|Hall)\b/i)
-    if (roomMatch) {
-      const room = roomMatch[1].trim()
-      const normalized = room.toLowerCase()
-      if (normalized.includes('kit') || normalized === 'k') return 'Kitchen'
-      if (normalized.includes('living') || normalized === 'lr') return 'Living Room'
-      if (normalized.includes('bedroom') || normalized === 'br') return 'Bedroom'
-      if (normalized.includes('bath')) return 'Bathroom'
-      if (normalized.includes('dining') || normalized === 'dr') return 'Dining Room'
-      if (normalized.includes('master')) return 'Master Bedroom'
-      if (normalized.includes('garage')) return 'Garage'
-      if (normalized.includes('basement')) return 'Basement'
-      if (normalized.includes('attic')) return 'Attic'
-      if (normalized.includes('hall')) return 'Hallway'
-      if (normalized.includes('office')) return 'Office'
-      return room
-    }
-    
-    return 'General'
-  }
 
   // Toggle room expansion
   const toggleRoom = (room: string) => {
