@@ -159,14 +159,18 @@ export default function DailyNotepadTool() {
       loadEmployees()
       loadDepartments()
       loadTeams()
+      // Only Owners can see all managers
+      if (effectiveRole === 'Owner' || effectiveRole === 'Super Admin') {
+        loadManagers()
+      }
     }
-  }, [view, session, filterDateRange, filterEmployee, filterTeam, filterDepartment])
+  }, [view, session, filterDateRange, filterEmployee, filterTeam, filterDepartment, filterManager, effectiveRole])
 
   useEffect(() => {
     if (filterEmployee !== 'all') {
       setFilterEmployee('all')
     }
-  }, [filterTeam, filterDepartment])
+  }, [filterTeam, filterDepartment, filterManager])
 
   const loadTodaySubmission = async () => {
     try {
@@ -312,6 +316,18 @@ export default function DailyNotepadTool() {
       }
     } catch (error) {
       console.error('Error loading teams:', error)
+    }
+  }
+
+  const loadManagers = async () => {
+    try {
+      const response = await fetch('/api/daily-notepad/managers')
+      if (response.ok) {
+        const data = await response.json()
+        setManagers(data.managers || [])
+      }
+    } catch (error) {
+      console.error('Error loading managers:', error)
     }
   }
 
