@@ -469,31 +469,35 @@ export default function EstimateComparisonTool() {
     const selectedData: any[] = []
     comparisonResult?.missingItems?.forEach((item, idx) => {
       if (selectedItems.has(`missing-${idx}`)) {
-        selectedData.push({ type: 'missing', ...item })
+        const { type: _, ...itemWithoutType } = item as any
+        selectedData.push({ itemType: 'missing', ...itemWithoutType })
       }
     })
     comparisonResult?.adjusterOnlyItems?.forEach((item, idx) => {
       if (selectedItems.has(`adjuster-${idx}`)) {
-        selectedData.push({ type: 'adjuster_only', ...item })
+        const { type: _, ...itemWithoutType } = item as any
+        selectedData.push({ itemType: 'adjuster_only', ...itemWithoutType })
       }
     })
     comparisonResult?.discrepancies?.forEach((item, idx) => {
       if (selectedItems.has(`discrepancy-${idx}`)) {
-        selectedData.push({ type: 'discrepancy', ...item })
+        const { type: itemTypeField, ...itemWithoutType } = item as any
+        selectedData.push({ itemType: 'discrepancy', discrepancyType: itemTypeField, ...itemWithoutType })
       }
     })
 
     if (format === 'csv') {
-      const headers = ['Type', 'Item', 'Code', 'Quantity', 'Unit Price', 'Total Price', 'Priority', 'Category']
+      const headers = ['Type', 'Item', 'Code', 'Quantity', 'Unit Price', 'Total Price', 'Priority', 'Category', 'Discrepancy Type']
       const rows = selectedData.map(item => [
-        item.type,
+        item.itemType,
         item.item,
         item.code || '',
-        item.quantity,
-        item.unitPrice,
-        item.totalPrice,
-        item.priority,
-        item.category || ''
+        item.quantity || '',
+        item.unitPrice || '',
+        item.totalPrice || '',
+        item.priority || '',
+        item.category || '',
+        item.discrepancyType || ''
       ])
       const csv = [headers, ...rows].map(row => row.join(',')).join('\n')
       const blob = new Blob([csv], { type: 'text/csv' })
