@@ -362,22 +362,6 @@ export default function EstimateComparisonTool() {
     }
   }
 
-  // Get Xactimate item info helper (lazy loaded to avoid SSR issues)
-  // Defined as a regular function to avoid React hook dependency issues
-  const getXactimateInfo = (code?: string) => {
-    if (!code) return null
-    try {
-      // This will be loaded client-side only
-      if (typeof window !== 'undefined') {
-        const xactimateLookup = require('@/lib/xactimate-lookup')
-        return xactimateLookup.findByCode(code)
-      }
-      return null
-    } catch {
-      return null
-    }
-  }
-
   // Get unique categories from items
   const getUniqueCategories = useMemo(() => {
     if (!comparisonResult) return []
