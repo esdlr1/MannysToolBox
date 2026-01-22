@@ -450,8 +450,8 @@ export default function EstimateComparisonTool() {
     return 'General'
   }
 
-  // Get unique rooms from items
-  const getUniqueRooms = useMemo(() => {
+  // Get unique rooms from items (extractRoom is hoisted above)
+  const getUniqueRooms: string[] = useMemo(() => {
     if (!comparisonResult) return []
     const rooms = new Set<string>()
     comparisonResult.missingItems?.forEach(item => {
