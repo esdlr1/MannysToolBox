@@ -269,12 +269,24 @@ RETURN FORMAT (JSON only, no markdown):
   ],
   "missingItems": [
     {
-      "item": "string (item description)",
+      "item": "string (item description from CONTRACTOR estimate)",
       "quantity": number,
       "unitPrice": number,
       "totalPrice": number,
       "category": "string (optional)",
-      "priority": "critical" | "minor"
+      "priority": "critical" | "minor",
+      "code": "string (Xactimate code if available)"
+    }
+  ],
+  "adjusterOnlyItems": [
+    {
+      "item": "string (item description from ADJUSTER estimate)",
+      "quantity": number,
+      "unitPrice": number,
+      "totalPrice": number,
+      "category": "string (optional)",
+      "priority": "critical" | "minor",
+      "code": "string (Xactimate code if available)"
     }
   ],
   "discrepancies": [
@@ -292,16 +304,20 @@ RETURN FORMAT (JSON only, no markdown):
     "totalCostDifference": number (contractor total - adjuster total),
     "matchedItemsCount": number,
     "missingItemsCount": number,
+    "adjusterOnlyItemsCount": number,
     "discrepanciesCount": number,
     "criticalIssues": number,
     "minorIssues": number
   }
 }
 
-IMPORTANT: 
-- Include ALL matched items in the "matchedItems" array so users can see what was successfully matched
-- Only include items in "missingItems" if you've verified they're NOT in the adjuster estimate after checking ALL items
-- Be EXTREMELY conservative - when in doubt, mark as matched, not missing
+CRITICAL INSTRUCTIONS:
+1. "missingItems" = Items in CONTRACTOR estimate but NOT in ADJUSTER estimate (contractor wants these added)
+2. "adjusterOnlyItems" = Items in ADJUSTER estimate but NOT in CONTRACTOR estimate (contractor didn't include these)
+3. Include ALL matched items in "matchedItems" so users can see what was successfully matched
+4. Only include items in "missingItems" or "adjusterOnlyItems" if you've verified they're NOT in the other estimate after checking ALL items
+5. Use Xactimate codes when available - items with the same code are THE SAME ITEM regardless of description
+6. Be EXTREMELY conservative - when in doubt, mark as matched, not missing
 
 IMPORTANT:
 - Be thorough - check every item
@@ -454,6 +470,9 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
       }
       if (comparisonResult.summary.missingItemsCount === 0) {
         comparisonResult.summary.missingItemsCount = comparisonResult.missingItems.length
+      }
+      if (comparisonResult.summary.adjusterOnlyItemsCount === undefined || comparisonResult.summary.adjusterOnlyItemsCount === 0) {
+        comparisonResult.summary.adjusterOnlyItemsCount = comparisonResult.adjusterOnlyItems?.length || 0
       }
       if (comparisonResult.summary.discrepanciesCount === 0) {
         comparisonResult.summary.discrepanciesCount = comparisonResult.discrepancies.length

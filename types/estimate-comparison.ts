@@ -16,6 +16,16 @@ export interface ComparisonResult {
     totalPrice: number
     category?: string
     priority: 'critical' | 'minor'
+    code?: string
+  }>
+  adjusterOnlyItems?: Array<{
+    item: string
+    quantity: number
+    unitPrice: number
+    totalPrice: number
+    category?: string
+    priority: 'critical' | 'minor'
+    code?: string
   }>
   discrepancies: Array<{
     item: string
@@ -30,6 +40,7 @@ export interface ComparisonResult {
     totalCostDifference: number
     matchedItemsCount?: number
     missingItemsCount: number
+    adjusterOnlyItemsCount?: number
     discrepanciesCount: number
     criticalIssues: number
     minorIssues: number

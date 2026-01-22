@@ -2,6 +2,7 @@
 // These functions help with pre-processing and validation before AI comparison
 
 import { LineItem, Measurement, ParsedEstimate } from './estimate-parser'
+import { findByCode, findByDescription } from './xactimate-lookup'
 
 export interface ComparisonPreprocessing {
   adjusterData: ParsedEstimate
@@ -45,8 +46,19 @@ export function preprocessComparison(
   }> = []
 
   // Find potential matches by code (Xactimate/Symbility codes)
+  // Use Xactimate database for better code matching
   const adjusterByCode = new Map<string, LineItem>()
   const contractorByCode = new Map<string, LineItem>()
+  
+  // Enhanced code matching using Xactimate database
+  const normalizeCode = (code: string | undefined): string | null => {
+    if (!code) return null
+    const cleaned = code.toString().trim().toUpperCase()
+    // Try to find in Xactimate database
+    const xactItem = findByCode(cleaned)
+    if (xactItem) return cleaned
+    return cleaned
+  }
 
   adjusterData.lineItems.forEach(item => {
     if (item.code) {

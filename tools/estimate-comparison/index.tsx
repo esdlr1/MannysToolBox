@@ -982,7 +982,7 @@ export default function EstimateComparisonTool() {
 
                 {/* Detailed Findings Section */}
                 <div className="mt-12 space-y-8">
-                  {/* Missing Items Section */}
+                  {/* Items ONLY in Contractor Estimate (Missing from Adjuster) */}
               {comparisonResult.missingItems.length > 0 && (
                 <div className="bg-white dark:bg-gray-800/50 border-2 border-blue-300 dark:border-blue-700 rounded-xl p-6 mb-8 shadow-lg">
                   <div className="flex justify-between items-center mb-6">
