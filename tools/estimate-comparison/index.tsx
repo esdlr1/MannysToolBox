@@ -363,8 +363,8 @@ export default function EstimateComparisonTool() {
   }
 
   // Get Xactimate item info helper (lazy loaded to avoid SSR issues)
-  // Using useCallback to ensure stable function reference
-  const getXactimateInfo = useCallback((code?: string) => {
+  // Defined as a regular function to avoid React hook dependency issues
+  const getXactimateInfo = (code?: string) => {
     if (!code) return null
     try {
       // This will be loaded client-side only
@@ -376,7 +376,7 @@ export default function EstimateComparisonTool() {
     } catch {
       return null
     }
-  }, [])
+  }
 
   // Get unique categories from items
   const getUniqueCategories = useMemo(() => {
