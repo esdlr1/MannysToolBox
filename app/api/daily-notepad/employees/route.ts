@@ -31,7 +31,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
-    const managerId = user.role === 'Manager' ? session.user.id : undefined
+    const managerFilterId = searchParams.get('managerId') || undefined
+    // Managers can only see their own employees
+    // Owners can filter by any manager or see all
+    const managerId = user.role === 'Manager' 
+      ? session.user.id 
+      : (managerFilterId || undefined)
 
     const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId, managerId })
 

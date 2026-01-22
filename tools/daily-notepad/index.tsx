@@ -99,6 +99,15 @@ export default function DailyNotepadTool() {
   const [filterEmployee, setFilterEmployee] = useState<string>('all')
   const [filterDepartment, setFilterDepartment] = useState<string>('all')
   const [filterTeam, setFilterTeam] = useState<string>('all')
+  const [filterManager, setFilterManager] = useState<string>('all')
+  const [managers, setManagers] = useState<Array<{
+    id: string
+    name: string | null
+    email: string
+    assignedEmployeesCount: number
+    todaySubmissions: number
+    missingToday: number
+  }>>([])
   const [filterDateRange, setFilterDateRange] = useState<'today' | 'week' | 'month'>('today')
   const [loadingStats, setLoadingStats] = useState(false)
   const [employees, setEmployees] = useState<Array<{ id: string; name: string | null; email: string }>>([])
@@ -212,6 +221,9 @@ export default function DailyNotepadTool() {
       })
       if (filterTeam !== 'all') params.set('teamId', filterTeam)
       if (filterDepartment !== 'all') params.set('departmentId', filterDepartment)
+      if (filterManager !== 'all' && (effectiveRole === 'Owner' || effectiveRole === 'Super Admin')) {
+        params.set('managerId', filterManager)
+      }
       const response = await fetch(`/api/daily-notepad/stats?${params.toString()}`)
       if (response.ok) {
         const data = await response.json()
@@ -247,6 +259,9 @@ export default function DailyNotepadTool() {
       if (filterDepartment !== 'all') {
         url += `&departmentId=${filterDepartment}`
       }
+      if (filterManager !== 'all' && (effectiveRole === 'Owner' || effectiveRole === 'Super Admin')) {
+        url += `&managerId=${filterManager}`
+      }
       
       const response = await fetch(url)
       if (response.ok) {
@@ -263,6 +278,9 @@ export default function DailyNotepadTool() {
       const params = new URLSearchParams()
       if (filterTeam !== 'all') params.set('teamId', filterTeam)
       if (filterDepartment !== 'all') params.set('departmentId', filterDepartment)
+      if (filterManager !== 'all' && (effectiveRole === 'Owner' || effectiveRole === 'Super Admin')) {
+        params.set('managerId', filterManager)
+      }
       const response = await fetch(`/api/daily-notepad/employees?${params.toString()}`)
       if (response.ok) {
         const data = await response.json()

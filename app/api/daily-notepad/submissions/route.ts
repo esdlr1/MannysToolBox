@@ -58,8 +58,13 @@ export async function GET(request: NextRequest) {
     if (departmentIdParam) {
       filters.departmentId = departmentIdParam
     }
+    const managerFilterId = searchParams.get('managerId')
+    // Managers can only see their own employees
+    // Owners can filter by any manager or see all
     if (user.role === 'Manager') {
       filters.managerId = session.user.id
+    } else if (managerFilterId) {
+      filters.managerId = managerFilterId
     }
 
     const submissions = await getSubmissions(filters)

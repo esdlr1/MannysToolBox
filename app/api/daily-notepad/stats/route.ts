@@ -34,7 +34,12 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get('period') || 'today' // today, week, month
     const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
-    const managerId = user.role === 'Manager' ? session.user.id : undefined
+    const managerFilterId = searchParams.get('managerId') || undefined
+    // Managers can only see their own employees
+    // Owners can filter by any manager or see all
+    const managerId = user.role === 'Manager' 
+      ? session.user.id 
+      : (managerFilterId || undefined)
 
     const today = getTodayDate()
     let startDate: Date
