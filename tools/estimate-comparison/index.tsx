@@ -405,8 +405,8 @@ export default function EstimateComparisonTool() {
     return Array.from(categories).sort()
   }, [comparisonResult])
 
-  // Helper function to extract room from item name (defined before useMemo to avoid hoisting issues)
-  const extractRoom = (itemName: string): string => {
+  // Helper function to extract room from item name (function declaration for hoisting)
+  function extractRoom(itemName: string): string {
     // Common patterns: "Kitchen - Floor", "Kit - Floor", "Living Room - Paint", etc.
     // First try to match "Room - Item" pattern
     const dashMatch = itemName.match(/^([^-]+?)\s*-\s*/i)
