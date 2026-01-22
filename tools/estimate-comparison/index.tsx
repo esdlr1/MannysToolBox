@@ -382,31 +382,44 @@ export default function EstimateComparisonTool() {
   const getUniqueCategories = useMemo(() => {
     if (!comparisonResult) return []
     const categories = new Set<string>()
-    const lookupFn = getXactimateInfo
+    
+    // Helper function to get Xactimate category (defined inside useMemo to avoid dependency issues)
+    const getXactCategory = (code?: string) => {
+      if (!code) return null
+      try {
+        if (typeof window !== 'undefined') {
+          const xactimateLookup = require('@/lib/xactimate-lookup')
+          return xactimateLookup.findByCode(code)?.category
+        }
+        return null
+      } catch {
+        return null
+      }
+    }
     
     comparisonResult.missingItems?.forEach(item => {
       if (item.category) categories.add(item.category)
       // Also try to get category from Xactimate if code exists
       if (item.code) {
-        const xactInfo = lookupFn(item.code)
-        if (xactInfo?.category) categories.add(xactInfo.category)
+        const xactCategory = getXactCategory(item.code)
+        if (xactCategory) categories.add(xactCategory)
       }
     })
     comparisonResult.adjusterOnlyItems?.forEach(item => {
       if (item.category) categories.add(item.category)
       if (item.code) {
-        const xactInfo = lookupFn(item.code)
-        if (xactInfo?.category) categories.add(xactInfo.category)
+        const xactCategory = getXactCategory(item.code)
+        if (xactCategory) categories.add(xactCategory)
       }
     })
     comparisonResult.discrepancies?.forEach(item => {
       if (item.code) {
-        const xactInfo = lookupFn(item.code)
-        if (xactInfo?.category) categories.add(xactInfo.category)
+        const xactCategory = getXactCategory(item.code)
+        if (xactCategory) categories.add(xactCategory)
       }
     })
     return Array.from(categories).sort()
-  }, [comparisonResult, getXactimateInfo])
+  }, [comparisonResult])
 
   // Get unique rooms from items
   const getUniqueRooms = useMemo(() => {
