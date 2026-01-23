@@ -144,48 +144,86 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Minimal Navigation Bar */}
-      <nav className="w-full py-4 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-end">
-          {/* Auth Links / User Menu */}
-          {status === 'loading' ? (
-            <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-          ) : session ? (
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/profile"
-                className="text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
-              >
-                {session.user?.name || session.user?.email}
-              </Link>
-              <Link
-                href="/announcements"
-                className="text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
-              >
-                Announcements
-              </Link>
+      <nav className="w-full py-4 px-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          {/* Tabs Section */}
+          {session && (
+            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
               <button
-                onClick={() => signOut({ callbackUrl: '/' })}
-                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                onClick={() => setActiveTab('training')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'training'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
               >
-                Sign Out
+                Training
+              </button>
+              <button
+                onClick={() => setActiveTab('contacts')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'contacts'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                Contacts
+              </button>
+              <button
+                onClick={() => setActiveTab('survey')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'survey'
+                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                Survey
               </button>
             </div>
-          ) : (
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/auth/signin"
-                className="text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-              >
-                Sign Up
-              </Link>
-            </div>
           )}
+
+          {/* Auth Links / User Menu */}
+          <div className="flex items-center space-x-4">
+            {status === 'loading' ? (
+              <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+            ) : session ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
+                >
+                  {session.user?.name || session.user?.email}
+                </Link>
+                <Link
+                  href="/announcements"
+                  className="text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
+                >
+                  Announcements
+                </Link>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/auth/signin"
+                  className="text-sm text-gray-700 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </nav>
 
