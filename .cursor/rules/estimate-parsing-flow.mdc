@@ -1,44 +1,49 @@
 ---
-description: Specification for the construction estimate parsing and terminology normalization logic
+description: Documentation for construction estimate PDF parsing, terminology normalization, and item matching workflows
 ---
 
 
 # estimate-parsing-flow
 
+The estimate parsing system consists of specialized construction industry workflows:
+
+1. PDF Estimate Ingestion
+Path: lib/estimate-parser.ts
+- Extracts structured data from construction estimates
+- Recognizes Xactimate and Symbility specific formats
+- Normalizes construction terminology and measurements
+- Maps line items to standardized construction codes
 Importance Score: 90/100
 
-The estimate parsing system implements specialized construction industry logic for processing and normalizing estimate documents:
+2. Xactimate Code Processing
+Path: lib/xactimate-lookup.ts
+- Validates construction industry standard Xactimate codes
+- Maintains mapping of codes to standardized descriptions
+- Handles unit conversion for construction measurements
+- Normalizes material and labor components
+Importance Score: 85/100
 
-Core Components:
+3. Terminology Normalization Engine
+Path: lib/estimate-comparison/normalize.ts
+- Standardizes construction material descriptions
+- Handles common industry abbreviations and variants
+- Maps equivalent terms across estimate sources
+- Maintains construction-specific synonym database
+Importance Score: 80/100
 
-1. Terminology Normalization
-- Implements construction-specific matching rules
-- Maps common variations like "R&R" to "Remove and Replace"
-- Handles industry standard abbreviations and alternates
-- Normalizes room names and location descriptors
+4. Construction Item Matching
+Path: lib/estimate-comparison/matcher.ts
+- Implements specialized algorithms for matching similar line items
+- Considers construction code hierarchies
+- Handles partial matches based on material specifications
+- Analyzes price and quantity variations
+Importance Score: 95/100
 
-2. Line Item Matching Engine
-Location: app/api/tools/estimate-comparison/compare/route.ts
-- Matches similar items between contractor and adjuster estimates
-- Handles construction material and labor items
-- Identifies equivalent items with different terminology
-- Validates item relationships and dependencies
-- Processes Xactimate/Symbility specific codes
-
-3. Price Discrepancy Analysis
-- Calculates variations in unit costs and quantities
-- Implements industry-specific thresholds for price differences
-- Flags significant deviations requiring review
-- Handles construction measurement unit conversions
-
-Key Business Rules:
-- Items must match based on normalized construction terminology
-- Price variations above threshold require additional validation
-- Related construction items must be identified and grouped
-- Industry-specific codes must be properly interpreted
-- Measurement units must be standardized before comparison
-
-The system focuses on construction domain expertise in estimate processing, emphasizing accurate matching of equivalent items despite terminology differences and proper handling of industry-specific pricing rules.
+Core Domain Rules:
+- Construction codes must follow Xactimate format
+- Material descriptions require standardization to industry terms
+- Quantities must be converted to standard construction units
+- Line items require matching across multiple estimate sources
 
 $END$
 

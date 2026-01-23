@@ -45,6 +45,9 @@ model User {
   assignedTrainings               EmployeeTraining[]           @relation("TrainingAssigner")
   employeeTrainings               EmployeeTraining[]           @relation("EmployeeTrainings")
   certifications                  Certification[]              @relation("EmployeeCertifications")
+  employeeContact                 EmployeeContact?             @relation("EmployeeContact")
+  createdSurveys                  Survey[]                     @relation("SurveyCreator")
+  surveyResponses                 SurveyResponse[]             @relation("SurveyRespondent")
 
   @@index([departmentId])
   @@map("users")
@@ -450,4 +453,58 @@ model Certification {
   @@index([isActive])
   @@index([expiryDate])
   @@map("certifications")
+}
+
+model EmployeeContact {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  position     String?
+  workLocation String?
+  phoneNumber  String?
+  email        String? // Can be different from user email
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation("EmployeeContact", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("employee_contacts")
+}
+
+model Survey {
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  createdById String
+  questions   Json // Array of question objects
+  targetType  String    @default("all") // "all" | "team" | "selected" | "department"
+  targetIds   String[] // Array of team/user/department IDs based on targetType
+  isActive    Boolean   @default(true)
+  deadline    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy User             @relation("SurveyCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  responses SurveyResponse[]
+
+  @@index([createdById])
+  @@index([isActive])
+  @@index([deadline])
+  @@map("surveys")
+}
+
+model SurveyResponse {
+  id          String   @id @default(cuid())
+  surveyId    String
+  userId      String
+  answers     Json // Array of answer objects matching questions
+  submittedAt DateTime @default(now())
+
+  survey Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  user   User   @relation("SurveyRespondent", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([surveyId, userId])
+  @@index([surveyId])
+  @@index([userId])
+  @@map("survey_responses")
 }

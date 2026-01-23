@@ -10,40 +10,54 @@
 - Explain your OBSERVATIONS clearly, then provide REASONING to identify the exact issue. Add console logs when needed to gather more information.
 
 
-Construction Management System orchestrating four primary business components:
+## Core Business Systems
 
-1. Daily Notepad Management (85/100)
-- Enforces 9:00 AM submission deadlines
-- Manages workday validation and compliance tracking
-- Coordinates manager notifications and OCR processing
-- Location: app/api/daily-notepad/submit/route.ts
+### Construction Estimate Processing Hub
+Importance Score: 95/100
+- Centralized estimate comparison engine with construction-specific matching
+- Industry-standard validation rules for estimate auditing
+- Xactimate code integration and dependency mapping
+- Construction material and labor code relationship tracking
 
-2. Estimate Comparison Engine (90/100)
-- Construction-specific estimate analysis
-- Identifies discrepancies between estimates using industry terminology
-- Implements specialized matching rules for construction terms
-- Handles material and pricing variance calculations
-- Location: app/api/tools/estimate-comparison/compare/route.ts
+Key Components:
+- Estimate Comparison Engine (app/api/tools/estimate-comparison/compare/route.ts)
+- Estimate Audit System (app/api/tools/estimate-audit/analyze/route.ts)
+- Construction Parser (lib/estimate-parser.ts)
 
-3. Manager Assignment System (75/100)
-- Maintains hierarchical employee-manager relationships
-- Controls department-based access permissions
-- Coordinates approval workflows
-- Location: app/api/admin/manager-assignments/route.ts
+### Daily Operations Management
+Importance Score: 85/100
+- Employee daily submission tracking with OCR integration
+- Time-based workflow enforcement for construction planning
+- Manager notification system for submission compliance
+- Construction site activity logging
 
-4. Announcement Priority System (70/100)
-- Multi-level priority classification system
-- Specialized visibility rules for pinned content
-- Role-based announcement permissions
-- Location: app/announcements/page.tsx
+### Construction Management Hierarchy
+Importance Score: 75/100
+- Role-based construction management workflows
+- Hierarchical employee-manager relationship system
+- Scope-based access control for submissions
+- Construction-specific certification tracking
 
-Core Business Integration Points:
-- Construction industry terminology matching
-- Hierarchical approval workflows
-- Compliance tracking systems
-- Role-based access management
+### Industry Communication System
+Importance Score: 70/100
+- Multi-level announcement priority system
+- Construction site-specific notifications
+- Job site critical notice management
+- Category-based construction communications
 
-The system's primary business value centers on construction-specific estimate comparison and daily planning management, supported by integrated workflow management components.
+## Domain-Specific Features
+
+### Estimate Processing
+- Specialized construction line item matching
+- Industry terminology normalization
+- Construction code dependency validation
+- Material and labor relationship mapping
+
+### Workflow Management
+- Construction deadline enforcement
+- Site manager oversight system
+- Certification lifecycle management
+- Employee-manager relationship tracking
 
 $END$
 

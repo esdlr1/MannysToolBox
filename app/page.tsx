@@ -41,7 +41,6 @@ export default function Home() {
   const [dismissedAnnouncements, setDismissedAnnouncements] = useState<string[]>([])
   const [activities, setActivities] = useState<Activity[]>([])
   const [activitiesLoading, setActivitiesLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'training' | 'contacts' | 'survey'>('training')
 
   useEffect(() => {
     fetchAnnouncements()
@@ -149,36 +148,30 @@ export default function Home() {
           {/* Tabs Section */}
           {session && (
             <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-              <button
-                onClick={() => setActiveTab('training')}
+              <Link
+                href="/training"
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === 'training'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 Training
-              </button>
-              <button
-                onClick={() => setActiveTab('contacts')}
+              </Link>
+              <Link
+                href="/contacts"
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === 'contacts'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 Contacts
-              </button>
-              <button
-                onClick={() => setActiveTab('survey')}
+              </Link>
+              <Link
+                href="/survey"
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                  activeTab === 'survey'
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 Survey
-              </button>
+              </Link>
             </div>
           )}
 

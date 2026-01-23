@@ -1,40 +1,35 @@
 ---
-description: Defines subdomain-based tool isolation and routing rules for construction management platform
+description: Technical specification for subdomain-based routing and tool isolation architecture
 ---
 
 
 # domain-routing-architecture
 
-The domain routing architecture implements a construction tool isolation system through subdomains with the following key components:
+Subdomain-based Tool Access Control System
+Importance Score: 65/100
 
-IMPORTANCE SCORE: 85/100
+Primary Component (middleware.ts):
 
-## Tool Subdomain Routing
-- Each construction tool operates in an isolated subdomain environment
-- Root subdomain paths (/) automatically map to specific tool interfaces (/tools/[toolId])
-- Enforces strict tool-to-subdomain matching for access control
+Tool Isolation Architecture:
+- Each business tool exists as an isolated instance on unique subdomains
+- Maps specific tool IDs to dedicated subdomains
+- Enforces strict 1:1 relationship between tools and their access points
 
-## Access Control Rules
-1. Protected Subdomains
-- 'www' and 'mannystoolbox' reserved for core platform functions
-- Prevents tool deployment to protected namespaces
+Access Control Rules:
+1. Primary Domain Exclusions
+   - Blocks tool routing on main domains ('www', 'mannystoolbox')
+   - Preserves root domain for central dashboard/navigation
 
 2. Tool Access Validation
-- Tool IDs must match their assigned subdomains
-- Prevents cross-tool access through subdomain manipulation
-- Maintains isolation between estimate comparison, daily notepad, and other construction tools
+   - Validates subdomain matches against authorized tool mappings
+   - Prevents cross-tool access through subdomain manipulation
+   - Maintains tool isolation through routing boundaries
 
-## Development Environment Handling
-- Specialized localhost subdomain handling
-- Development-specific routing patterns for tool testing
+3. Environment-Specific Routing
+   - Development: Allows localhost testing with simulated subdomains
+   - Production: Enforces strict subdomain-based access control
 
-## Tool Isolation Implementation
-Located in middleware.ts:
-- Validates incoming subdomain requests against registered tool IDs
-- Implements subdomain-to-tool mapping logic
-- Enforces tool-specific access boundaries
-
-The architecture ensures construction tools remain isolated while enabling centralized management through the main platform domain.
+The system implements a multi-tenant architecture where business tools maintain complete isolation through subdomain boundaries, supporting organizational requirements for segmented tool access and control.
 
 $END$
 

@@ -1,43 +1,54 @@
 ---
-description: Documents the business logic and rules for comparing construction estimates and identifying discrepancies
+description: Specifies the construction estimate comparison algorithm rules, matching logic, and prioritization system
 ---
 
 
 # estimate-comparison-algorithm
 
-Located in app/api/tools/estimate-comparison/compare/route.ts
+The estimate comparison system implements specialized construction industry matching and analysis logic:
 
-Construction Estimate Comparison Core Logic:
+Core Components:
 
-1. Matching Rules
-- Recognizes equivalent terminology (e.g., "R&R" = "Remove and Replace")
-- Matches room names with variations ("Master Bath" = "Master Bathroom")
-- Identifies related line items across different estimate formats
-- Handles construction industry codes from Xactimate/Symbility systems
+1. Line Item Matching Engine
+Path: lib/estimate-comparison.ts
+- Construction-specific code and terminology matching
+- Specialized comparison rules for materials and labor items
+- Multi-level confidence scoring based on:
+  * Exact code matches
+  * Description similarity
+  * Unit price variance
+  * Quantity alignment
+Importance Score: 95/100
 
-2. Threshold Configuration
-- Price discrepancy tolerance levels by material type
-- Square footage variation allowances for measurements
-- Quantity difference thresholds based on item categories
-- Critical vs. minor difference classification rules
-
-3. Prioritization Logic
-- High-value items flagged for priority review
-- Missing dependent items highlighted (e.g., drywall requiring texture)
-- Material-labor relationship validation
-- Category-based comparison importance weighting
-
-4. Business Rules
-- Construction-specific terminology standardization
-- Industry measurement unit conversions
-- Price variation tolerances by material category
-- Required vs. optional line item classification
-
+2. Construction Dependencies Analysis
+Path: lib/estimate-dependencies.ts
+- Validates related item presence across estimates
+- Enforces construction industry standard relationships
+- Maps dependencies between materials and labor codes
+- Flags missing dependent items with severity levels
 Importance Score: 90/100
-- Critical business algorithm for construction estimate reconciliation
-- Highly specialized domain logic for construction industry
-- Core revenue-impacting functionality
-- Complex industry-specific matching requirements
+
+3. Estimate Variance Analysis
+Path: types/estimate-comparison.ts
+- Price deviation thresholds by item category
+- Quantity mismatch tolerance rules
+- Classification system for discrepancies:
+  * Critical variations
+  * Standard variations
+  * Acceptable differences
+Importance Score: 85/100
+
+Key Domain Rules:
+- Construction code normalization for cross-system comparison
+- Industry-specific unit price variance tolerances
+- Material/labor relationship validation
+- Specialized matching rules for construction terminology
+
+The algorithm prioritizes:
+1. Direct construction code matches
+2. Related item completeness
+3. Industry-standard price variances
+4. Required dependencies presence
 
 $END$
 

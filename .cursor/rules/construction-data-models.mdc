@@ -1,47 +1,57 @@
 ---
-description: Defines data structures and models for construction estimate comparison and pricing.
+description: Specifies data structures and models for construction estimate comparison, pricing, and industry codes
 ---
 
 
 # construction-data-models
 
-Core data structures for construction estimate analysis:
+## Core Data Structures
 
-1. Estimate Comparison Models
-Location: app/api/tools/estimate-comparison/compare/route.ts
+### Estimate Comparison Models
+- Complex construction estimate line item matching
+- Industry-specific terminology and code mapping
+- Construction measurements and pricing validation
+- Specialized algorithms for estimate pattern recognition
+Importance Score: 95/100
 
-Key Data Structures:
-- Line Item Mapping
-  - Industry-specific codes (Xactimate/Symbility)
-  - Material quantities and units
-  - Labor costs and time estimates
-  - Room/location identifiers
-
-- Price Discrepancy Tracking
-  - Threshold definitions by material type
-  - Variance calculations with industry tolerances
-  - Historical price trend integration
-
-2. Construction Terminology Matching
-- Standard terminology mappings
-  - "R&R" = "Remove and Replace"
-  - Common material abbreviations
-  - Unit conversion standards
-  - Regional pricing variations
-
-3. Room Classification Schema
-- Standardized room naming conventions
-- Room type categorization
-- Area/scope definitions
-- Material requirements by room type
-
+### Construction Code Systems
+Path: lib/estimate-dependencies.ts
+- Xactimate code relationship mappings
+- Dependencies between construction materials and labor
+- Industry-standard measurement conversions
+- Construction terminology normalization rules
 Importance Score: 90/100
-- Critical for accurate estimate comparison
-- Industry-specific data relationships
-- Core pricing model implementation
-- Construction domain expertise encoding
 
-The data models implement specialized construction industry knowledge through structured relationships between materials, labor, and pricing components, enabling accurate estimate comparisons and standardized terminology matching.
+### Estimate Audit Models
+Path: types/estimate-audit.ts
+- Construction-specific validation rules
+- Line item dependency relationships
+- Industry compliance verification structures
+- Material and labor code correlations
+Importance Score: 85/100
+
+### Construction Price Models
+- Construction industry pricing standards
+- Material cost variance tracking
+- Labor rate classification systems
+- Regional price adjustment factors
+Importance Score: 80/100
+
+## Data Relationships
+
+### Line Item Dependencies
+- Material-to-labor relationships
+- Component hierarchy structures
+- Required vs optional dependencies
+- Cross-reference validation rules
+Importance Score: 85/100
+
+### Construction Code Mappings
+- Industry standard code translations
+- Measurement unit conversions
+- Terminology standardization maps
+- Code category hierarchies
+Importance Score: 80/100
 
 $END$
 
