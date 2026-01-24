@@ -33,7 +33,9 @@ export default function ContractorsPage() {
     name: '',
     email: '',
     phoneNumber: '',
-    location: '',
+    city: '',
+    state: '',
+    zipcode: '',
     company: '',
     specialty: '',
     notes: '',
@@ -417,10 +419,10 @@ export default function ContractorsPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  {contractor.location && (
+                  {(contractor.city || contractor.state || contractor.zipcode) && (
                     <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                       <MapPin className="w-4 h-4" />
-                      {contractor.location}
+                      {[contractor.city, contractor.state, contractor.zipcode].filter(Boolean).join(', ')}
                     </div>
                   )}
                   {contractor.phoneNumber && (

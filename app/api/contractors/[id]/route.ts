@@ -43,7 +43,9 @@ export async function GET(
         name: contractor.name,
         email: contractor.email,
         phoneNumber: contractor.phoneNumber,
-        location: contractor.location,
+        city: contractor.city,
+        state: contractor.state,
+        zipcode: contractor.zipcode,
         company: contractor.company,
         specialty: contractor.specialty,
         notes: contractor.notes,
@@ -72,7 +74,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { name, email, phoneNumber, location, company, specialty, notes } = await request.json()
+    const { name, email, phoneNumber, city, state, zipcode, company, specialty, notes } = await request.json()
 
     if (!name || !name.trim()) {
       return NextResponse.json(
@@ -87,7 +89,9 @@ export async function PUT(
         name: name.trim(),
         email: email?.trim() || null,
         phoneNumber: phoneNumber?.trim() || null,
-        location: location?.trim() || null,
+        city: city?.trim() || null,
+        state: state?.trim() || null,
+        zipcode: zipcode?.trim() || null,
         company: company?.trim() || null,
         specialty: specialty?.trim() || null,
         notes: notes?.trim() || null,
@@ -110,7 +114,9 @@ export async function PUT(
         name: contractor.name,
         email: contractor.email,
         phoneNumber: contractor.phoneNumber,
-        location: contractor.location,
+        city: contractor.city,
+        state: contractor.state,
+        zipcode: contractor.zipcode,
         company: contractor.company,
         specialty: contractor.specialty,
         notes: contractor.notes,
