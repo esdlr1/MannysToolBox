@@ -72,13 +72,32 @@ export async function POST(request: NextRequest) {
 
     const imageDataUrl = `data:${mimeType};base64,${base64Image}`
 
-    // Create prompt for vision API
+    // Create prompt for vision API with Xactimate code examples
     const visionPrompt = `
 Analyze this construction/damage photo and identify ALL visible line items that would be needed for a construction estimate.
 
+CRITICAL: You MUST provide actual Xactimate codes for each item. Do NOT use "UNKNOWN" unless absolutely necessary.
+
+COMMON XACTIMATE CODES TO USE:
+- Drywall: MASKSF, MASKLF, MASKLFT (masking), MASKSFP (masking premium)
+- Paint: BTF4, BTF6, BTF10, BTF12 (base coat), FINALR (final roll), TEXMK (texture)
+- Cabinets: CTDK (cabinet door kitchen), CTFL (cabinet face lift), CTGE (cabinet general), CTGM (cabinet general medium), CTSS (cabinet side splash)
+- Countertops: COUNTER, CTCON (countertop construction), CTDK (countertop door kitchen)
+- Plumbing: PLK (plumbing kitchen), PLM (plumbing), SNKRS (sink remove and set), FAURS (faucet remove and set), PTRAPRS (p-trap remove and set)
+- Electrical: ELE (electrical), RECEPT (receptacle), SWR (switch), WHRS (wire remove and set)
+- Flooring: FL (flooring), LAM (laminate), QR (quarter round), SHOE1 (shoe molding)
+- Trim: TRIM, CROWN (crown molding), BS (base shoe), BSS (base shoe set)
+- Doors: DOR (door), DORH (door hardware), SDORRS (sliding door remove and set)
+- Windows: WINA (window), WINC (window construction), WINV (window vinyl)
+- Demolition: D (demolition), D- (demolition minus), D+ (demolition plus)
+- Insulation: INS (insulation), INSC (insulation ceiling), INSN (insulation new)
+- Roofing: SH12 (shingle 12"), SHW (shingle wood), OH (overhead)
+- Siding: S (siding), SILL (sill)
+- HVAC: AHAC2 (air handler AC 2 ton), REG (register), VENTGM (vent grille metal)
+
 For each item you see, provide:
-1. Xactimate code (if you can identify it, otherwise use "UNKNOWN")
-2. Full description of the item
+1. Xactimate code (REQUIRED - use actual codes from the list above or similar standard Xactimate codes)
+2. Full description matching Xactimate format (e.g., "Remove and replace drywall", "Paint wall", "Install cabinet")
 3. Estimated quantity/measurement (e.g., "120 sq ft", "3 each", "15 linear feet")
 4. Location/room where visible (if applicable)
 
@@ -96,8 +115,8 @@ Return your response as JSON in this exact format:
 {
   "lineItems": [
     {
-      "code": "Xactimate code or 'UNKNOWN'",
-      "description": "Full item description",
+      "code": "XACTIMATE CODE (required - use actual code, not UNKNOWN)",
+      "description": "Full item description in Xactimate format",
       "quantity": "Estimated quantity with unit (e.g., '120 sq ft', '3 each')",
       "location": "Room/location where visible (optional)"
     }
@@ -109,7 +128,10 @@ Return your response as JSON in this exact format:
   "notes": ["Any relevant notes about the photo"]
 }
 
-IMPORTANT: Return ONLY valid JSON. No markdown, no explanations.
+IMPORTANT: 
+- Return ONLY valid JSON. No markdown, no explanations.
+- Use actual Xactimate codes - avoid "UNKNOWN" unless absolutely necessary.
+- Match the code format to the item type (e.g., MASKSF for drywall masking, BTF10 for paint base coat).
 `
 
     console.log('[Whats Xact Photo] Analyzing image with vision API...', {
@@ -121,16 +143,28 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no explanations.
     const aiResponse = await callAI({
       prompt: visionPrompt,
       toolId: 'whats-xact-photo',
-      systemPrompt: `You are an expert construction estimator with deep knowledge of:
-- Xactimate line item codes and descriptions
-- Construction materials and finishes
-- Building components and systems
+      systemPrompt: `You are an expert Xactimate construction estimator with deep knowledge of:
+- Xactimate line item codes and their exact formats (e.g., MASKSF, BTF10, CTDK, PLK, ELE)
+- Standard Xactimate code patterns (e.g., codes ending in RS = "remove and set", codes with +/- = quality levels)
+- Construction materials and finishes with their specific Xactimate codes
+- Building components and systems with proper code assignments
 - Damage assessment and repair scope
 - Construction terminology and measurements
 
-Your task is to analyze construction photos and identify all visible line items that would be needed for an estimate.
+Your task is to analyze construction photos and identify all visible line items with their CORRECT Xactimate codes.
 
-Be thorough and accurate. Only include items you can clearly see in the photo.`,
+CRITICAL REQUIREMENTS:
+1. You MUST provide actual Xactimate codes for each item - do NOT use "UNKNOWN"
+2. Use standard Xactimate code formats (e.g., MASKSF for drywall masking, BTF10 for paint base coat)
+3. Match codes to the specific item type and quality level visible
+4. Use proper Xactimate descriptions (e.g., "Remove and replace" not "R&R")
+5. Be thorough and accurate - only include items you can clearly see in the photo
+
+Common code patterns:
+- RS suffix = Remove and Set
+- + = Better quality/material
+- - = Lower quality/material
+- Numbers = Specific sizes or types`,
       imageUrl: imageDataUrl,
       temperature: 0.1, // Low temperature for consistent results
       maxTokens: 4000,
