@@ -199,6 +199,24 @@ export default function TrainingPage() {
     return data.url
   }
 
+  const handleWordDocumentUpload = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch('/api/training/convert-word', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to convert Word document')
+    }
+
+    const data = await response.json()
+    return data.html
+  }
+
   const handleAddMaterial = async () => {
     if (!selectedCourseId || !newMaterial.title.trim()) {
       setError('Title is required')
@@ -1007,6 +1025,7 @@ export default function TrainingPage() {
                     onChange={setEditingCourseContent}
                     placeholder="Write your training content here. You can format text, add images, and create structured content."
                     onImageUpload={handleImageUpload}
+                    onWordDocumentUpload={handleWordDocumentUpload}
                   />
                 </div>
 

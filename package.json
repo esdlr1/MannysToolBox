@@ -31,6 +31,7 @@
     "@types/react": "^18.2.46",
     "@types/react-dom": "^18.2.18",
     "@types/uuid": "^10.0.0",
+    "@types/xlsx": "^0.0.35",
     "autoprefixer": "^10.4.16",
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",
@@ -39,6 +40,7 @@
     "framer-motion": "^12.25.0",
     "iconv-lite": "^0.7.2",
     "lucide-react": "^0.562.0",
+    "mammoth": "^1.11.0",
     "next": "^14.0.4",
     "next-auth": "^4.24.5",
     "openai": "^4.20.1",
@@ -55,7 +57,6 @@
     "typescript": "^5.3.3",
     "uuid": "^13.0.0",
     "xlsx": "^0.18.5",
-    "@types/xlsx": "^0.0.35",
     "zod": "^3.22.4"
   },
   "devDependencies": {

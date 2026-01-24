@@ -1,19 +1,22 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, Undo, Redo, Youtube } from 'lucide-react'
+import { Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, Undo, Redo, Youtube, FileText } from 'lucide-react'
 
 interface RichTextEditorProps {
   content: string
   onChange: (content: string) => void
   placeholder?: string
   onImageUpload?: (file: File) => Promise<string>
+  onWordDocumentUpload?: (file: File) => Promise<string>
 }
 
-export default function RichTextEditor({ content, onChange, placeholder = 'Start writing your training content...', onImageUpload }: RichTextEditorProps) {
+export default function RichTextEditor({ content, onChange, placeholder = 'Start writing your training content...', onImageUpload, onWordDocumentUpload }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const wordDocInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isConvertingWord, setIsConvertingWord] = useState(false)
 
   useEffect(() => {
     if (editorRef.current && content !== editorRef.current.innerHTML) {
@@ -53,6 +56,79 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Start
       setIsUploading(false)
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleWordDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !onWordDocumentUpload) return
+
+    const validExtensions = ['.doc', '.docx']
+    const fileName = file.name.toLowerCase()
+    const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext))
+
+    if (!hasValidExtension) {
+      alert('Please select a Word document (.doc or .docx)')
+      return
+    }
+
+    setIsConvertingWord(true)
+    try {
+      const html = await onWordDocumentUpload(file)
+      
+      // Insert the HTML content at cursor position
+      if (!editorRef.current) return
+      
+      editorRef.current.focus()
+      const selection = window.getSelection()
+      
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0)
+        range.deleteContents()
+        
+        // Create a temporary container to parse the HTML
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = html
+        
+        // Insert each node
+        const nodes = Array.from(tempDiv.childNodes)
+        nodes.forEach((node, index) => {
+          if (index === 0) {
+            range.insertNode(node)
+          } else {
+            const newRange = range.cloneRange()
+            newRange.setStartAfter(nodes[index - 1] as Node)
+            newRange.setEndAfter(nodes[index - 1] as Node)
+            newRange.insertNode(node)
+          }
+        })
+        
+        // Move cursor after inserted content
+        range.setStartAfter(nodes[nodes.length - 1] as Node)
+        range.collapse(true)
+        selection.removeAllRanges()
+        selection.addRange(range)
+      } else {
+        // If no selection, append to the end
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = html
+        while (tempDiv.firstChild) {
+          editorRef.current.appendChild(tempDiv.firstChild)
+        }
+        // Add a line break after
+        const br = document.createElement('br')
+        editorRef.current.appendChild(br)
+      }
+      
+      updateContent()
+    } catch (error) {
+      console.error('Error converting Word document:', error)
+      alert('Failed to convert Word document. Please ensure it is a valid .doc or .docx file.')
+    } finally {
+      setIsConvertingWord(false)
+      if (wordDocInputRef.current) {
+        wordDocInputRef.current.value = ''
       }
     }
   }
@@ -218,6 +294,26 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Start
               type="file"
               accept="image/*"
               onChange={handleImageUpload}
+              className="hidden"
+            />
+          </>
+        )}
+        {onWordDocumentUpload && (
+          <>
+            <button
+              type="button"
+              onClick={() => wordDocInputRef.current?.click()}
+              disabled={isConvertingWord}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
+              title="Insert Word Document"
+            >
+              <FileText className="w-4 h-4" />
+            </button>
+            <input
+              ref={wordDocInputRef}
+              type="file"
+              accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              onChange={handleWordDocumentUpload}
               className="hidden"
             />
           </>

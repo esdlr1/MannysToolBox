@@ -145,96 +145,42 @@ export async function POST(request: NextRequest) {
       potentialDiscrepancies: preprocessing.potentialDiscrepancies.length,
     }
 
-    // Enhanced AI comparison prompt with conservative matching
+    // Simplified comparison prompt - focus on what's in one but not the other
     const comparisonPrompt = `
-You are an expert construction estimator analyzing two construction estimates for comparison.
+TASK: Compare two construction estimates and list what's in one but not the other.
 
-CRITICAL: Be VERY CONSERVATIVE. Only flag items as "missing" if you are ABSOLUTELY CERTAIN they are not present in the adjuster's estimate. Many items may be worded differently but are actually the same item.
+SIMPLE RULE: Two items are THE SAME if:
+1. They have the same Xactimate/Symbility code (e.g., "MASKSF" = "MASKSF")
+2. OR they have very similar descriptions AND same quantity AND same price (within $1)
 
-TASK: Compare the adjuster's estimate with the contractor's estimate and identify ONLY GENUINE differences.
+SYNONYM MATCHING - These are the SAME:
+- "Remove and replace" = "R&R" = "Demo and install" = "Remove & Replace"
+- "Square feet" = "sq ft" = "sqft" = "SF" = "sq.ft"
+- "Linear feet" = "lf" = "ln ft" = "LF"
+- "Drywall" = "Sheetrock" = "Gypsum board"
+- "Kitchen" = "Kit" = "K"
+- "Living Room" = "LR" = "Living Rm"
 
-PREPROCESSING RESULTS - ITEMS ALREADY MATCHED (DO NOT FLAG THESE AS MISSING):
+ITEMS ALREADY MATCHED (these exist in BOTH estimates - ignore them):
 ${JSON.stringify(preprocessing.suggestedMatches.slice(0, 100).map(m => ({
-  contractor: `${m.contractorItem.code || 'NO CODE'} - ${m.contractorItem.item} ${m.contractorItem.description || ''} (Qty: ${m.contractorItem.quantity}, Price: $${m.contractorItem.unitPrice})`,
-  adjuster: `${m.adjusterItem.code || 'NO CODE'} - ${m.adjusterItem.item} ${m.adjusterItem.description || ''} (Qty: ${m.adjusterItem.quantity}, Price: $${m.adjusterItem.unitPrice})`,
-  confidence: m.confidence,
-  matchReason: m.confidence >= 0.95 ? 'CODE_MATCH' : m.confidence >= 0.8 ? 'HIGH_SIMILARITY' : 'SIMILARITY_MATCH'
+  contractor: `${m.contractorItem.code || ''} ${m.contractorItem.item}`,
+  adjuster: `${m.adjusterItem.code || ''} ${m.adjusterItem.item}`,
+  reason: m.confidence >= 0.95 ? 'Same code' : 'Similar description'
 })), null, 2)}
 
-IMPORTANT: The items listed above are ALREADY MATCHED. DO NOT include them in "missing items" - they exist in both estimates, just worded differently.
+WHAT TO FIND:
+1. Items in CONTRACTOR estimate but NOT in ADJUSTER estimate
+2. Items in ADJUSTER estimate but NOT in CONTRACTOR estimate
 
-Preprocessing Statistics:
-- Items matched by code: ${preprocessing.suggestedMatches.filter(m => m.confidence >= 0.95).length}
-- Items matched by description similarity: ${preprocessing.suggestedMatches.filter(m => m.confidence < 0.95 && m.confidence >= 0.7).length}
-- Items matched by quantity/price: ${preprocessing.suggestedMatches.filter(m => m.confidence >= 0.9).length}
-- Potential missing items (unverified - be VERY careful): ${preprocessing.potentialMissingItems.length}
-- Potential discrepancies (unverified): ${preprocessing.potentialDiscrepancies.length}
+HOW TO CHECK:
+For each contractor item, search the adjuster estimate for:
+- Same code (if code exists)
+- Similar description (accounting for synonyms above)
+- Same quantity + same price (within $1)
 
-MATCHING RULES (Apply these STRICTLY):
-1. Code Matching: Items with the same Xactimate/Symbility code are THE SAME ITEM, even if descriptions differ
-2. Description Matching: Items are the SAME if:
-   - Descriptions are >80% similar (accounting for abbreviations and synonyms)
-   - Same quantity AND same unit price (within $1)
-   - Same category/trade
-3. Synonym Matching: These terms are EQUIVALENT:
-   - "Remove and replace" = "R&R" = "Demo and install" = "Remove & Replace" = "Demo/Install"
-   - "Square feet" = "sq ft" = "sqft" = "SF" = "sq.ft" = "square ft"
-   - "Linear feet" = "lf" = "ln ft" = "linear ft" = "lin ft" = "LF"
-   - "Each" = "ea" = "E.A." = "piece" = "unit"
-   - "Drywall" = "Sheetrock" = "Gypsum board" = "Wallboard"
-   - "Paint" = "Paint coat" = "Paint application" = "Paint finish"
-   - "Repair" = "Fix" = "Patch" = "Restore"
-4. Abbreviation Matching: Match common abbreviations:
-   - "Kitchen" = "Kit" = "K" = "Kitchen Area"
-   - "Living Room" = "LR" = "Living Rm"
-   - "Bedroom" = "BR" = "Bed Rm"
-   - "Bathroom" = "Bath" = "BA"
-5. Quantity/Price Matching: If quantities AND prices match (within 5%), items are likely the SAME even if wording differs slightly
+If you find a match using any of these methods, the item EXISTS in both estimates - do NOT list it.
 
-COMPARISON RULES:
-1. Missing Items: Items present in contractor estimate but NOT in adjuster estimate
-   - ONLY include if you've checked ALL items in adjuster estimate and confirmed it's truly missing
-   - DO NOT include if:
-     * Item exists with different wording but same meaning
-     * Item exists with same code but different description
-     * Item exists with same quantity/price but different description
-     * You're not 100% certain it's missing
-   - Include: item description, quantity, unit price, total price
-   - Flag as "critical" if total price > $500 or if it's a structural/safety item
-   - Flag as "minor" otherwise
-
-2. Discrepancies: Items present in both but with GENUINE differences
-   - Quantity differences: Flag if difference > 25% AND you're certain it's the same item
-   - Price differences: Flag if unit price difference > 15% AND you're certain it's the same item
-   - Measurement differences: Flag if difference > 25% AND you're certain it's the same measurement
-   - Flag as "critical" if total impact > $1000 or difference > 50%
-   - Flag as "minor" otherwise
-   - DO NOT flag if items might be different items (different codes, very different descriptions)
-
-3. Scope Differences: Items in adjuster estimate but NOT in contractor estimate
-   - These are items the adjuster included but contractor didn't
-   - Usually less critical but should be noted
-   - Only include if truly missing from contractor estimate
-
-4. Room/Sketch Variations: Handle differences in room naming and sketch layouts
-   - Room names may vary: "Kitchen" = "Kit" = "K" = "Kitchen Area"
-   - Sketch differences are common - focus on matching items by description and code
-   - If room/location is specified, use it for context but don't require exact match
-   - Match items across different room names if description and code match
-   - Examples: "Kitchen - Floor" matches "Kit - Floor", "Living Room" matches "LR"
-   - Prioritize matching by item code and description over room name
-
-CRITICAL VALIDATION CHECKLIST (Before flagging as missing - ALL must be YES):
-- [ ] Did I check the PREPROCESSING RESULTS above to see if this item is already matched?
-- [ ] Did I search the FULL adjuster line items list for this exact item or very similar wording?
-- [ ] Did I check if the item code exists in adjuster estimate (even if description differs)?
-- [ ] Did I check if a similar description exists (accounting for ALL synonyms and abbreviations)?
-- [ ] Did I check if the same quantity/price combination exists (within 10%)?
-- [ ] Did I account for ALL abbreviations and terminology variations?
-- [ ] Did I check if it's just a different room name but same item?
-- [ ] Am I ABSOLUTELY 100% CERTAIN this is truly missing and not just worded differently?
-
-IF ANY ANSWER IS NO OR UNCERTAIN, DO NOT FLAG AS MISSING. It's better to miss a real difference than to incorrectly flag an item.
+Only list items where you cannot find a match using any method above.
 
 ADJUSTER ESTIMATE SUMMARY:
 ${JSON.stringify(adjusterSummary, null, 2)}
@@ -252,81 +198,40 @@ MEASUREMENTS:
 Adjuster: ${JSON.stringify(adjusterData.measurements || [], null, 2)}
 Contractor: ${JSON.stringify(contractorData.measurements || [], null, 2)}
 
-PREPROCESSING HINTS (for validation):
-- Suggested code matches: ${preprocessingHints.suggestedMatches}
-- Potential missing items: ${preprocessingHints.potentialMissingItems}
-- Potential discrepancies detected: ${preprocessingHints.potentialDiscrepancies}
-
-Use these hints to validate your analysis, but perform your own thorough comparison.
-
-RETURN FORMAT (JSON only, no markdown):
 {
-  "matchedItems": [
+  "contractorOnlyItems": [
     {
-      "contractorItem": "string (item description from contractor)",
-      "adjusterItem": "string (item description from adjuster)",
-      "confidence": number (0-1),
-      "matchReason": "string (code_match | description_match | quantity_price_match)"
-    }
-  ],
-  "missingItems": [
-    {
-      "item": "string (item description from CONTRACTOR estimate)",
-      "quantity": number,
-      "unitPrice": number,
-      "totalPrice": number,
-      "category": "string (optional)",
-      "priority": "critical" | "minor",
-      "code": "string (Xactimate code if available)"
+      "item": "Full item description from contractor estimate",
+      "code": "Xactimate code if available",
+      "quantity": 1.0,
+      "unitPrice": 100.00,
+      "totalPrice": 100.00
     }
   ],
   "adjusterOnlyItems": [
     {
-      "item": "string (item description from ADJUSTER estimate)",
-      "quantity": number,
-      "unitPrice": number,
-      "totalPrice": number,
-      "category": "string (optional)",
-      "priority": "critical" | "minor",
-      "code": "string (Xactimate code if available)"
-    }
-  ],
-  "discrepancies": [
-    {
-      "item": "string (item description)",
-      "adjusterValue": number | string,
-      "contractorValue": number | string,
-      "difference": number | string,
-      "differencePercent": number,
-      "type": "quantity" | "price" | "measurement",
-      "priority": "critical" | "minor"
+      "item": "Full item description from adjuster estimate",
+      "code": "Xactimate code if available",
+      "quantity": 1.0,
+      "unitPrice": 100.00,
+      "totalPrice": 100.00
     }
   ],
   "summary": {
-    "totalCostDifference": number (contractor total - adjuster total),
-    "matchedItemsCount": number,
-    "missingItemsCount": number,
-    "adjusterOnlyItemsCount": number,
-    "discrepanciesCount": number,
-    "criticalIssues": number,
-    "minorIssues": number
+    "contractorTotal": 0.00,
+    "adjusterTotal": 0.00,
+    "contractorOnlyCount": 0,
+    "adjusterOnlyCount": 0,
+    "contractorOnlyTotal": 0.00,
+    "adjusterOnlyTotal": 0.00
   }
 }
 
-CRITICAL INSTRUCTIONS:
-1. "missingItems" = Items in CONTRACTOR estimate but NOT in ADJUSTER estimate (contractor wants these added)
-2. "adjusterOnlyItems" = Items in ADJUSTER estimate but NOT in CONTRACTOR estimate (contractor didn't include these)
-3. Include ALL matched items in "matchedItems" so users can see what was successfully matched
-4. Only include items in "missingItems" or "adjusterOnlyItems" if you've verified they're NOT in the other estimate after checking ALL items
-5. Use Xactimate codes when available - items with the same code are THE SAME ITEM regardless of description
-6. Be EXTREMELY conservative - when in doubt, mark as matched, not missing
-
-IMPORTANT:
-- Be thorough - check every item
-- Use construction knowledge to match similar items
-- Calculate all percentages accurately
-- Flag critical issues appropriately
-- Return ONLY valid JSON, no explanations or markdown
+INSTRUCTIONS:
+- "contractorOnlyItems" = Items in CONTRACTOR estimate but NOT in ADJUSTER estimate
+- "adjusterOnlyItems" = Items in ADJUSTER estimate but NOT in CONTRACTOR estimate
+- Only include items that are truly missing (not just worded differently)
+- Return ONLY valid JSON, no markdown, no explanations
 `
 
     // Limit line items in prompt to prevent token overflow
@@ -358,45 +263,18 @@ FULL CONTRACTOR LINE ITEMS (showing first ${Math.min(maxItemsPerEstimate, contra
         callAI({
           prompt: limitedComparisonPrompt,
           toolId: 'estimate-comparison',
-          systemPrompt: `You are an expert construction estimator with deep knowledge of:
-- Construction terminology and abbreviations (R&R, demo, sq ft, lf, etc.)
-- Standard construction line items and codes
-- Xactimate and Symbility estimate formats
-- Building codes and construction standards
-- Cost estimation practices
-- Room naming variations (Kitchen/Kit/K, Living Room/LR, Bedroom/BR, etc.)
-- Sketch layout differences and how to match items across different room naming conventions
-- Construction synonyms and terminology variations
+          systemPrompt: `You are comparing two construction estimates. Your task is simple:
 
-Your PRIMARY GOAL is ACCURACY, not finding differences. Be VERY CONSERVATIVE:
-- Only flag items as "missing" if you are ABSOLUTELY CERTAIN they don't exist in the adjuster estimate
-- When in doubt, assume items match (even if worded differently)
-- False positives (flagging items as missing when they exist) are WORSE than false negatives (missing actual differences)
+1. Find items in contractor estimate that are NOT in adjuster estimate
+2. Find items in adjuster estimate that are NOT in contractor estimate
 
-Your task is to accurately compare construction estimates, identifying ONLY GENUINE differences:
-1. Missing items (contractor has, adjuster doesn't) - ONLY if 100% certain
-2. Discrepancies in quantities, prices, measurements - ONLY if same item confirmed
-3. Scope differences - ONLY if truly missing
-4. Cost impacts - Calculate accurately
+MATCHING RULES:
+- Same code = same item (always match)
+- Similar description + same quantity + same price = same item (match)
+- When in doubt, assume items match (don't list them)
 
-MATCHING PRIORITY (in order):
-1. Match by code first (highest confidence)
-2. Match by description similarity + quantity/price match
-3. Match by description similarity + category match
-4. Match by description similarity alone (only if >80% similar)
-
-IMPORTANT: Handle room name and sketch variations intelligently:
-- Match items by code and description even if room names differ
-- "Kitchen" = "Kit" = "K" = "Kitchen Area" are the same room
-- Focus on item matching, not exact room name matching
-- Sketch differences are expected - prioritize item codes and descriptions
-- When descriptions differ but codes match, they are THE SAME ITEM
-
-Be precise with calculations and prioritize critical issues that could affect project scope or safety.
-REMEMBER: It's better to miss a difference than to incorrectly flag an item as missing.
-
-IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-JSON.`,
-          temperature: 0.2, // Very low temperature for consistent, accurate results
+Return ONLY valid JSON matching the schema. No markdown, no explanations.`,
+          temperature: 0.1, // Lower temperature for more consistent results
           maxTokens: 8000, // Increased to handle larger responses
         }),
         new Promise((_, reject) => 
@@ -442,42 +320,43 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
       }
 
       // Validate and enhance the result structure
-      if (!comparisonResult.matchedItems) comparisonResult.matchedItems = []
-      if (!comparisonResult.missingItems) comparisonResult.missingItems = []
-      if (!comparisonResult.discrepancies) comparisonResult.discrepancies = []
+      if (!comparisonResult.contractorOnlyItems) comparisonResult.contractorOnlyItems = []
+      if (!comparisonResult.adjusterOnlyItems) comparisonResult.adjusterOnlyItems = []
       if (!comparisonResult.summary) {
         comparisonResult.summary = {
-          totalCostDifference: 0,
-          matchedItemsCount: 0,
-          missingItemsCount: 0,
-          discrepanciesCount: 0,
-          criticalIssues: 0,
-          minorIssues: 0,
+          contractorTotal: contractorData.totalCost || 0,
+          adjusterTotal: adjusterData.totalCost || 0,
+          contractorOnlyCount: 0,
+          adjusterOnlyCount: 0,
+          contractorOnlyTotal: 0,
+          adjusterOnlyTotal: 0,
         }
-      }
-      
-      // If AI didn't provide matchedItems, populate from preprocessing
-      if (!comparisonResult.matchedItems || comparisonResult.matchedItems.length === 0) {
-        comparisonResult.matchedItems = preprocessing.suggestedMatches.slice(0, 50).map(m => ({
-          contractorItem: `${m.contractorItem.item} ${m.contractorItem.description || ''}`.trim(),
-          adjusterItem: `${m.adjusterItem.item} ${m.adjusterItem.description || ''}`.trim(),
-          confidence: m.confidence,
-          matchReason: m.confidence >= 0.95 ? 'code_match' : m.confidence >= 0.8 ? 'description_match' : 'similarity_match',
-        }))
       }
 
       // Calculate summary if not provided
-      if (comparisonResult.summary.matchedItemsCount === undefined || comparisonResult.summary.matchedItemsCount === 0) {
-        comparisonResult.summary.matchedItemsCount = comparisonResult.matchedItems?.length || 0
+      if (comparisonResult.summary.contractorOnlyCount === undefined || comparisonResult.summary.contractorOnlyCount === 0) {
+        comparisonResult.summary.contractorOnlyCount = comparisonResult.contractorOnlyItems.length
       }
-      if (comparisonResult.summary.missingItemsCount === 0) {
-        comparisonResult.summary.missingItemsCount = comparisonResult.missingItems.length
+      if (comparisonResult.summary.adjusterOnlyCount === undefined || comparisonResult.summary.adjusterOnlyCount === 0) {
+        comparisonResult.summary.adjusterOnlyCount = comparisonResult.adjusterOnlyItems.length
       }
-      if (comparisonResult.summary.adjusterOnlyItemsCount === undefined || comparisonResult.summary.adjusterOnlyItemsCount === 0) {
-        comparisonResult.summary.adjusterOnlyItemsCount = comparisonResult.adjusterOnlyItems?.length || 0
+      if (comparisonResult.summary.contractorOnlyTotal === undefined || comparisonResult.summary.contractorOnlyTotal === 0) {
+        comparisonResult.summary.contractorOnlyTotal = comparisonResult.contractorOnlyItems.reduce(
+          (sum: number, item: any) => sum + (item.totalPrice || 0),
+          0
+        )
       }
-      if (comparisonResult.summary.discrepanciesCount === 0) {
-        comparisonResult.summary.discrepanciesCount = comparisonResult.discrepancies.length
+      if (comparisonResult.summary.adjusterOnlyTotal === undefined || comparisonResult.summary.adjusterOnlyTotal === 0) {
+        comparisonResult.summary.adjusterOnlyTotal = comparisonResult.adjusterOnlyItems.reduce(
+          (sum: number, item: any) => sum + (item.totalPrice || 0),
+          0
+        )
+      }
+      if (!comparisonResult.summary.contractorTotal) {
+        comparisonResult.summary.contractorTotal = contractorData.totalCost || 0
+      }
+      if (!comparisonResult.summary.adjusterTotal) {
+        comparisonResult.summary.adjusterTotal = adjusterData.totalCost || 0
       }
 
       // Add processing metadata
@@ -485,31 +364,6 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
       comparisonResult.processingTime = processingEndTime - processingStartTime
       if (aiResponse.usage?.totalTokens) {
         comparisonResult.tokenUsage = aiResponse.usage.totalTokens
-      }
-      if (comparisonResult.summary.criticalIssues === 0) {
-        comparisonResult.summary.criticalIssues = 
-          comparisonResult.missingItems.filter((i: any) => i.priority === 'critical').length +
-          comparisonResult.discrepancies.filter((d: any) => d.priority === 'critical').length
-      }
-      if (comparisonResult.summary.minorIssues === 0) {
-        comparisonResult.summary.minorIssues = 
-          comparisonResult.missingItems.filter((i: any) => i.priority === 'minor').length +
-          comparisonResult.discrepancies.filter((d: any) => d.priority === 'minor').length
-      }
-
-      // Calculate total cost difference if not provided
-      if (comparisonResult.summary.totalCostDifference === 0) {
-        const missingTotal = comparisonResult.missingItems.reduce(
-          (sum: number, item: any) => sum + (item.totalPrice || 0),
-          0
-        )
-        comparisonResult.summary.totalCostDifference = 
-          (contractorData.totalCost || 0) - (adjusterData.totalCost || 0) + missingTotal
-      }
-
-      // Validate the result structure
-      if (!validateComparisonResult(comparisonResult)) {
-        console.warn('Comparison result validation failed, but proceeding with result')
       }
 
     } catch (parseError: any) {
@@ -536,7 +390,8 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
         metadata: {
           clientName,
           claimNumber,
-          discrepanciesCount: comparisonResult.summary?.discrepanciesCount || 0,
+          contractorOnlyCount: comparisonResult.summary?.contractorOnlyCount || 0,
+          adjusterOnlyCount: comparisonResult.summary?.adjusterOnlyCount || 0,
         },
       },
     })

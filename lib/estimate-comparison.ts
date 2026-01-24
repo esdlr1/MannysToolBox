@@ -310,17 +310,18 @@ export function preprocessComparison(
 export function validateComparisonResult(result: any): boolean {
   if (!result || typeof result !== 'object') return false
 
-  if (!Array.isArray(result.missingItems)) return false
-  if (!Array.isArray(result.discrepancies)) return false
+  if (!Array.isArray(result.contractorOnlyItems)) return false
+  if (!Array.isArray(result.adjusterOnlyItems)) return false
   if (!result.summary || typeof result.summary !== 'object') return false
 
   // Validate summary fields
   const requiredSummaryFields = [
-    'totalCostDifference',
-    'missingItemsCount',
-    'discrepanciesCount',
-    'criticalIssues',
-    'minorIssues',
+    'contractorTotal',
+    'adjusterTotal',
+    'contractorOnlyCount',
+    'adjusterOnlyCount',
+    'contractorOnlyTotal',
+    'adjusterOnlyTotal',
   ]
 
   return requiredSummaryFields.every(field => 
