@@ -52,6 +52,7 @@ export async function GET(
         id: course.id,
         title: course.title,
         description: course.description,
+        content: course.content,
         category: course.category,
         duration: course.duration,
         isActive: course.isActive,
@@ -95,13 +96,14 @@ export async function PUT(
       )
     }
 
-    const { title, description, category, duration, isActive } = await request.json()
+    const { title, description, content, category, duration, isActive } = await request.json()
 
     const course = await prisma.trainingCourse.update({
       where: { id: params.id },
       data: {
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
+        ...(content !== undefined && { content }),
         ...(category !== undefined && { category }),
         ...(duration !== undefined && { duration: duration ? parseInt(duration) : null }),
         ...(isActive !== undefined && { isActive }),
@@ -123,6 +125,7 @@ export async function PUT(
         id: course.id,
         title: course.title,
         description: course.description,
+        content: course.content,
         category: course.category,
         duration: course.duration,
         isActive: course.isActive,

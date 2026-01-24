@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
         id: course.id,
         title: course.title,
         description: course.description,
+        content: course.content,
         category: course.category,
         duration: course.duration,
         isActive: course.isActive,

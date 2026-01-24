@@ -369,6 +369,7 @@ model TrainingCourse {
   id          String   @id @default(cuid())
   title       String
   description String?  @db.Text
+  content     String?  @db.Text // Rich HTML content for the training
   category    String? // e.g., "Safety", "Technical", "Compliance"
   duration    Int? // Duration in minutes
   createdById String

@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRoleView } from '@/contexts/RoleViewContext'
 import { BookOpen, Plus, Upload, Users, Clock, CheckCircle2, X, FileText, Video, Link as LinkIcon, Search, Filter, Loader2, Edit, Trash2, ExternalLink, ChevronRight } from 'lucide-react'
+import RichTextEditor from '@/components/training/RichTextEditor'
+import TrainingContentViewer from '@/components/training/TrainingContentViewer'
 import { format } from 'date-fns'
 
 interface Course {
   id: string
   title: string
   description: string | null
+  content: string | null
   category: string | null
   duration: number | null
   isActive: boolean
@@ -69,6 +72,9 @@ export default function TrainingPage() {
   const [showMaterialsModal, setShowMaterialsModal] = useState(false)
   const [showAddMaterialModal, setShowAddMaterialModal] = useState(false)
   const [newMaterial, setNewMaterial] = useState({ title: '', description: '', fileType: 'link', fileUrl: '', file: null as File | null })
+  const [showEditContentModal, setShowEditContentModal] = useState(false)
+  const [editingCourseContent, setEditingCourseContent] = useState<string>('')
+  const [editingCourseId, setEditingCourseId] = useState<string | null>(null)
 
   const canManage = effectiveRole === 'Owner' || effectiveRole === 'Super Admin' || effectiveRole === 'Manager'
 
@@ -137,6 +143,60 @@ export default function TrainingPage() {
     setSelectedCourseId(courseId)
     setShowMaterialsModal(true)
     loadCourseMaterials(courseId)
+  }
+
+  const handleEditContent = (courseId: string) => {
+    const course = courses.find(c => c.id === courseId)
+    setEditingCourseId(courseId)
+    setEditingCourseContent(course?.content || '')
+    setShowEditContentModal(true)
+  }
+
+  const handleSaveContent = async () => {
+    if (!editingCourseId) return
+
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/training/courses/${editingCourseId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: editingCourseContent }),
+      })
+
+      if (response.ok) {
+        await loadCourses()
+        setShowEditContentModal(false)
+        setEditingCourseId(null)
+        setEditingCourseContent('')
+        setError('')
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to save content')
+      }
+    } catch (error) {
+      console.error('Error saving content:', error)
+      setError('Failed to save content')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('courseId', editingCourseId || selectedCourseId || '')
+
+    const response = await fetch('/api/training/upload-image', {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to upload image')
+    }
+
+    const data = await response.json()
+    return data.url
   }
 
   const handleAddMaterial = async () => {
@@ -712,6 +772,15 @@ export default function TrainingPage() {
                   {courses.find(c => c.id === selectedCourseId)?.title || 'Course Materials'}
                 </h3>
                 <div className="flex gap-2">
+                  {canManage && (
+                    <button
+                      onClick={() => handleEditContent(selectedCourseId)}
+                      className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center gap-1"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit Content
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowAddMaterialModal(true)}
                     className="px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center gap-1"
@@ -731,6 +800,16 @@ export default function TrainingPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Training Content */}
+              {selectedCourseId && (
+                <div className="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+                  <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-3">Training Content</h4>
+                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                    <TrainingContentViewer content={courses.find(c => c.id === selectedCourseId)?.content || null} />
+                  </div>
+                </div>
+              )}
 
               {courseMaterials.length === 0 ? (
                 <div className="text-center py-8">
@@ -880,6 +959,70 @@ export default function TrainingPage() {
                     onClick={() => {
                       setShowAddMaterialModal(false)
                       setNewMaterial({ title: '', description: '', fileType: 'link', fileUrl: '', file: null })
+                      setError('')
+                    }}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                {error && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Content Modal */}
+        {showEditContentModal && editingCourseId && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Edit Training Content - {courses.find(c => c.id === editingCourseId)?.title}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowEditContentModal(false)
+                    setEditingCourseId(null)
+                    setEditingCourseContent('')
+                    setError('')
+                  }}
+                  className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Training Content
+                  </label>
+                  <RichTextEditor
+                    content={editingCourseContent}
+                    onChange={setEditingCourseContent}
+                    placeholder="Write your training content here. You can format text, add images, and create structured content."
+                    onImageUpload={handleImageUpload}
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveContent}
+                    disabled={loading}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Saving...' : 'Save Content'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowEditContentModal(false)
+                      setEditingCourseId(null)
+                      setEditingCourseContent('')
                       setError('')
                     }}
                     className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
