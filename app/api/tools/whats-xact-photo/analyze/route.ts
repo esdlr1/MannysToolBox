@@ -87,11 +87,13 @@ CRITICAL: This is a RESTORATION ESTIMATE, not just visible damage. You must thin
 
 CRITICAL: You MUST provide actual Xactimate codes for each item. Do NOT use "UNKNOWN" unless absolutely necessary.
 
-COMMON XACTIMATE CODES TO USE:
-- Drywall: MASKSF, MASKLF, MASKLFT (masking), MASKSFP (masking premium)
+CRITICAL: You MUST use ACTUAL codes from the 13,000+ Xactimate database. Do NOT make up codes.
+
+COMMON XACTIMATE CODES (examples - verify these exist in database):
+- Drywall: MASKSF (masking), MASKLF (masking linear feet), MASKLFT (masking linear feet trim)
 - Paint: BTF4, BTF6, BTF10, BTF12 (base coat), FINALR (final roll), TEXMK (texture)
-- Cabinets: CTDK (cabinet door kitchen), CTFL (cabinet face lift), CTGE (cabinet general), CTGM (cabinet general medium), CTSS (cabinet side splash)
-- Countertops: COUNTER, CTCON (countertop construction), CTDK (countertop door kitchen)
+- Cabinets: CTDK (countertop subdeck - NOT cabinet door), CTFL (cabinet face lift), CTGE (cabinet general), CTGM (cabinet general medium)
+- Countertops: CTCON (countertop construction), CTDK (countertop subdeck - plywood), CTFL (countertop face lift)
 - Plumbing: PLK (plumbing kitchen), PLM (plumbing), SNKRS (sink remove and set), FAURS (faucet remove and set), PTRAPRS (p-trap remove and set)
 - Electrical: ELE (electrical), RECEPT (receptacle), SWR (switch), WHRS (wire remove and set)
 - Flooring: FL (flooring), LAM (laminate), QR (quarter round), SHOE1 (shoe molding)
@@ -103,6 +105,12 @@ COMMON XACTIMATE CODES TO USE:
 - Roofing: SH12 (shingle 12"), SHW (shingle wood), OH (overhead)
 - Siding: S (siding), SILL (sill)
 - HVAC: AHAC2 (air handler AC 2 ton), REG (register), VENTGM (vent grille metal)
+
+IMPORTANT NOTES:
+- CTDK = "Countertop subdeck - plywood" NOT "cabinet door kitchen" or "tear out countertop"
+- COUNTER = "Service counter" (specific item, not generic countertop)
+- If you're not sure of a code, search the database by description
+- NEVER make up codes - only use codes that exist in the 13k+ database
 
 For each item you see, provide:
 1. Xactimate code (REQUIRED - use actual codes from the list above or similar standard Xactimate codes)
@@ -236,60 +244,119 @@ Common code patterns:
       result.notes = []
     }
 
-    // Post-process: Validate and improve codes using Xactimate database
+    // Post-process: STRICT validation - codes MUST match descriptions from 13k+ database
     const validatedLineItems = []
-    const invalidCodes: string[] = []
+    const rejectedItems: Array<{ code: string; description: string; reason: string }> = []
     
     for (const item of result.lineItems) {
       const code = item.code?.toString().trim().toUpperCase()
+      const description = (item.description || '').trim()
       
       if (!code || code === 'UNKNOWN') {
-        // Try to find code by description
-        if (item.description) {
-          const matches = searchByKeyword(item.description, 5)
+        // No code provided - search by description
+        if (description) {
+          const matches = searchByKeyword(description, 10)
           if (matches.length > 0) {
-            // Use the best match
-            item.code = matches[0].code
-            item.description = matches[0].description // Use official description
+            // Use the best match that actually matches the description
+            const bestMatch = matches.find(m => {
+              const matchDesc = m.description.toLowerCase()
+              const itemDesc = description.toLowerCase()
+              // Check if key words match
+              const itemWords = itemDesc.split(/\s+/).filter(w => w.length > 3)
+              return itemWords.some(word => matchDesc.includes(word))
+            }) || matches[0]
+            
+            item.code = bestMatch.code
+            item.description = bestMatch.description // Use official description from database
             validatedLineItems.push(item)
             continue
           }
         }
-        invalidCodes.push(item.code || 'UNKNOWN')
+        rejectedItems.push({ code: code || 'UNKNOWN', description, reason: 'No code and no match found in database' })
         continue
       }
       
       // Validate code exists in database
       const xactItem = findByCode(code)
-      if (xactItem) {
-        // Use official description from database
-        item.description = xactItem.description
-        validatedLineItems.push(item)
-      } else {
-        // Code not found - try to find by description
-        if (item.description) {
-          const matches = searchByKeyword(item.description, 5)
+      if (!xactItem) {
+        // Code doesn't exist - search by description to find correct code
+        if (description) {
+          const matches = searchByKeyword(description, 10)
           if (matches.length > 0) {
-            item.code = matches[0].code
-            item.description = matches[0].description
+            const bestMatch = matches.find(m => {
+              const matchDesc = m.description.toLowerCase()
+              const itemDesc = description.toLowerCase()
+              const itemWords = itemDesc.split(/\s+/).filter(w => w.length > 3)
+              return itemWords.some(word => matchDesc.includes(word))
+            }) || matches[0]
+            
+            item.code = bestMatch.code
+            item.description = bestMatch.description
             validatedLineItems.push(item)
-          } else {
-            invalidCodes.push(code)
+            rejectedItems.push({ code, description, reason: `Code ${code} not found, replaced with ${bestMatch.code}` })
+            continue
           }
-        } else {
-          invalidCodes.push(code)
         }
+        rejectedItems.push({ code, description, reason: `Code ${code} not found in database and no description match` })
+        continue
       }
+      
+      // Code exists - verify description matches
+      const xactDesc = xactItem.description.toLowerCase()
+      const itemDesc = description.toLowerCase()
+      
+      // Check if description is reasonably close to the database description
+      const xactWords = new Set(xactDesc.split(/\s+/).filter(w => w.length > 2))
+      const itemWords = new Set(itemDesc.split(/\s+/).filter(w => w.length > 2))
+      const commonWords = [...itemWords].filter(w => xactWords.has(w))
+      const similarity = commonWords.length / Math.max(xactWords.size, itemWords.size, 1)
+      
+      // If similarity is too low (< 30%), the code doesn't match the description
+      if (similarity < 0.3) {
+        // Code exists but doesn't match description - search by description for correct code
+        const matches = searchByKeyword(description, 10)
+        if (matches.length > 0) {
+          const bestMatch = matches.find(m => {
+            const matchDesc = m.description.toLowerCase()
+            const itemWords = itemDesc.split(/\s+/).filter(w => w.length > 3)
+            return itemWords.some(word => matchDesc.includes(word))
+          }) || matches[0]
+          
+          // Only replace if the new code is a better match
+          const newMatchDesc = bestMatch.description.toLowerCase()
+          const newCommonWords = [...itemWords].filter(w => newMatchDesc.includes(w))
+          const newSimilarity = newCommonWords.length / Math.max(newMatchDesc.split(/\s+/).length, itemWords.size, 1)
+          
+          if (newSimilarity > similarity) {
+            item.code = bestMatch.code
+            item.description = bestMatch.description
+            validatedLineItems.push(item)
+            rejectedItems.push({ code, description, reason: `Code ${code} (${xactItem.description}) doesn't match description, replaced with ${bestMatch.code}` })
+            continue
+          }
+        }
+        // Code doesn't match but no better match found - reject it
+        rejectedItems.push({ code, description, reason: `Code ${code} (${xactItem.description}) doesn't match description "${description}"` })
+        continue
+      }
+      
+      // Code exists and description matches - use official description
+      item.code = xactItem.code
+      item.description = xactItem.description
+      validatedLineItems.push(item)
     }
     
     // Update result with validated items
     result.lineItems = validatedLineItems
     result.summary.totalItems = validatedLineItems.length
     
-    // Add warning if codes were invalid
-    if (invalidCodes.length > 0) {
+    // Add warnings for rejected items
+    if (rejectedItems.length > 0) {
       result.warnings = result.warnings || []
-      result.warnings.push(`Some codes were not found in Xactimate database and were corrected: ${invalidCodes.join(', ')}`)
+      result.warnings.push(`${rejectedItems.length} items were rejected or corrected:`)
+      rejectedItems.forEach(rejected => {
+        result.warnings!.push(`- ${rejected.code}: ${rejected.reason}`)
+      })
     }
     
     // Add image URL for frontend display
