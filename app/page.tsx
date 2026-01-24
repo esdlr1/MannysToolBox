@@ -165,6 +165,14 @@ export default function Home() {
                 Contacts
               </Link>
               <Link
+                href="/contractors"
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                  'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                Contractors
+              </Link>
+              <Link
                 href="/survey"
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                   'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'

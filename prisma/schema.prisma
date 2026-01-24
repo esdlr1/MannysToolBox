@@ -508,3 +508,25 @@ model SurveyResponse {
   @@index([userId])
   @@map("survey_responses")
 }
+
+model Contractor {
+  id          String   @id @default(cuid())
+  name        String
+  email       String?
+  phoneNumber String?
+  location    String?
+  company     String?  // Optional company name
+  specialty    String?  // e.g., "Plumbing", "Electrical", "Roofing"
+  notes       String?  @db.Text
+  createdById String   // Employee who added the contractor
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User @relation("ContractorCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([createdById])
+  @@index([name])
+  @@index([specialty])
+  @@index([location])
+  @@map("contractors")
+}
