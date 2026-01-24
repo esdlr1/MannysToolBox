@@ -147,10 +147,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Tabs Section */}
           {session && (
-            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+            <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg overflow-x-auto">
               <Link
                 href="/training"
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
@@ -158,7 +158,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/contacts"
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
@@ -166,7 +166,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/contractors"
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
@@ -174,7 +174,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/survey"
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
                   'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
