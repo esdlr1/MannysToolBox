@@ -10,7 +10,9 @@ interface Contractor {
   name: string
   email: string | null
   phoneNumber: string | null
-  location: string | null
+  city: string | null
+  state: string | null
+  zipcode: string | null
   company: string | null
   specialty: string | null
   notes: string | null
@@ -90,7 +92,9 @@ export default function ContractorsPage() {
           name: '',
           email: '',
           phoneNumber: '',
-          location: '',
+          city: '',
+          state: '',
+          zipcode: '',
           company: '',
           specialty: '',
           notes: '',
@@ -139,7 +143,9 @@ export default function ContractorsPage() {
       name: contractor.name,
       email: contractor.email || '',
       phoneNumber: contractor.phoneNumber || '',
-      location: contractor.location || '',
+      city: contractor.city || '',
+      state: contractor.state || '',
+      zipcode: contractor.zipcode || '',
       company: contractor.company || '',
       specialty: contractor.specialty || '',
       notes: contractor.notes || '',
@@ -154,7 +160,9 @@ export default function ContractorsPage() {
       contractor.email?.toLowerCase().includes(searchLower) ||
       contractor.company?.toLowerCase().includes(searchLower) ||
       contractor.specialty?.toLowerCase().includes(searchLower) ||
-      contractor.location?.toLowerCase().includes(searchLower) ||
+      contractor.city?.toLowerCase().includes(searchLower) ||
+      contractor.state?.toLowerCase().includes(searchLower) ||
+      contractor.zipcode?.toLowerCase().includes(searchLower) ||
       contractor.phoneNumber?.toLowerCase().includes(searchLower)
     const matchesSpecialty = filterSpecialty === 'all' || contractor.specialty === filterSpecialty
     return matchesSearch && matchesSpecialty
@@ -190,7 +198,9 @@ export default function ContractorsPage() {
                 name: '',
                 email: '',
                 phoneNumber: '',
-                location: '',
+                city: '',
+          state: '',
+          zipcode: '',
                 company: '',
                 specialty: '',
                 notes: '',
@@ -316,7 +326,9 @@ export default function ContractorsPage() {
                         name: '',
                         email: '',
                         phoneNumber: '',
-                        location: '',
+                        city: '',
+          state: '',
+          zipcode: '',
                         company: '',
                         specialty: '',
                         notes: '',
@@ -344,7 +356,7 @@ export default function ContractorsPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search contractors by name, company, specialty, location..."
+              placeholder="Search contractors by name, company, specialty, city, state, zipcode..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"

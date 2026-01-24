@@ -515,7 +515,9 @@ model Contractor {
   name        String
   email       String?
   phoneNumber String?
-  location    String?
+  city        String?
+  state       String?
+  zipcode     String?
   company     String? // Optional company name
   specialty   String? // e.g., "Plumbing", "Electrical", "Roofing"
   notes       String?  @db.Text
@@ -528,6 +530,8 @@ model Contractor {
   @@index([createdById])
   @@index([name])
   @@index([specialty])
-  @@index([location])
+  @@index([city])
+  @@index([state])
+  @@index([zipcode])
   @@map("contractors")
 }
