@@ -74,16 +74,20 @@ export async function POST(request: NextRequest) {
     const imageDataUrl = `data:${mimeType};base64,${base64Image}`
 
     // Create prompt for vision API with Xactimate code examples
-    // Focus on FULL RESTORATION SCOPE, not just visible damage
+    // Focus on ONLY WHAT IS VISIBLE - no hallucinations
     const visionPrompt = `
-Analyze this construction/damage photo and identify ALL line items needed to restore the property to PRE-LOSS CONDITION.
+Analyze this construction/damage photo and identify ONLY line items that are VISIBLY present or clearly needed based on what you can ACTUALLY SEE.
 
-CRITICAL: This is a RESTORATION ESTIMATE, not just visible damage. You must think about:
-1. What is VISIBLY damaged (what you can see)
-2. What is LIKELY damaged but not visible (behind walls, under floors, etc.)
-3. What PREP WORK is needed (protection, demolition, cleanup)
-4. What FINISH WORK is needed (paint, trim, final touches)
-5. What RELATED ITEMS are needed (if drywall is damaged, you need paint, texture, etc.)
+CRITICAL RULES - ONLY INCLUDE IF:
+1. The item is VISIBLY present in the photo (you can see it)
+2. The item is CLEARLY needed based on visible damage (e.g., if you see exposed pipes, plumbing repair is needed)
+3. The item is OBVIOUS from context (e.g., if drywall is removed, you can see what's behind it)
+
+DO NOT INCLUDE:
+- Items you CANNOT see (e.g., don't add insulation if you can't see it in the exposed wall)
+- Items that are NOT visible (e.g., don't add texture if walls appear smooth)
+- Items that are SPECULATIVE (e.g., don't assume hidden damage)
+- Items that don't match what's visible (e.g., don't add "timber pile" for kitchen work)
 
 CRITICAL: You MUST provide actual Xactimate codes for each item. Do NOT use "UNKNOWN" unless absolutely necessary.
 
@@ -112,30 +116,35 @@ IMPORTANT NOTES:
 - If you're not sure of a code, search the database by description
 - NEVER make up codes - only use codes that exist in the 13k+ database
 
-For each item you see, provide:
-1. Xactimate code (REQUIRED - use actual codes from the list above or similar standard Xactimate codes)
-2. Full description matching Xactimate format (e.g., "Remove and replace drywall", "Paint wall", "Install cabinet")
-3. Estimated quantity/measurement (e.g., "120 sq ft", "3 each", "15 linear feet")
+For each item you can ACTUALLY SEE, provide:
+1. Xactimate code (REQUIRED - use actual codes from the 13k+ database, verify they exist)
+2. Full description matching Xactimate format from the database
+3. Estimated quantity/measurement based on what's VISIBLE (e.g., measure visible damage area)
 4. Location/room where visible (if applicable)
 
-Focus on identifying COMPLETE RESTORATION SCOPE:
-- VISIBLE DAMAGE: What you can clearly see damaged in the photo
-- HIDDEN DAMAGE: What is likely damaged but not visible (e.g., if water damage is visible, think about what's behind walls, under floors)
-- PREP WORK: Protection (COUNTER, drop cloths), demolition (D, D+, D-), cleanup (MUCK, MUCK-)
-- REPAIR WORK: Building materials (drywall MASKSF/MASKLF, flooring FL, paint BTF10/FINALR, etc.)
-- FINISH WORK: Paint (BTF10, FINALR, TEXMK), texture, trim (TRIM, CROWN, BS), caulking
-- RELATED ITEMS: If drywall is damaged, you need: demolition, drywall, texture, paint, trim
-- FIXTURES: Cabinets (CTDK, CTFL, CTGE), countertops (COUNTER, CTCON), plumbing (PLK, SNKRS, FAURS), electrical (ELE, RECEPT, SWR)
-- STRUCTURAL: Framing, beams, studs if visible or likely affected
-- CLEANUP: MUCK (muck out), debris removal, final cleanup
+VALIDATION CHECKLIST before including each item:
+- Can I see this item in the photo? (If no, don't include)
+- Is this code correct for what I see? (Verify against database)
+- Does the description match what's visible? (Don't add texture if walls are smooth)
+- Is the quantity reasonable based on what's visible? (Don't guess)
 
-RESTORATION THINKING:
-- If you see water damage, think: water extraction, drying, demolition of wet materials, replacement, paint, cleanup
-- If you see fire damage, think: soot cleanup, demolition, replacement, paint, odor treatment
-- If you see structural damage, think: structural repair, framing, drywall, paint, finish work
-- ALWAYS include prep work (protection, demolition) and finish work (paint, texture, trim)
+Focus on identifying ONLY WHAT IS VISIBLE:
+- VISIBLE DAMAGE: What you can clearly see damaged in the photo (e.g., removed drywall, exposed pipes)
+- VISIBLE MATERIALS: What you can actually see (e.g., if you see exposed wall cavity, note if insulation is VISIBLE or NOT)
+- VISIBLE FIXTURES: What fixtures are present (cabinets, sink, etc.)
+- OBVIOUS REPAIRS: Only what's clearly needed from visible damage (e.g., if drywall is removed, drywall repair is needed)
 
-Be COMPREHENSIVE - think about the ENTIRE restoration process, not just what's visible.
+DO NOT ASSUME:
+- Don't add texture if walls appear smooth
+- Don't add insulation if you can't see it in exposed areas
+- Don't add items that aren't visible or clearly needed
+- Don't use wrong codes (e.g., PLM is PLUMBING, not "timber pile")
+
+CODE ACCURACY:
+- PLM = Plumbing (NOT timber pile)
+- TEXMK = Texture drywall - machine - knockdown (only if you can SEE knockdown texture)
+- BTF10 = Batt insulation - 10" (only if you can SEE insulation)
+- Verify codes match what's actually visible
 
 Return your response as JSON in this exact format:
 {
@@ -169,33 +178,24 @@ IMPORTANT:
     const aiResponse = await callAI({
       prompt: visionPrompt,
       toolId: 'whats-xact-photo',
-      systemPrompt: `You are an expert Xactimate RESTORATION estimator with deep knowledge of:
-- Xactimate line item codes and their exact formats (e.g., MASKSF, BTF10, CTDK, PLK, ELE)
-- Standard Xactimate code patterns (e.g., codes ending in RS = "remove and set", codes with +/- = quality levels)
-- Construction materials and finishes with their specific Xactimate codes
-- Building components and systems with proper code assignments
-- COMPLETE RESTORATION SCOPE - not just visible damage, but full restoration to pre-loss condition
-- Construction terminology and measurements
-- Restoration workflow: prep → demolition → repair → finish → cleanup
-
-Your task is to analyze construction photos and identify ALL line items needed for COMPLETE RESTORATION to pre-loss condition.
+      systemPrompt: `You are an expert Xactimate estimator analyzing photos. Your task is to identify ONLY items that are VISIBLY present or clearly needed based on what you can ACTUALLY SEE.
 
 CRITICAL REQUIREMENTS:
-1. Think about FULL RESTORATION SCOPE, not just visible damage
-2. Include prep work (protection, demolition, cleanup)
-3. Include finish work (paint, texture, trim, caulking)
-4. Include related items (if drywall is damaged, include paint, texture, trim)
-5. Think about hidden damage (if water damage is visible, what's behind walls?)
-6. You MUST provide actual Xactimate codes for each item - do NOT use "UNKNOWN"
-7. Use standard Xactimate code formats matching the 13,000+ line item database
-8. Match codes to the specific item type and quality level
-9. Use proper Xactimate descriptions (e.g., "Remove and replace" not "R&R")
+1. ONLY identify what you can SEE in the photo - no hallucinations
+2. If you can't see it, DON'T include it (e.g., no insulation if you can't see it in exposed walls)
+3. If walls appear smooth, DON'T add texture items
+4. Verify codes exist in the 13,000+ database before using them
+5. Use correct codes: PLM = Plumbing (NOT timber pile), TEXMK = Texture (only if texture is visible)
+6. Match descriptions to what's actually visible
+7. Be conservative - when in doubt, exclude items
 
-Common code patterns:
-- RS suffix = Remove and Set
-- + = Better quality/material
-- - = Lower quality/material
-- Numbers = Specific sizes or types`,
+CODE ACCURACY:
+- PLM = Plumbing (NOT timber pile, NOT equipment mobilization)
+- TEXMK = Texture drywall - machine - knockdown (only if knockdown texture is VISIBLE)
+- BTF10 = Batt insulation - 10" (only if insulation is VISIBLE in exposed areas)
+- Verify every code against the database
+
+Your response will be validated against the 13k+ Xactimate database. Invalid codes or mismatched descriptions will be rejected.`,
       imageUrl: imageDataUrl,
       temperature: 0.1, // Low temperature for consistent results
       maxTokens: 4000,
@@ -301,9 +301,75 @@ Common code patterns:
         continue
       }
       
-      // Code exists - verify description matches
+      // Code exists - verify description matches AND check for obvious mismatches
       const xactDesc = xactItem.description.toLowerCase()
       const itemDesc = description.toLowerCase()
+      
+      // Check for obvious mismatches first - reject codes that don't match descriptions
+      const obviousMismatches = [
+        { 
+          code: 'PLM', 
+          wrong: ['timber', 'pile', 'equipment', 'mobilization', 'bid item'], 
+          correct: ['plumber', 'plumbing'],
+          actualDescription: 'Plumber - per hour' // PLM is LABOR, not a material item
+        },
+        { 
+          code: 'TEXMK', 
+          wrong: ['smooth', 'no texture', 'flat', 'plain'], 
+          correct: ['texture', 'knockdown'],
+          actualDescription: 'Texture drywall - machine - knockdown'
+        },
+        { 
+          code: 'BTF10', 
+          wrong: ['no insulation', 'empty', 'no batt', 'exposed', 'no insulation visible', 'bare'], 
+          correct: ['insulation', 'batt'],
+          actualDescription: 'Batt insulation - 10" - R30 - paper / foil faced'
+        }
+      ]
+      
+      for (const mismatch of obviousMismatches) {
+        if (code === mismatch.code) {
+          // Check if description contains wrong keywords
+          const hasWrong = mismatch.wrong.some(w => 
+            itemDesc.includes(w) || description.toLowerCase().includes(w)
+          )
+          
+          // Check if description contains correct keywords
+          const hasCorrect = mismatch.correct.some(c => 
+            itemDesc.includes(c) || xactDesc.includes(c) || description.toLowerCase().includes(c)
+          )
+          
+          // Special check for PLM - it's labor, not a material item
+          if (code === 'PLM' && !xactDesc.includes('plumber') && !xactDesc.includes('hour')) {
+            rejectedItems.push({ 
+              code, 
+              description, 
+              reason: `PLM is "Plumber - per hour" (labor), not a material item. Description doesn't match.` 
+            })
+            continue
+          }
+          
+          // If description has wrong keywords and doesn't have correct ones, reject
+          if (hasWrong && !hasCorrect) {
+            rejectedItems.push({ 
+              code, 
+              description, 
+              reason: `Code ${code} (${mismatch.actualDescription}) doesn't match description "${description}" - obvious mismatch` 
+            })
+            continue
+          }
+          
+          // If code is TEXMK or BTF10 and description suggests item is NOT visible, reject
+          if ((code === 'TEXMK' || code === 'BTF10') && hasWrong) {
+            rejectedItems.push({ 
+              code, 
+              description, 
+              reason: `Code ${code} (${mismatch.actualDescription}) - item not visible in photo based on description` 
+            })
+            continue
+          }
+        }
+      }
       
       // Check if description is reasonably close to the database description
       const xactWords = new Set(xactDesc.split(/\s+/).filter(w => w.length > 2))
