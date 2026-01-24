@@ -6,6 +6,7 @@ import { callAI } from '@/lib/ai'
 import { parseEstimatePDF } from '@/lib/pdf-parser'
 import { existsSync } from 'fs'
 import { checkDependencies } from '@/lib/estimate-dependencies'
+import { searchByKeyword, findByCode } from '@/lib/xactimate-lookup'
 
 export const dynamic = 'force-dynamic'
 
@@ -108,13 +109,15 @@ You have comprehensive knowledge of construction dependencies across ALL trades:
 
 **PLUMBING DEPENDENCIES:**
 - Pipe replacement → Shutoff valves, Access panels (if in wall/ceiling)
-- Fixtures (toilet, sink, shower) → Supply lines, Drain/waste lines, P-traps
+- Fixtures (toilet, sink, shower) → Supply lines (use specific Xactimate codes like PLK, PLM, supply line codes), Drain/waste lines, P-traps (PTRAP, PTRAPRS), Connectors, Shutoff valves
 - Water heater → Expansion tank (often code-required)
+- CRITICAL: When flagging plumbing items, you MUST provide SPECIFIC Xactimate codes from the 13k+ database. Do not use generic descriptions. List ALL specific line items needed (e.g., supply lines, connectors, shutoff valves, etc.)
 
 **ELECTRICAL DEPENDENCIES:**
-- Wiring → Junction boxes, Grounding systems, Conduit (if exposed/commercial)
+- Wiring → Junction boxes OR electrical boxes (these are the SAME thing - do not flag both), Grounding systems (if separate from boxes)
 - New circuits → Circuit breakers in panel
-- Outlets/switches → Electrical boxes
+- Outlets/switches → Electrical boxes (same as junction boxes - do not duplicate)
+- IMPORTANT: "Junction boxes" and "Electrical boxes" are the SAME thing. "Grounding system" and "Electrical box" are NOT the same - grounding is a separate system. However, if electrical boxes are present, basic grounding is typically included. Only flag grounding if it's a separate system requirement.
 
 **HVAC DEPENDENCIES:**
 - HVAC units → Ductwork, Supply/return vents/registers
@@ -128,8 +131,10 @@ You have comprehensive knowledge of construction dependencies across ALL trades:
 - Multiple flooring types → Transition strips
 
 **DRYWALL DEPENDENCIES:**
-- Drywall replacement → Tape/mud, Texture, Prime/seal, Paint, Full room paint (often)
+- IMPORTANT: "Drywall per LF" line items ALREADY INCLUDE tape, joint compound (mud), and texture. DO NOT flag these as missing if "Drywall per LF" is present.
+- Drywall replacement → Prime/seal, Paint (only if not already included in drywall line item)
 - Drywall installation → Corner bead/trim
+- Full room paint: Only flag if damage is extensive AND no wall/ceiling calculations are present. If calculations for walls/ceilings exist, paint is likely already accounted for.
 
 **WINDOWS & DOORS:**
 - Windows → Flashing, Caulk/sealant, Trim/casing
@@ -172,9 +177,12 @@ Your goal is to help estimators catch common missing items that are typically in
 
 **EXCLUSIONS - DO NOT FLAG IF:**
 - The item already exists (even with different wording or abbreviation)
+- "Drywall per LF" is present - this ALREADY includes tape, joint compound, and texture
+- Wall/ceiling calculations are present - paint is likely already accounted for
 - The scope is too minor (e.g., small patch doesn't need full room paint)
 - The item is clearly not applicable (e.g., expansion tank for tankless water heater)
 - The item is optional and context suggests it's intentionally excluded
+- "Junction boxes" and "Electrical boxes" - these are the same, don't flag both
 
 **VALIDATION:**
 Before flagging any item, verify:
@@ -211,10 +219,12 @@ RETURN FORMAT (JSON only, no markdown):
 {
   "missingLineItems": [
     {
-      "requiredItem": "string",
+      "requiredItem": "Specific Xactimate code and description (e.g., 'PLK - Plumbing kitchen supply line')",
+      "xactimateCode": "Xactimate code if known (e.g., 'PLK', 'PTRAPRS', 'ELE')",
       "reason": "string",
       "priority": "critical" | "minor",
-      "relatedItemsFound": ["string"],
+      "relatedItemsFound": ["string - items that triggered this suggestion"],
+      "suggestedLineItems": ["List of ALL specific Xactimate line items needed - use codes from 13k+ database"],
       "room": "string (optional)"
     }
   ],
@@ -226,6 +236,12 @@ RETURN FORMAT (JSON only, no markdown):
   },
   "notes": ["string"]
 }
+
+CRITICAL FORMATTING RULES:
+- "suggestedLineItems" should list ALL specific line items needed (e.g., for plumbing: list all supply lines, connectors, shutoff valves with their Xactimate codes)
+- Do NOT list items as "related items" - list them directly in "suggestedLineItems"
+- Use actual Xactimate codes from the 13k+ database when possible
+- For plumbing: List ALL specific items (supply lines, connectors, shutoff valves, etc.) - not just "supply lines"
 
 IMPORTANT:
 - Only include truly missing items.
@@ -263,7 +279,8 @@ Your expertise covers:
 Return only valid JSON matching the requested schema.
 IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-JSON.`,
       temperature: 0.2,
-      maxTokens: 4000, // Increased to handle more detailed responses
+      maxTokens: 6000, // Increased to handle detailed responses with specific codes
+      model: 'gpt-4o', // Use gpt-4o for better accuracy
     })
 
     if (aiResponse.error) {
@@ -285,6 +302,84 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
         { error: 'Failed to parse AI response' },
         { status: 500 }
       )
+    }
+
+    // Post-process results: Enhance with Xactimate codes and remove duplicates
+    if (result.missingLineItems && Array.isArray(result.missingLineItems)) {
+      const processedItems = []
+      const seenItems = new Set<string>()
+      
+      for (const item of result.missingLineItems) {
+        // Skip if "Drywall per LF" is present and item is about tape/joint/texture
+        const hasDrywallPerLF = lineItems.some(li => {
+          const desc = (li.item || li.description || '').toLowerCase()
+          return desc.includes('drywall per lf') || desc.includes('drywall per linear')
+        })
+        
+        if (hasDrywallPerLF && (
+          item.requiredItem.toLowerCase().includes('tape') ||
+          item.requiredItem.toLowerCase().includes('joint') ||
+          item.requiredItem.toLowerCase().includes('mud') ||
+          item.requiredItem.toLowerCase().includes('texture')
+        )) {
+          continue // Skip - already included in drywall per LF
+        }
+        
+        // Skip if wall/ceiling calculations exist and item is about full room paint
+        const hasWallCeilingCalc = lineItems.some(li => {
+          const desc = (li.item || li.description || '').toLowerCase()
+          return desc.includes('wall calculation') || desc.includes('ceiling calculation') ||
+                 desc.includes('calc wall') || desc.includes('calc ceiling')
+        })
+        
+        if (hasWallCeilingCalc && item.requiredItem.toLowerCase().includes('paint entire affected room')) {
+          continue // Skip - calculations likely include paint
+        }
+        
+        // Remove duplicates (junction box vs electrical box)
+        const normalizedItem = item.requiredItem.toLowerCase()
+        if (normalizedItem.includes('junction box') || normalizedItem.includes('electrical box')) {
+          const key = 'electrical_box'
+          if (seenItems.has(key)) {
+            continue // Skip duplicate
+          }
+          seenItems.add(key)
+        }
+        
+        // Enhance with Xactimate codes if not provided
+        if (!item.xactimateCode && item.requiredItem) {
+          const matches = searchByKeyword(item.requiredItem, 3)
+          if (matches.length > 0) {
+            item.xactimateCode = matches[0].code
+            item.requiredItem = `${matches[0].code} - ${matches[0].description}`
+          }
+        }
+        
+        // For plumbing items, expand to list all specific line items
+        if (item.requiredItem.toLowerCase().includes('plumbing') || 
+            item.requiredItem.toLowerCase().includes('supply line') ||
+            item.requiredItem.toLowerCase().includes('fixture')) {
+          if (!item.suggestedLineItems || item.suggestedLineItems.length === 0) {
+            // Search for all related plumbing items
+            const plumbingMatches = searchByKeyword('plumbing supply line', 10)
+            const connectorMatches = searchByKeyword('plumbing connector', 10)
+            const shutoffMatches = searchByKeyword('shutoff valve', 10)
+            
+            item.suggestedLineItems = [
+              ...plumbingMatches.slice(0, 3).map(m => `${m.code} - ${m.description}`),
+              ...connectorMatches.slice(0, 2).map(m => `${m.code} - ${m.description}`),
+              ...shutoffMatches.slice(0, 2).map(m => `${m.code} - ${m.description}`)
+            ]
+          }
+        }
+        
+        processedItems.push(item)
+      }
+      
+      result.missingLineItems = processedItems
+      result.summary.missingCount = processedItems.length
+      result.summary.criticalCount = processedItems.filter(i => i.priority === 'critical').length
+      result.summary.minorCount = processedItems.filter(i => i.priority === 'minor').length
     }
 
     // Auto-save the audit result

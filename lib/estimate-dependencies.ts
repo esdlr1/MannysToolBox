@@ -27,32 +27,35 @@ export interface DependencyRule {
 
 export const dependencyRules: DependencyRule[] = [
   // DRYWALL & INTERIOR FINISHES
+  // NOTE: "Drywall per LF" line items ALREADY include tape, mud, and texture - do not flag these
   {
     category: 'Drywall',
     trigger: {
       keywords: [['drywall', 'sheetrock'], ['replace', 'replacement', 'remove', 'demo', 'install', 'hang']],
-      description: 'Drywall replacement/installation'
+      description: 'Drywall replacement/installation (excluding "per LF" items which include finish)',
+      excludeKeywords: [['drywall', 'per', 'lf'], ['drywall', 'per', 'linear'], ['drywall', 'lf']] // Exclude "drywall per LF" items
     },
     required: {
       keywords: ['tape', 'mud', 'compound', 'joint'],
       description: 'Tape and mud'
     },
     missingItem: 'Drywall tape and mud (finish)',
-    reason: 'Drywall replacement typically requires taping and joint compound.',
+    reason: 'Drywall replacement typically requires taping and joint compound. NOTE: "Drywall per LF" already includes this.',
     priority: 'critical'
   },
   {
     category: 'Drywall',
     trigger: {
       keywords: [['drywall', 'sheetrock'], ['replace', 'replacement', 'remove', 'demo', 'install', 'hang']],
-      description: 'Drywall replacement/installation'
+      description: 'Drywall replacement/installation (excluding "per LF" items which include finish)',
+      excludeKeywords: [['drywall', 'per', 'lf'], ['drywall', 'per', 'linear'], ['drywall', 'lf']] // Exclude "drywall per LF" items
     },
     required: {
       keywords: ['texture', 'orange peel', 'knockdown'],
       description: 'Texture finish'
     },
     missingItem: 'Drywall texture (match existing)',
-    reason: 'Drywall replacement usually requires re-texturing to match existing finish.',
+    reason: 'Drywall replacement usually requires re-texturing to match existing finish. NOTE: "Drywall per LF" already includes this.',
     priority: 'critical'
   },
   {
@@ -94,8 +97,12 @@ export const dependencyRules: DependencyRule[] = [
       description: 'Full room paint'
     },
     missingItem: 'Paint entire affected room (walls/ceiling)',
-    reason: 'Patching drywall often requires full room paint for color/texture consistency.',
-    priority: 'minor'
+    reason: 'Patching drywall often requires full room paint for color/texture consistency. Only flag if no wall/ceiling calculations are present.',
+    priority: 'minor',
+    excludeIf: {
+      keywords: [['wall', 'calculation'], ['ceiling', 'calculation'], ['calc', 'wall'], ['calc', 'ceiling']],
+      description: 'Wall or ceiling calculations present (paint likely included)'
+    }
   },
   
   // ROOFING

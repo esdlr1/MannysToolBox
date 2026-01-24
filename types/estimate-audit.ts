@@ -2,9 +2,11 @@
 
 export interface EstimateAuditItem {
   requiredItem: string
+  xactimateCode?: string
   reason: string
   priority: 'critical' | 'minor'
   relatedItemsFound?: string[]
+  suggestedLineItems?: string[] // List of ALL specific Xactimate line items needed
   room?: string
 }
 
