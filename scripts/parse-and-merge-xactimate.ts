@@ -153,6 +153,7 @@ const files = [
   { path: 'C:\\Users\\esdlr\\Downloads\\Mix3.xlsx', category: undefined },
   { path: 'C:\\Users\\esdlr\\Downloads\\Mix4.xlsx', category: undefined },
   { path: 'C:\\Users\\esdlr\\Downloads\\Mix5.xlsx', category: undefined },
+  { path: 'C:\\Users\\esdlr\\Downloads\\Mix6.xlsx', category: undefined },
 ]
 
 for (const file of files) {
