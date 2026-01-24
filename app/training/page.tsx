@@ -498,19 +498,227 @@ export default function TrainingPage() {
                     {course.assignmentsCount} assigned
                   </span>
                 </div>
-                {canManage && (
+                <div className="flex gap-2">
                   <button
-                    onClick={() => {
-                      setSelectedCourse(course.id)
-                      setShowAssignModal(true)
-                    }}
-                    className="w-full px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                    onClick={() => handleOpenCourse(course.id)}
+                    className="flex-1 px-3 py-2 text-sm bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-1"
                   >
-                    Assign to Employees
+                    <FileText className="w-4 h-4" />
+                    View Content
                   </button>
-                )}
+                  {canManage && (
+                    <button
+                      onClick={() => {
+                        setSelectedCourse(course.id)
+                        setShowAssignModal(true)
+                      }}
+                      className="flex-1 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                    >
+                      Assign
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Course Materials Modal */}
+        {showMaterialsModal && selectedCourseId && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {courses.find(c => c.id === selectedCourseId)?.title || 'Course Materials'}
+                </h3>
+                <div className="flex gap-2">
+                  {canManage && (
+                    <button
+                      onClick={() => setShowAddMaterialModal(true)}
+                      className="px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center gap-1"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Material
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowMaterialsModal(false)
+                      setSelectedCourseId(null)
+                      setCourseMaterials([])
+                    }}
+                    className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+
+              {courseMaterials.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">No materials added yet</p>
+                  {canManage && (
+                    <button
+                      onClick={() => setShowAddMaterialModal(true)}
+                      className="mt-4 px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+                    >
+                      Add First Material
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {courseMaterials.map((material) => (
+                    <div
+                      key={material.id}
+                      className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+                    >
+                      <div className="flex-shrink-0 mt-1">
+                        {material.fileType === 'video' ? (
+                          <Video className="w-5 h-5 text-red-600" />
+                        ) : material.fileType === 'link' ? (
+                          <LinkIcon className="w-5 h-5 text-blue-600" />
+                        ) : (
+                          <FileText className="w-5 h-5 text-gray-600" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-gray-900 dark:text-white mb-1">{material.title}</h4>
+                        {material.description && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{material.description}</p>
+                        )}
+                        {material.fileUrl && (
+                          <a
+                            href={material.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                          >
+                            {material.fileType === 'link' ? 'Open Link' : 'View File'}
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                      {canManage && (
+                        <button
+                          onClick={() => handleDeleteMaterial(material.id)}
+                          className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Add Material Modal */}
+        {showAddMaterialModal && selectedCourseId && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Add Course Material</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Material Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={newMaterial.fileType}
+                    onChange={(e) => setNewMaterial({ ...newMaterial, fileType: e.target.value, fileUrl: '', file: null })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                  >
+                    <option value="link">Link/URL</option>
+                    <option value="pdf">PDF Document</option>
+                    <option value="document">Document</option>
+                    <option value="video">Video</option>
+                    <option value="image">Image</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newMaterial.title}
+                    onChange={(e) => setNewMaterial({ ...newMaterial, title: e.target.value })}
+                    placeholder="e.g., Safety Manual, Training Video"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={newMaterial.description}
+                    onChange={(e) => setNewMaterial({ ...newMaterial, description: e.target.value })}
+                    placeholder="Brief description of the material..."
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                  />
+                </div>
+                {newMaterial.fileType === 'link' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      URL <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      value={newMaterial.fileUrl}
+                      onChange={(e) => setNewMaterial({ ...newMaterial, fileUrl: e.target.value })}
+                      placeholder="https://example.com"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      File <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="file"
+                      onChange={(e) => setNewMaterial({ ...newMaterial, file: e.target.files?.[0] || null })}
+                      accept={
+                        newMaterial.fileType === 'pdf' ? '.pdf' :
+                        newMaterial.fileType === 'video' ? 'video/*' :
+                        newMaterial.fileType === 'image' ? 'image/*' :
+                        '.doc,.docx,.txt,.pdf'
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleAddMaterial}
+                    disabled={loading || !newMaterial.title.trim()}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Adding...' : 'Add Material'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAddMaterialModal(false)
+                      setNewMaterial({ title: '', description: '', fileType: 'link', fileUrl: '', file: null })
+                      setError('')
+                    }}
+                    className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                {error && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
