@@ -190,6 +190,80 @@ export default function TrainingPage() {
     }
   }
 
+  const handleDeleteMaterial = async (materialId: string) => {
+    if (!confirm('Are you sure you want to delete this material?')) return
+
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/training/materials/${materialId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok && selectedCourseId) {
+        await loadCourseMaterials(selectedCourseId)
+        await loadCourses() // Refresh course list to update materials count
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to delete material')
+      }
+    } catch (error) {
+      console.error('Error deleting material:', error)
+      setError('Failed to delete material')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteCourse = async (courseId: string) => {
+    if (!confirm('Are you sure you want to delete this course? This will also delete all materials and assignments.')) return
+
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/training/courses/${courseId}`, {
+        method: 'DELETE',
+      })
+
+      if (response.ok) {
+        await loadCourses()
+        if (selectedCourseId === courseId) {
+          setShowMaterialsModal(false)
+          setSelectedCourseId(null)
+        }
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to delete course')
+      }
+    } catch (error) {
+      console.error('Error deleting course:', error)
+      setError('Failed to delete course')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleToggleCourseActive = async (courseId: string, isActive: boolean) => {
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/training/courses/${courseId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !isActive }),
+      })
+
+      if (response.ok) {
+        await loadCourses()
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to update course')
+      }
+    } catch (error) {
+      console.error('Error updating course:', error)
+      setError('Failed to update course')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.description?.toLowerCase().includes(searchTerm.toLowerCase())
