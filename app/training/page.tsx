@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRoleView } from '@/contexts/RoleViewContext'
-import { BookOpen, Plus, Upload, Users, Clock, CheckCircle2, X, FileText, Video, Link as LinkIcon, Search, Filter, Loader2 } from 'lucide-react'
+import { BookOpen, Plus, Upload, Users, Clock, CheckCircle2, X, FileText, Video, Link as LinkIcon, Search, Filter, Loader2, Edit, Trash2, ExternalLink, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface Course {
@@ -37,6 +37,17 @@ interface Employee {
   email: string
 }
 
+interface Material {
+  id: string
+  title: string
+  description: string | null
+  fileUrl: string | null
+  fileType: string | null
+  order: number
+  createdAt: string
+  updatedAt: string
+}
+
 export default function TrainingPage() {
   const { data: session } = useSession()
   const { effectiveRole } = useRoleView()
@@ -53,6 +64,11 @@ export default function TrainingPage() {
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
+  const [courseMaterials, setCourseMaterials] = useState<Material[]>([])
+  const [showMaterialsModal, setShowMaterialsModal] = useState(false)
+  const [showAddMaterialModal, setShowAddMaterialModal] = useState(false)
+  const [newMaterial, setNewMaterial] = useState({ title: '', description: '', fileType: 'link', fileUrl: '', file: null as File | null })
 
   const canManage = effectiveRole === 'Owner' || effectiveRole === 'Super Admin' || effectiveRole === 'Manager'
 
