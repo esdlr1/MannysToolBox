@@ -73402,5 +73402,7145 @@
     "description": "Add on for tinted glass",
     "category": "WDA",
     "unit": "SF"
+  },
+  {
+    "code": "10V",
+    "description": "10-0 6-8 vinyl sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10A",
+    "description": "10-0 6-8 alum. sliding patio door - anodized",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10A+",
+    "description": "10-0 6-8 alum. sliding patio door - anodized - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10A8",
+    "description": "10-0 8-0 alum. sliding patio door - anodized",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10A8+",
+    "description": "10-0 8-0 alum. sliding patio door - anodized - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10F",
+    "description": "10-0 6-8 fiberglass sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10F+",
+    "description": "10-0 6-8 fiberglass sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10F8",
+    "description": "10-0 8-0 fiberglass sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10F8+",
+    "description": "10-0 8-0 fiberglass sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10V+",
+    "description": "10-0 6-8 vinyl sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10V8",
+    "description": "10-0 8-0 vinyl sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10V8+",
+    "description": "10-0 8-0 vinyl sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10WD",
+    "description": "10-0 6-8 wood sliding patio door - exterior cladding",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10WD+",
+    "description": "10-0 6-8 wood sliding patio door - ext. clad. - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10WD8",
+    "description": "10-0 8-0 wood sliding patio door - exterior cladding",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "10WD8+",
+    "description": "10-0 8-0 wood sliding patio door - ext. clad. - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12A",
+    "description": "12-0 6-8 alum. sliding patio door - anodized",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12A+",
+    "description": "12-0 6-8 alum. sliding patio door - anodized - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12A8",
+    "description": "12-0 8-0 alum. sliding patio door - anodized",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12A8+",
+    "description": "12-0 8-0 alum. sliding patio door - anodized - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12F",
+    "description": "12-0 6-8 fiberglass sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12F+",
+    "description": "12-0 6-8 fiberglass sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12F8",
+    "description": "12-0 8-0 fiberglass sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12F8+",
+    "description": "12-0 8-0 fiberglass sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12V",
+    "description": "12-0 6-8 vinyl sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12V+",
+    "description": "12-0 6-8 vinyl sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12V8",
+    "description": "12-0 8-0 vinyl sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12V8+",
+    "description": "12-0 8-0 vinyl sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12WD",
+    "description": "12-0 6-8 wood sliding patio door - exterior cladding",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12WD+",
+    "description": "12-0 6-8 wood sliding patio door - ext. clad. - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12WD8",
+    "description": "12-0 8-0 wood sliding patio door - exterior cladding",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "12WD8+",
+    "description": "12-0 8-0 wood sliding patio door - ext. clad. - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5A",
+    "description": "5-0 6-8 alum. sliding patio door - anodized",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5A+",
+    "description": "5-0 6-8 alum. sliding patio door - anodized - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5A8",
+    "description": "5-0 8-0 alum. sliding patio door - anodized",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5A8+",
+    "description": "5-0 8-0 alum. sliding patio door - anodized - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5CM",
+    "description": "5-0 6-8 patio door - colored frame - mobile home",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5CM+",
+    "description": "5-0 6-8 patio door -colored frm-d.p.insulated -mobile home",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5F",
+    "description": "5-0 6-8 fiberglass sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5F+",
+    "description": "5-0 6-8 fiberglass sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5F8",
+    "description": "5-0 8-0 fiberglass sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5F8+",
+    "description": "5-0 8-0 fiberglass sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5MM",
+    "description": "5-0 6-8 patio door - mill finish - mobile home",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5MM+",
+    "description": "5-0 6-8 patio door -mill finish-d.p insulated -mobile home",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5V",
+    "description": "5-0 6-8 vinyl sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5V+",
+    "description": "5-0 6-8 vinyl sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5V8",
+    "description": "5-0 8-0 vinyl sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5V8+",
+    "description": "5-0 8-0 vinyl sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5WD",
+    "description": "5-0 6-8 wood sliding patio door - exterior cladding",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5WD+",
+    "description": "5-0 6-8 wood sliding patio door - w/ext. clad - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5WD8",
+    "description": "5-0 8-0 wood sliding patio door - exterior cladding",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "5WD8+",
+    "description": "5-0 8-0 wood sliding patio door - w/ext. clad - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6A",
+    "description": "6-0 6-8 alum. sliding patio door - anodized",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6A+",
+    "description": "6-0 6-8 alum. sliding patio door - anodized - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6A8",
+    "description": "6-0 8-0 alum. sliding patio door - anodized",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6A8+",
+    "description": "6-0 8-0 alum. sliding patio door - anodized - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6B",
+    "description": "6-0 6-8 bronze sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6B2",
+    "description": "6-0 6-8 bronze sliding patio door insulated (2 panes)",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6F",
+    "description": "6-0 6-8 fiberglass sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6F+",
+    "description": "6-0 6-8 fiberglass sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6F8",
+    "description": "6-0 8-0 fiberglass sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6F8+",
+    "description": "6-0 8-0 fiberglass sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6M",
+    "description": "6-0 6-8 mill finish sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6M2",
+    "description": "6-0 6-8 mill finish sliding patio door insulated (2 panes)",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6V+",
+    "description": "6-0 6-8 vinyl sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6V8",
+    "description": "6-0 8-0 vinyl sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6V8+",
+    "description": "6-0 8-0 vinyl sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6WD",
+    "description": "6-0 6-8 wood sliding patio door - exterior cladding",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6WD+",
+    "description": "6-0 6-8 wood sliding patio door - ext. clad - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6WD8",
+    "description": "6-0 8-0 wood sliding patio door - exterior cladding",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "6WD8+",
+    "description": "6-0 8-0 wood sliding patio door - w/ext. clad - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8A",
+    "description": "8-0 6-8 alum. sliding patio door - anodized",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8A+",
+    "description": "8-0 6-8 alum. sliding patio door - anodized - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8A8",
+    "description": "8-0 8-0 alum. sliding patio door - anodized",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8A8+",
+    "description": "8-0 8-0 alum. sliding patio door - anodized - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8B",
+    "description": "8-0 6-8 bronze sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8B2",
+    "description": "8-0 6-8 bronze sliding patio door insulated (2 panes)",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8F",
+    "description": "8-0 6-8 fiberglass sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8F+",
+    "description": "8-0 6-8 fiberglass sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8F8",
+    "description": "8-0 8-0 fiberglass sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8F8+",
+    "description": "8-0 8-0 fiberglass sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8M",
+    "description": "8-0 6-8 mill finish sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8M2",
+    "description": "8-0 6-8 mill finish sliding patio door insulated (2 panes)",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8V",
+    "description": "8-0 6-8 vinyl sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8V+",
+    "description": "8-0 6-8 vinyl sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8V8",
+    "description": "8-0 8-0 vinyl sliding patio door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8V8+",
+    "description": "8-0 8-0 vinyl sliding patio door - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8WD",
+    "description": "8-0 6-8 wood sliding patio door - exterior cladding",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8WD+",
+    "description": "8-0 6-8 wood sliding patio door - ext. clad - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8WD8",
+    "description": "8-0 8-0 wood sliding patio door - exterior cladding",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "8WD8+",
+    "description": "8-0 8-0 wood sliding patio door - w/ext. clad - High grade",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "AGP",
+    "description": "Windows - Sliding Patio Doors (Agreed Price)",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "AV>RS",
+    "description": "Sliding patio door - Large - Detach & reset",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "AVRS",
+    "description": "Sliding patio door - Detach & reset",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "BIDITM",
+    "description": "Windows - Sliding Patio Doors (Bid Item)",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "GRID",
+    "description": "Add on for grid (double or triple glazed)",
+    "category": "WDP",
+    "unit": "SF"
+  },
+  {
+    "code": "LAB",
+    "description": "Patio Door Installer - per hour",
+    "category": "WDP",
+    "unit": "HR"
+  },
+  {
+    "code": "LABL",
+    "description": "Patio Door - General Laborer - per hour",
+    "category": "WDP",
+    "unit": "HR"
+  },
+  {
+    "code": "MN",
+    "description": "Patio Door - Labor Minimum",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "MS7",
+    "description": "Panoramic / multi-slide door - 7' high - per LF",
+    "category": "WDP",
+    "unit": "LF"
+  },
+  {
+    "code": "MS8",
+    "description": "Panoramic / multi-slide door - 8' high - per LF",
+    "category": "WDP",
+    "unit": "LF"
+  },
+  {
+    "code": "MS9",
+    "description": "Panoramic / multi-slide door - 9' high - per LF",
+    "category": "WDP",
+    "unit": "LF"
+  },
+  {
+    "code": "PDB",
+    "description": "Windows - Sliding Patio Doors (Paid Bill)",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "RETROSL",
+    "description": "Additional charge for a retrofit sliding door",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRN36",
+    "description": "Patio door screen, 36\" wide",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRN48",
+    "description": "Patio door screen, 48\" wide",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRNM",
+    "description": "Replacement patio door screen - mobile home",
+    "category": "WDP",
+    "unit": "EA"
+  },
+  {
+    "code": "1/8T",
+    "description": "Reglaze 1/8\" tempered glass - 40 sf maximum",
+    "category": "WDR",
+    "unit": "SF"
+  },
+  {
+    "code": "1/4",
+    "description": "Reglaze 1/4\" annealed/float glass - 40 sf maximum",
+    "category": "WDR",
+    "unit": "SF"
+  },
+  {
+    "code": "1/4L",
+    "description": "Reglaze 1/4\" - 5/16\" laminated glass - 40 sf maximum",
+    "category": "WDR",
+    "unit": "SF"
+  },
+  {
+    "code": "1/4T",
+    "description": "Reglaze 1/4\" tempered glass - 40 sf maximum",
+    "category": "WDR",
+    "unit": "SF"
+  },
+  {
+    "code": "1/4W",
+    "description": "Reglaze 1/4\" polished wire glass - 40 sf maximum",
+    "category": "WDR",
+    "unit": "SF"
+  },
+  {
+    "code": "1/8",
+    "description": "Reglaze 1/8\" annealed/float glass - 40 sf maximum",
+    "category": "WDR",
+    "unit": "SF"
+  },
+  {
+    "code": "3/16",
+    "description": "Reglaze 3/16\" annealed/float glass - 40 sf maximum",
+    "category": "WDR",
+    "unit": "SF"
+  },
+  {
+    "code": "3/16T",
+    "description": "Reglaze 3/16\" tempered glass - 40 sf maximum",
+    "category": "WDR",
+    "unit": "SF"
+  },
+  {
+    "code": "3/8",
+    "description": "Reglaze 3/8\" annealed/float glass - 40 sf maximum",
+    "category": "WDR",
+    "unit": "SF"
+  },
+  {
+    "code": "AGP",
+    "description": "Window Reglazing & Repair (Agreed Price)",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "BIDITM",
+    "description": "Window Reglazing & Repair (Bid Item)",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "CLAD",
+    "description": "Window cladding - preformed aluminum",
+    "category": "WDR",
+    "unit": "LF"
+  },
+  {
+    "code": "CLADS",
+    "description": "Skylight cladding - preformed aluminum",
+    "category": "WDR",
+    "unit": "LF"
+  },
+  {
+    "code": "GBA",
+    "description": "Glazing bead - Aluminum",
+    "category": "WDR",
+    "unit": "LF"
+  },
+  {
+    "code": "GBV",
+    "description": "Glazing bead - Vinyl",
+    "category": "WDR",
+    "unit": "LF"
+  },
+  {
+    "code": "GLAZ",
+    "description": "Reglaze window, 10 - 16 sf",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "GLAZ<",
+    "description": "Reglaze window, 1 - 9 sf",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "GLAZ>",
+    "description": "Reglaze window, 17 - 24 sf",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "GLAZ>>",
+    "description": "Reglaze window, 25 - 30 sf",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "GLAZ2",
+    "description": "Reglaze double-pane thermal window unit, 10 - 16 sf",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "GLAZ2<",
+    "description": "Reglaze double-pane thermal window unit, 1 - 9 sf",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "GLAZ2>",
+    "description": "Reglaze double-pane thermal window unit, 17 - 24 sf",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "GLAZ2>>",
+    "description": "Reglaze double-pane thermal window unit, 25 - 30 sf",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "GRID",
+    "description": "Add on for grid (double or triple pane windows)",
+    "category": "WDR",
+    "unit": "SF"
+  },
+  {
+    "code": "HRGRID",
+    "description": "Add on for grid in half round window - per window unit",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "LAB",
+    "description": "Window Glazing/Repair - per hour",
+    "category": "WDR",
+    "unit": "HR"
+  },
+  {
+    "code": "LABL",
+    "description": "Window Glazing - General Laborer - per hour",
+    "category": "WDR",
+    "unit": "HR"
+  },
+  {
+    "code": "MN",
+    "description": "Window Reglazing/Repair - Labor Minimum",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "PDB",
+    "description": "Window Reglazing & Repair (Paid Bill)",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "RDOR",
+    "description": "Lube/recondition sliding glass door",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "RWDW",
+    "description": "Lube/recondition operable window",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRN",
+    "description": "Window screen, 10 - 16 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRN<",
+    "description": "Window screen, 1 - 9 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRN>",
+    "description": "Window screen, 17 - 25 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRN>>",
+    "description": "Window screen, 26 - 32 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRNR",
+    "description": "Window screen - rescreen, 10 - 16 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRNR<",
+    "description": "Window screen - rescreen, 1 - 9 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRNR>",
+    "description": "Window screen - rescreen, 17 - 25 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRNR>>",
+    "description": "Window screen - rescreen, 26 - 32 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SCRNRS",
+    "description": "Window screen - Detach & reset",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SKY",
+    "description": "Reglaze skylight - 6 to 10 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SKY<",
+    "description": "Reglaze skylight - up to 6 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SKY>",
+    "description": "Reglaze skylight - 10 to 15 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SKYF",
+    "description": "Reglaze flat skylight - laminated glass - 6 to 10 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SKYF<",
+    "description": "Reglaze flat skylight - laminated glass - up to 6 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SKYF>",
+    "description": "Reglaze flat skylight - laminated glass - 10 to 15 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SWS",
+    "description": "Solar window screen, 11 - 25 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SWS<",
+    "description": "Solar window screen, 1 - 10 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SWS>",
+    "description": "Solar window screen, 26 - 40 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "SWS>>",
+    "description": "Solar window screen, 41 - 64 SF",
+    "category": "WDR",
+    "unit": "EA"
+  },
+  {
+    "code": "DDF<-",
+    "description": "Skylight - double dome fixed, 4 - 6.5 sf - Standard grade",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "AGP",
+    "description": "Windows - Skylights (Agreed Price)",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "BIDITM",
+    "description": "Windows - Skylights (Bid Item)",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDF",
+    "description": "Skylight - double dome fixed, 6.6 - 9 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDF-",
+    "description": "Skylight - double dome fixed, 6.6 - 9 sf - Standard grade",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDF<",
+    "description": "Skylight - double dome fixed, 4 - 6.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDF>",
+    "description": "Skylight - double dome fixed, 9.1 - 12.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDF>-",
+    "description": "Skylight - double dome fixed, 9.1-12.5 sf - Standard grade",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDF>>",
+    "description": "Skylight - double dome fixed, 12.6 - 15.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDF>>-",
+    "description": "Skylight - double dome fixed, 12.6-15.5 sf- Standard grade",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDV",
+    "description": "Skylight - double dome venting, 6.6 - 9 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDV<",
+    "description": "Skylight - double dome venting, 4 - 6.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDV>",
+    "description": "Skylight - double dome venting, 9.1 - 12.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDV>>",
+    "description": "Skylight - double dome venting, 12.6 - 15.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDV>RS",
+    "description": "Skylight - double dome - Large - Detach & reset",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DDVRS",
+    "description": "Skylight - double dome - Detach & reset",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSF",
+    "description": "Skylight - single dome fixed, 6.6 - 9 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSF-",
+    "description": "Skylight - single dome fixed, 6.6 - 9 sf - Standard grade",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSF<",
+    "description": "Skylight - single dome fixed, 4 - 6.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSF<-",
+    "description": "Skylight - single dome fixed, 4 - 6.5 sf - Standard grade",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSF>",
+    "description": "Skylight - single dome fixed, 9.1 - 12.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSF>-",
+    "description": "Skylight - single dome fixed, 9.1-12.5 sf - Standard grade",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSF>>",
+    "description": "Skylight - single dome fixed, 12.6 - 15.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSF>>-",
+    "description": "Skylight - single dome fixed, 12.6-15.5 sf- Standard grade",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSV",
+    "description": "Skylight - single dome venting, 6.6 - 9 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSV<",
+    "description": "Skylight - single dome venting, 4 - 6.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSV>",
+    "description": "Skylight - single dome venting, 9.1 - 12.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "DSV>>",
+    "description": "Skylight - single dome venting, 12.6 - 15.5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "F",
+    "description": "Skylight - fixed, 7.1 - 9 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "F<",
+    "description": "Skylight - fixed, 5.1 -7 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "F<<",
+    "description": "Skylight - fixed, up to 5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "F>",
+    "description": "Skylight - fixed, 9.1 - 12 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "F>>",
+    "description": "Skylight - fixed, 12.1 sf or greater",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "MN",
+    "description": "Skylight - Labor Minimum",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "PDB",
+    "description": "Windows - Skylights (Paid Bill)",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "REM",
+    "description": "Remote electric opening system",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RT10",
+    "description": "Skylight - reflective tube - 10\"",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RT13",
+    "description": "Skylight - reflective tube - 13\"",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RT8",
+    "description": "Skylight - reflective tube - 8\"",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RTFDRS",
+    "description": "Skylight - reflective tube - flash/dome - Detach & reset",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RTRS",
+    "description": "Skylight - reflective tube - Detach & reset",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RW",
+    "description": "Skylight - manual venting, 7.1 - 9 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RW<",
+    "description": "Skylight - manual venting, 5.1 - 7 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RW<<",
+    "description": "Skylight - manual venting, up to 5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RW>",
+    "description": "Skylight - manual venting, 9.1 - 12 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RW>>",
+    "description": "Skylight - manual venting, 12.1 sf or greater",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RWD>RS",
+    "description": "Skylight - Large - Detach & reset",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RWDRS",
+    "description": "Skylight - Detach & reset",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RWM",
+    "description": "Skylight - motorized venting, 7.1 - 9 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RWM<",
+    "description": "Skylight - motorized venting, 5.1 - 7 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RWM<<",
+    "description": "Skylight - motorized venting, up to 5 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RWM>",
+    "description": "Skylight - motorized venting, 9.1 - 12 sf",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "RWM>>",
+    "description": "Skylight - motorized venting, 12.1 sf or greater",
+    "category": "WDS",
+    "unit": "EA"
+  },
+  {
+    "code": "SKYD",
+    "description": "Skylight - engineered dome",
+    "category": "WDS",
+    "unit": "SF"
+  },
+  {
+    "code": "BLA1>>+",
+    "description": "Window blind - aluminum - 1\" - 20.1 to 32 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "AGP",
+    "description": "Window Treatment (Agreed Price)",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BIDITM",
+    "description": "Window Treatment (Bid Item)",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1",
+    "description": "Window blind - aluminum - 1\" - 7.1 to 14 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1+",
+    "description": "Window blind - aluminum - 1\" - 7.1 to 14 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1<",
+    "description": "Window blind - aluminum - 1\" - up to 7 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1<+",
+    "description": "Window blind - aluminum - 1\" - up to 7 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1>",
+    "description": "Window blind - aluminum - 1\" - 14.1 to 20 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1>+",
+    "description": "Window blind - aluminum - 1\" - 14.1 to 20 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1>>",
+    "description": "Window blind - aluminum - 1\" - 20.1 to 32 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1X",
+    "description": "Window blind - aluminum - 1\" - 32.1 to 42 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1X+",
+    "description": "Window blind - aluminum - 1\" - 32.1 to 42 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1X>",
+    "description": "Window blind - aluminum - 1\" - 42.1 to 56 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA1X>+",
+    "description": "Window blind - aluminum - 1\" - 42.1 to 56 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2",
+    "description": "Window blind - aluminum - 2\" - 7.1 to 14 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2+",
+    "description": "Window blind - aluminum - 2\" - 7.1 to 14 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2<",
+    "description": "Window blind - aluminum - 2\" - up to 7 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2<+",
+    "description": "Window blind - aluminum - 2\" - up to 7 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2>",
+    "description": "Window blind - aluminum - 2\" - 14.1 to 20 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2>+",
+    "description": "Window blind - aluminum - 2\" - 14.1 to 20 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2>>",
+    "description": "Window blind - aluminum - 2\" - 20.1 to 32 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2>>+",
+    "description": "Window blind - aluminum - 2\" - 20.1 to 32 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2X",
+    "description": "Window blind - aluminum - 2\" - 32.1 to 42 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2X+",
+    "description": "Window blind - aluminum - 2\" - 32.1 to 42 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2X>",
+    "description": "Window blind - aluminum - 2\" - 42.1 to 56 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLA2X>+",
+    "description": "Window blind - aluminum - 2\" - 42.1 to 56 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1",
+    "description": "Window blind - single cell - 7.1 to 14 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1+",
+    "description": "Window blind - single cell - 7.1 to 14 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1<",
+    "description": "Window blind - single cell - up to 7 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1<+",
+    "description": "Window blind - single cell - up to 7 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1>",
+    "description": "Window blind - single cell - 14.1 to 20 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1>+",
+    "description": "Window blind - single cell - 14.1 to 20 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1>>",
+    "description": "Window blind - single cell - 20.1 to 32 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1>>+",
+    "description": "Window blind - single cell - 20.1 to 32 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1X",
+    "description": "Window blind - single cell - 32.1 to 42 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1X+",
+    "description": "Window blind - single cell - 32.1 to 42 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1X>",
+    "description": "Window blind - single cell - 42.1 to 56 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC1X>+",
+    "description": "Window blind - single cell - 42.1 to 56 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2",
+    "description": "Window blind - double cell - 7.1 to 14 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2+",
+    "description": "Window blind - double cell - 7.1 to 14 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2<",
+    "description": "Window blind - double cell - up to 7 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2<+",
+    "description": "Window blind - double cell - up to 7 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2>",
+    "description": "Window blind - double cell - 14.1 to 20 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2>+",
+    "description": "Window blind - double cell - 14.1 to 20 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2>>",
+    "description": "Window blind - double cell - 20.1 to 32 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2>>+",
+    "description": "Window blind - double cell - 20.1 to 32 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2X",
+    "description": "Window blind - double cell - 32.1 to 42 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2X+",
+    "description": "Window blind - double cell - 32.1 to 42 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2X>",
+    "description": "Window blind - double cell - 42.1 to 56 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLC2X>+",
+    "description": "Window blind - double cell - 42.1 to 56 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLF",
+    "description": "Window blind - fabric/woven - 7.1 to 14 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLF+",
+    "description": "Window blind - fabric woven - 7.1 to 14 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLF<",
+    "description": "Window blind - fabric/woven - up to 7 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLF<+",
+    "description": "Window blind - fabric/woven - up to 7 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLF>",
+    "description": "Window blind - fabric/woven - 14.1 to 20 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLF>+",
+    "description": "Window blind - fabric/woven - 14.1 to 20 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLF>>",
+    "description": "Window blind - fabric/woven - 20.1 to 32 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLF>>+",
+    "description": "Window blind - fabric/woven - 20.1 to 32 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLFX",
+    "description": "Window blind - fabric/woven - 32.1 to 42 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLFX+",
+    "description": "Window blind - fabric/woven - 32.1 to 42 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLFX>",
+    "description": "Window blind - fabric/woven - 42.1 to 56 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLFX>+",
+    "description": "Window blind - fabric/woven - 42.1 to 56 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN1+",
+    "description": "Window blind - PVC - 1\" - 7.1 to 14 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN1<",
+    "description": "Window blind - PVC - 1\" - up to 7 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN1<+",
+    "description": "Window blind - PVC - 1\" - up to 7 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN1>",
+    "description": "Window blind - PVC - 1\" - 14.1 to 20 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN1>+",
+    "description": "Window blind - PVC - 1\" - 14.1 to 20 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN1>>",
+    "description": "Window blind - PVC - 1\" - 20.1 to 32 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN1>>+",
+    "description": "Window blind - PVC - 1\" - 20.1 to 32 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3",
+    "description": "Window blind - PVC - 3.5\" - 7.1 to 14 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3+",
+    "description": "Window blind - PVC - 3.5\" - 7.1 to 14 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3<",
+    "description": "Window blind - PVC - 3.5\" - up to 7 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3<+",
+    "description": "Window blind - PVC - 3.5\" - up to 7 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3>",
+    "description": "Window blind - PVC - 3.5\" - 14.1 to 20 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3>+",
+    "description": "Window blind - PVC - 3.5\" - 14.1 to 20 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3>>",
+    "description": "Window blind - PVC - 3.5\" - 20.1 to 32 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3>>+",
+    "description": "Window blind - PVC - 3.5\" - 20.1 to 32 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3X",
+    "description": "Window blind - PVC - 3.5\" - 32.1 to 42 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3X+",
+    "description": "Window blind - PVC - 3.5\" - 32.1 to 42 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3X>",
+    "description": "Window blind - PVC - 3.5\" - 42.1 to 56 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLN3X>+",
+    "description": "Window blind - PVC - 3.5\" - 42.1 to 56 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLND",
+    "description": "Window blind - PVC - 2\" - 7.1 to 14 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLND+",
+    "description": "Window blind - PVC - 2\" - 7.1 to 14 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLND<",
+    "description": "Window blind - PVC - 2\" - up to 7 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLND<+",
+    "description": "Window blind - PVC - 2\" - up to 7 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLND>",
+    "description": "Window blind - PVC - 2\" - 14.1 to 20 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLND>+",
+    "description": "Window blind - PVC - 2\" - 14.1 to 20 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLND>>",
+    "description": "Window blind - PVC - 2\" - 20.1 to 32 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLND>>+",
+    "description": "Window blind - PVC - 2\" - 20.1 to 32 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLNDX",
+    "description": "Window blind - PVC - 2\" - 32.1 to 42 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLNDX+",
+    "description": "Window blind - PVC - 2\" - 32.1 to 42 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLNDX>",
+    "description": "Window blind - PVC - 2\" - 42.1 to 56 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLNDX>+",
+    "description": "Window blind - PVC - 2\" - 42.1 to 56 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1",
+    "description": "Window blind - wood - 1\" - 7.1 to 14 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1+",
+    "description": "Window blind - wood - 1\" - 7.1 to 14 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1<",
+    "description": "Window blind - wood - 1\" - up to 7 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1<+",
+    "description": "Window blind - wood - 1\" - up to 7 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1>",
+    "description": "Window blind - wood - 1\" - 14.1 to 20 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1>+",
+    "description": "Window blind - wood - 1\" - 14.1 to 20 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1>>",
+    "description": "Window blind - wood - 1\" - 20.1 to 32 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1>>+",
+    "description": "Window blind - wood - 1\" - 20.1 to 32 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1X",
+    "description": "Window blind - wood - 1\" - 32.1 to 42 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1X+",
+    "description": "Window blind - wood - 1\" - 32.1 to 42 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1X>",
+    "description": "Window blind - wood - 1\" - 42.1 to 56 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW1X>+",
+    "description": "Window blind - wood - 1\" - 42.1 to 56 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2",
+    "description": "Window blind - wood - 2\" - 7.1 to 14 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2+",
+    "description": "Window blind - wood - 2\" - 7.1 to 14 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2<",
+    "description": "Window blind - wood - 2\" - up to 7 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2<+",
+    "description": "Window blind - wood - 2\" - up to 7 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2>",
+    "description": "Window blind - wood - 2\" - 14.1 to 20 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2>+",
+    "description": "Window blind - wood - 2\" - 14.1 to 20 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2>>",
+    "description": "Window blind - wood - 2\" - 20.1 to 32 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2>>+",
+    "description": "Window blind - wood - 2\" - 20.1 to 32 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2X",
+    "description": "Window blind - wood - 2\" - 32.1 to 42 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2X+",
+    "description": "Window blind - wood - 2\" - 32.1 to 42 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2X>",
+    "description": "Window blind - wood - 2\" - 42.1 to 56 SF",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "BLW2X>+",
+    "description": "Window blind - wood - 2\" - 42.1 to 56 SF - High grade",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "DRAPRH",
+    "description": "Window drapery - remove and rehang - per hour",
+    "category": "WDT",
+    "unit": "HR"
+  },
+  {
+    "code": "DRPM",
+    "description": "Drapery rod - adaptable controller",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "DRPM+",
+    "description": "Drapery rod - motorized - single drape system",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "DRPM++",
+    "description": "Drapery rod - motorized - double drape system",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "HW",
+    "description": "Window drapery - hardware",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "HW-",
+    "description": "Window drapery - hardware - single rod",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "HW<",
+    "description": "Window drapery - hardware - Small",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "HW<-",
+    "description": "Window drapery - hardware - single rod - Small",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "HW>",
+    "description": "Window drapery - hardware - Large",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "HW>-",
+    "description": "Window drapery - hardware - single rod - Large",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "HW>>",
+    "description": "Window drapery - hardware - Extra large",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "LAB",
+    "description": "Window Treatments Installer - per hour",
+    "category": "WDT",
+    "unit": "HR"
+  },
+  {
+    "code": "LABL",
+    "description": "Window Treatment - General Laborer - per hour",
+    "category": "WDT",
+    "unit": "HR"
+  },
+  {
+    "code": "MISC",
+    "description": "Window Treatment - General Laborer - per hour",
+    "category": "WDT",
+    "unit": "HR"
+  },
+  {
+    "code": "MN",
+    "description": "Window Treatment - Labor Minimum",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "PDB",
+    "description": "Window Treatment (Paid Bill)",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "RU",
+    "description": "Window shade - roll up",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "RU<",
+    "description": "Window shade - roll up - Small",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "RU>",
+    "description": "Window shade - roll up - Large",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "RU>>",
+    "description": "Window shade - roll up - Extra large",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "RURS",
+    "description": "Window shade - roll up - Detach & reset",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "SHADM",
+    "description": "Motorized shades",
+    "category": "WDT",
+    "unit": "SF"
+  },
+  {
+    "code": "SHADMBO",
+    "description": "Motorized blackout screen",
+    "category": "WDT",
+    "unit": "SF"
+  },
+  {
+    "code": "SHTR",
+    "description": "Interior window shutters (set)",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "SHTR<",
+    "description": "Interior window shutters (set) - Small",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "SHTR>",
+    "description": "Interior window shutters (set) - Large",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "SHTR>>",
+    "description": "Interior window shutters (set) - Extra large",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "SHTRRS",
+    "description": "Interior window shutters (set) - Detach & reset",
+    "category": "WDT",
+    "unit": "EA"
+  },
+  {
+    "code": "C",
+    "description": "Vinyl window - casement, 6-8 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "A",
+    "description": "Vinyl window - awning, 7-12 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "A+",
+    "description": "Vinyl window - awning, 7-12 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "A<",
+    "description": "Vinyl window - awning, 3-6 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "A<+",
+    "description": "Vinyl window - awning, 3-6 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "AGP",
+    "description": "Windows - Vinyl (Agreed Price)",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "BAY",
+    "description": "Additional charge for bay and bow windows",
+    "category": "WDV",
+    "unit": "LF"
+  },
+  {
+    "code": "BIDITM",
+    "description": "Windows - Vinyl (Bid Item)",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "C+",
+    "description": "Vinyl window - casement, 6-8 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "C++",
+    "description": "Vinyl window - casement, 6-8 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "C<",
+    "description": "Vinyl window - casement, 3-5 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "C<+",
+    "description": "Vinyl window - casement, 3-5 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "C<++",
+    "description": "Vinyl window - casement, 3-5 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "C>",
+    "description": "Vinyl window - casement, 9-13 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "C>+",
+    "description": "Vinyl window - casement, 9-13 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "C>++",
+    "description": "Vinyl window - casement, 9-13 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "COLOR",
+    "description": "Vinyl window - Add on for premium color frames",
+    "category": "WDV",
+    "unit": "SF"
+  },
+  {
+    "code": "D",
+    "description": "Vinyl window - double hung, 9-12 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D+",
+    "description": "Vinyl window - double hung, 9-12 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D++",
+    "description": "Vinyl window - double hung, 9-12 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D<",
+    "description": "Vinyl window - double hung, 4-8 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D<+",
+    "description": "Vinyl window - double hung, 4-8 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D<++",
+    "description": "Vinyl window - double hung, 4-8 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D>",
+    "description": "Vinyl window - double hung, 13-19 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D>+",
+    "description": "Vinyl window - double hung, 13-19 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D>++",
+    "description": "Vinyl window - double hung, 13-19 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D>>",
+    "description": "Vinyl window - double hung, 20-28 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D>>+",
+    "description": "Vinyl window - double hung, 20-28 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "D>>++",
+    "description": "Vinyl window - double hung, 20-28 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "GRDN",
+    "description": "Vinyl window - Garden, 6-9 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "GRDN>",
+    "description": "Vinyl window - Garden, 10-12 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HO",
+    "description": "Vinyl window - hopper/transom, 7-12 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HO<",
+    "description": "Vinyl window - hopper/transom, 3-6 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HR24",
+    "description": "Vinyl window - half round, 24\" wide",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HR36",
+    "description": "Vinyl window - half round, 36\" wide",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HR48",
+    "description": "Vinyl window - half round, 48\" wide",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HR60",
+    "description": "Vinyl window - half round, 60\" wide",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HR72",
+    "description": "Vinyl window - half round, 72\" wide",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS",
+    "description": "Vinyl window, horizontal sliding, 12-23 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS+",
+    "description": "Vinyl window, horizontal sliding, 12-23 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS++",
+    "description": "Vinyl window, horizontal sliding, 12-23 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS<",
+    "description": "Vinyl window, horizontal sliding, 3-11 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS<+",
+    "description": "Vinyl window, horizontal sliding, 3-11 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS<++",
+    "description": "Vinyl window, horizontal sliding, 3-11 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>",
+    "description": "Vinyl window, horizontal sliding, 24-32 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>+",
+    "description": "Vinyl window, horizontal sliding, 24-32 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>++",
+    "description": "Vinyl window, horizontal sliding, 24-32 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>>",
+    "description": "Vinyl window, horizontal sliding, 33-40 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>>+",
+    "description": "Vinyl window, horizontal sliding, 33-40 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>>++",
+    "description": "Vinyl window, horizontal sliding, 33-40 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "J",
+    "description": "Vinyl window - jalousie, 12-23 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "J<",
+    "description": "Vinyl window - jalousie, 3-11 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "J>",
+    "description": "Vinyl window - jalousie, 24-32 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "J>>",
+    "description": "Vinyl window - jalousie, 33-40 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "MN",
+    "description": "Vinyl Window - Labor Minimum",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "MULL",
+    "description": "Additional charge for vinyl window mullion - per LF",
+    "category": "WDV",
+    "unit": "LF"
+  },
+  {
+    "code": "OV",
+    "description": "Vinyl window - Oval, 36\"x 60\"",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "OV<",
+    "description": "Vinyl window - Oval, 24\"x 36\"",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "OV>",
+    "description": "Vinyl window - Oval, 48\"x 72\"",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P",
+    "description": "Vinyl window, picture/fixed, 12-23 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P+",
+    "description": "Vinyl window, picture/fixed, 12-23 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P++",
+    "description": "Vinyl window, picture/fixed, 12-23 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P<",
+    "description": "Vinyl window, picture/fixed, 3-11 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P<+",
+    "description": "Vinyl window, picture/fixed, 3-11 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P<++",
+    "description": "Vinyl window, picture/fixed, 3-11 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P>",
+    "description": "Vinyl window, picture/fixed, 24-32 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P>+",
+    "description": "Vinyl window, picture/fixed, 24-32 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P>++",
+    "description": "Vinyl window, picture/fixed, 24-32 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P>>",
+    "description": "Vinyl window, picture/fixed, 33-40 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P>>+",
+    "description": "Vinyl window, picture/fixed, 33-40 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "P>>++",
+    "description": "Vinyl window, picture/fixed, 33-40 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "PDB",
+    "description": "Windows - Vinyl (Paid Bill)",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "PST",
+    "description": "Stained glass window, picture/fixed, 12-23 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "PST<",
+    "description": "Stained glass window, picture/fixed, 3-11 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "PST>",
+    "description": "Stained glass window, picture/fixed, 24-32 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "PST>>",
+    "description": "Stained glass window, picture/fixed, 33-40 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "R24",
+    "description": "Vinyl window - Round/Octagon, 24\"",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "R36",
+    "description": "Vinyl window - Round/Octagon, 36\"",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "R48",
+    "description": "Vinyl window - Round/Octagon, 48\"",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S",
+    "description": "Vinyl window, single hung, 9-12 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S+",
+    "description": "Vinyl window, single hung, 9-12 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S++",
+    "description": "Vinyl window, single hung, 9-12 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S<",
+    "description": "Vinyl window, single hung, 4-8 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S<+",
+    "description": "Vinyl window, single hung, 4-8 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S<++",
+    "description": "Vinyl window, single hung, 4-8 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S>",
+    "description": "Vinyl window, single hung, 13-19 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S>+",
+    "description": "Vinyl window, single hung, 13-19 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S>++",
+    "description": "Vinyl window, single hung, 13-19 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S>>",
+    "description": "Vinyl window, single hung, 20-28 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S>>+",
+    "description": "Vinyl window, single hung, 20-28 sf - High grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "S>>++",
+    "description": "Vinyl window, single hung, 20-28 sf - Premium grade",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "STRMW",
+    "description": "Storm window - vinyl, 12-24 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "STRMW<",
+    "description": "Storm window - vinyl, 3-11 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "STRMW>",
+    "description": "Storm window - vinyl, 25-32 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "STRMW>>",
+    "description": "Storm window - vinyl, 33-40 sf",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "VNRS",
+    "description": "Vinyl window - Detach & reset",
+    "category": "WDV",
+    "unit": "EA"
+  },
+  {
+    "code": "A",
+    "description": "Wood window - awning, 7-12 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "A+",
+    "description": "Wood window - awning, 7-12 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "A++",
+    "description": "Wood window - awning, 7-12 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "A<",
+    "description": "Wood window - awning, 3-6 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "A<+",
+    "description": "Wood window - awning, 3-6 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "A<++",
+    "description": "Wood window - awning, 3-6 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "AGP",
+    "description": "Windows - Wood (Agreed Price)",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "BIDITM",
+    "description": "Windows - Wood (Bid Item)",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C",
+    "description": "Wood window - casement, 12-23 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C+",
+    "description": "Wood window - casement, 12-23 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C++",
+    "description": "Wood window - casement, 12-23 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C<",
+    "description": "Wood window - casement, 3-11 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C<+",
+    "description": "Wood window - casement, 3-11 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C<++",
+    "description": "Wood window - casement, 3-11 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C>",
+    "description": "Wood window - casement, 24-32 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C>+",
+    "description": "Wood window - casement, 24-32 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C>++",
+    "description": "Wood window - casement, 24-32 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C>>",
+    "description": "Wood window - casement, 33-40 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C>>+",
+    "description": "Wood window - casement, 33-40 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "C>>++",
+    "description": "Wood window - casement, 33-40 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "CS",
+    "description": "Replace sash only - casement, 10-15 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "CS+",
+    "description": "Replace sash only - casement, 10-15 sf - High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "CS++",
+    "description": "Replace sash only - casement, 10-15 sf - Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "CS<",
+    "description": "Replace sash only - casement, 3-9 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "CS<+",
+    "description": "Replace sash only - casement, 3-9 sf - High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "CS<++",
+    "description": "Replace sash only - casement, 3-9 sf - Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "CS>",
+    "description": "Replace sash only - casement, 16-21 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "CS>+",
+    "description": "Replace sash only - casement, 16-21 sf - High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "CS>++",
+    "description": "Replace sash only - casement, 16-21 sf - Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D",
+    "description": "Wood window - double hung, 9-12 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D-",
+    "description": "Wood window - double hung, 9-12 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D+",
+    "description": "Wood window - double hung, 9-12 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D++",
+    "description": "Wood window - double hung, 9-12 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D<",
+    "description": "Wood window - double hung, 4-8 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D<-",
+    "description": "Wood window - double hung, 4-8 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D<+",
+    "description": "Wood window - double hung, 4-8 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D<++",
+    "description": "Wood window - double hung, 4-8 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D>",
+    "description": "Wood window - double hung, 13-19 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D>-",
+    "description": "Wood window - double hung, 13-19 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D>+",
+    "description": "Wood window - double hung, 13-19 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D>++",
+    "description": "Wood window - double hung, 13-19 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D>>",
+    "description": "Wood window - double hung, 20-28 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D>>-",
+    "description": "Wood window - double hung, 20-28 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D>>+",
+    "description": "Wood window - double hung, 20-28 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "D>>++",
+    "description": "Wood window - double hung, 20-28 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "EXJAM",
+    "description": "Window extension jamb - 11/16\" x 1-23/32\" (4-9/16\" wall)",
+    "category": "WDW",
+    "unit": "LF"
+  },
+  {
+    "code": "EXJAM>",
+    "description": "Window extension jamb - 11/16\" x 2-13/32\" (5-1/4\" wall)",
+    "category": "WDW",
+    "unit": "LF"
+  },
+  {
+    "code": "EXJAM>>",
+    "description": "Window extension jamb - 11/16\" x 3-23/32\" (6-9/16\" wall)",
+    "category": "WDW",
+    "unit": "LF"
+  },
+  {
+    "code": "HS",
+    "description": "Wood window - horizontal sliding, 12-23 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS-",
+    "description": "Wood window - horizontal sliding, 12-23 sf, Std. grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS+",
+    "description": "Wood window - horizontal sliding, 12-23 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS++",
+    "description": "Wood window - horizontal sliding, 12-23 sf, Prem. grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS<",
+    "description": "Wood window - horizontal sliding, 3-11 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS<-",
+    "description": "Wood window - horizontal sliding, 3-11 sf, Std. grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS<+",
+    "description": "Wood window - horizontal sliding, 3-11 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS<++",
+    "description": "Wood window - horizontal sliding, 3-11 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>",
+    "description": "Wood window - horizontal sliding, 24-32 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>-",
+    "description": "Wood window - horizontal sliding, 24-32 sf, Std. grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>+",
+    "description": "Wood window - horizontal sliding, 24-32 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>++",
+    "description": "Wood window - horizontal sliding, 24-32 sf, Prem. grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>>",
+    "description": "Wood window - horizontal sliding, 33-40 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>>-",
+    "description": "Wood window - horizontal sliding, 33-40 sf, Std. grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>>+",
+    "description": "Wood window - horizontal sliding, 33-40 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "HS>>++",
+    "description": "Wood window - horizontal sliding, 33-40 sf, Prem. grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "MN",
+    "description": "Wood Window - Labor Minimum",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "MULL",
+    "description": "Additional charge for wood window mullion - per LF",
+    "category": "WDW",
+    "unit": "LF"
+  },
+  {
+    "code": "P",
+    "description": "Wood window - picture (fixed), 24-32 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P-",
+    "description": "Wood window - picture (fixed), 24-32 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P+",
+    "description": "Wood window - picture (fixed), 24-32 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P++",
+    "description": "Wood window - picture (fixed), 24-32 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P<",
+    "description": "Wood window - picture (fixed), 12-23 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P<-",
+    "description": "Wood window - picture (fixed), 12-23 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P<+",
+    "description": "Wood window - picture (fixed), 12-23 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P<++",
+    "description": "Wood window - picture (fixed), 12-23 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P<<",
+    "description": "Wood window - picture (fixed), 3-11 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P<<-",
+    "description": "Wood window - picture (fixed), 3-11 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P<<+",
+    "description": "Wood window - picture (fixed), 3-11 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P<<++",
+    "description": "Wood window - picture (fixed), 3-11 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P>",
+    "description": "Wood window - picture (fixed), 33-44 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P>-",
+    "description": "Wood window - picture (fixed), 33-44 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P>+",
+    "description": "Wood window - picture (fixed), 33-44 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P>++",
+    "description": "Wood window - picture (fixed), 33-44 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P>>",
+    "description": "Wood window - picture (fixed), 45-55 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P>>-",
+    "description": "Wood window - picture (fixed), 45-55 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P>>+",
+    "description": "Wood window - picture (fixed), 45-55 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "P>>++",
+    "description": "Wood window - picture (fixed), 45-55 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "PDB",
+    "description": "Windows - Wood (Paid Bill)",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S",
+    "description": "Wood window - single hung, 9-12 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S-",
+    "description": "Wood window - single hung, 9-12 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S+",
+    "description": "Wood window - single hung, 9-12 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S++",
+    "description": "Wood window - single hung, 9-12 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S<",
+    "description": "Wood window - single hung, 4-8 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S<-",
+    "description": "Wood window - single hung, 4-8 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S<+",
+    "description": "Wood window - single hung, 4-8 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S<++",
+    "description": "Wood window - single hung, 4-8 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S>",
+    "description": "Wood window - single hung, 13-19 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S>-",
+    "description": "Wood window - single hung, 13-19 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S>+",
+    "description": "Wood window - single hung, 13-19 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S>++",
+    "description": "Wood window - single hung, 13-19 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S>>",
+    "description": "Wood window - single hung, 20-28 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S>>-",
+    "description": "Wood window - single hung, 20-28 sf, Standard grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S>>+",
+    "description": "Wood window - single hung, 20-28 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "S>>++",
+    "description": "Wood window - single hung, 20-28 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SP",
+    "description": "Specialty wood window unit, 12-23 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SP<",
+    "description": "Specialty wood window unit, 3-11 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SP>",
+    "description": "Specialty wood window unit, 24-32 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SP>>",
+    "description": "Specialty wood window unit, 33-40 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH",
+    "description": "Replace sash only - double hung, 9-12 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH+",
+    "description": "Replace sash only - double hung, 9-12 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH++",
+    "description": "Replace sash only - double hung, 9-12 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH<",
+    "description": "Replace sash only - double hung, 4-8 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH<+",
+    "description": "Replace sash only - double hung, 4-8 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH<++",
+    "description": "Replace sash only - double hung, 4-8 sf, Premium grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH>",
+    "description": "Replace sash only - double hung, 13-19 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH>+",
+    "description": "Replace sash only - double hung, 13-19 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH>++",
+    "description": "Replace sash only - double hung, 13-19 sf, Prem. grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH>>",
+    "description": "Replace sash only - double hung, 20-28 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH>>+",
+    "description": "Replace sash only - double hung, 20-28 sf, High grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "SSH>>++",
+    "description": "Replace sash only - double hung, 20-28 sf, Prem. grade",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "STRMW",
+    "description": "Storm window - wood, 12 - 24 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "STRMW<",
+    "description": "Storm window - wood, 3 - 11 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "STRMW>",
+    "description": "Storm window - wood, 25 - 32 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "STRMW>>",
+    "description": "Storm window - wood, 33 - 40 sf",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "WDRS",
+    "description": "Wood window unit - Detach & reset",
+    "category": "WDW",
+    "unit": "EA"
+  },
+  {
+    "code": "AVRL+",
+    "description": "Wallpaper - High grade (per roll)",
+    "category": "WPR",
+    "unit": "RL"
+  },
+  {
+    "code": "AGP",
+    "description": "Wallpaper (Agreed Price)",
+    "category": "WPR",
+    "unit": "EA"
+  },
+  {
+    "code": "AV",
+    "description": "Wallpaper",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "AV-",
+    "description": "Wallpaper - Standard grade",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "AV+",
+    "description": "Wallpaper - High grade",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "AV++",
+    "description": "Wallpaper - Premium grade",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "AVRL",
+    "description": "Wallpaper (per roll)",
+    "category": "WPR",
+    "unit": "RL"
+  },
+  {
+    "code": "AVRL-",
+    "description": "Wallpaper - Standard grade (per roll)",
+    "category": "WPR",
+    "unit": "RL"
+  },
+  {
+    "code": "AVRL++",
+    "description": "Wallpaper - Premium grade (per roll)",
+    "category": "WPR",
+    "unit": "RL"
+  },
+  {
+    "code": "BIDITM",
+    "description": "Wallpaper (Bid Item)",
+    "category": "WPR",
+    "unit": "EA"
+  },
+  {
+    "code": "BORDR",
+    "description": "Wallpaper border",
+    "category": "WPR",
+    "unit": "LF"
+  },
+  {
+    "code": "BORDR-",
+    "description": "Wallpaper border - Standard grade",
+    "category": "WPR",
+    "unit": "LF"
+  },
+  {
+    "code": "BORDR+",
+    "description": "Wallpaper border - High grade",
+    "category": "WPR",
+    "unit": "LF"
+  },
+  {
+    "code": "BORDR++",
+    "description": "Wallpaper border - Premium grade",
+    "category": "WPR",
+    "unit": "LF"
+  },
+  {
+    "code": "FABRIC",
+    "description": "Wallcovering - fabric",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "FOIL",
+    "description": "Wallpaper - foil",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "FOIL+",
+    "description": "Wallpaper - foil - High grade",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "FOIL++",
+    "description": "Wallpaper - foil - Premium grade",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "GRASS",
+    "description": "Wallpaper - grass cloth",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "GRASS+",
+    "description": "Wallpaper - grass cloth - High grade",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "GRASS++",
+    "description": "Wallpaper - grass cloth - Premium grade",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "LAB",
+    "description": "Wallpaper Hanger - per hour",
+    "category": "WPR",
+    "unit": "HR"
+  },
+  {
+    "code": "MISC",
+    "description": "Wallpaper Hanger - per hour",
+    "category": "WPR",
+    "unit": "HR"
+  },
+  {
+    "code": "MN",
+    "description": "Wallpaper - Labor Minimum",
+    "category": "WPR",
+    "unit": "EA"
+  },
+  {
+    "code": "OS",
+    "description": "Additional labor charge to cover outlet/switch plates",
+    "category": "WPR",
+    "unit": "EA"
+  },
+  {
+    "code": "PDB",
+    "description": "Wallpaper (Paid Bill)",
+    "category": "WPR",
+    "unit": "EA"
+  },
+  {
+    "code": "PREP",
+    "description": "Prep wall for wallpaper",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "REG",
+    "description": "Additional labor charge to cover wall registers/grills",
+    "category": "WPR",
+    "unit": "EA"
+  },
+  {
+    "code": "REG>",
+    "description": "Additional labor charge to cover wall reg./grills - Large",
+    "category": "WPR",
+    "unit": "EA"
+  },
+  {
+    "code": "RMV",
+    "description": "Additional charge to remove non-strippable wallpaper",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "SISAL",
+    "description": "Wallcovering - Sisal (woven)",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "V",
+    "description": "Vinyl wallcovering",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "V+",
+    "description": "Vinyl wallcovering - High grade",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "V++",
+    "description": "Vinyl wallcovering - Premium grade",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "WCPT",
+    "description": "Wallcovering - Carpet",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "WCPT+",
+    "description": "Wallcovering - Carpet - High grade",
+    "category": "WPR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACTAS3",
+    "description": "Remove wet ceiling tile w/staples - bag Cat 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACT",
+    "description": "Remove wet ceiling tile & drywall and bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACT3",
+    "description": "Remove wet ceiling tile & drywall and bag - Cat 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACT3A",
+    "description": "Remove wet ceiling tile & drywall and bag - Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACTA",
+    "description": "Remove wet ceiling tile & drywall, bag for disp. after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACTAS",
+    "description": "Remove wet ceiling tile w/staples - bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACTAS3A",
+    "description": "Remove wet ceiling tile w/staples - bag Cat 3 - aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACTASA",
+    "description": "Remove wet ceiling tile w/staples, bag for disp. - aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACTS",
+    "description": "Remove wet suspended ceiling tile and bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACTSA",
+    "description": "Remove wet susp. ceiling tile, bag for disp. - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACTSS",
+    "description": "Remove wet suspended ceiling tile and bag - Cat 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ACTSSA",
+    "description": "Remove wet suspended ceiling tile and bag - Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "AGP",
+    "description": "Water Extraction & Remediation (Agreed Price)",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BARRA",
+    "description": "Containment Barrier/Airlock/Decon. Chamber - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "BARRFA",
+    "description": "Containment Barrier - air filter - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BARRZA",
+    "description": "Peel & seal zipper - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BARRZA+",
+    "description": "Peel & seal zipper - heavy duty - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BASE>",
+    "description": "Tear out oversized or multi-member baseboard",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BASEA",
+    "description": "Tear out baseboard - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BASEA>",
+    "description": "Tear out oversized or multi-member baseboard - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BASEB",
+    "description": "Tear out baseboard and bag for disposal - up to Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BASEB>",
+    "description": "Tear out oversized/multibase - bag for disp. - up to Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BASEBA",
+    "description": "Tear out baseboard and bag for disp. - up to Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BASEBA>",
+    "description": "Tear out oversized/multibase- bag/disp- up to Cat 3 aft hr",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BASEDA",
+    "description": "Baseboard - Detach - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BASEDA>",
+    "description": "Baseboard - Detach - oversized or multi-member-after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BASERS",
+    "description": "Baseboard - Detach & reset",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BASERS>",
+    "description": "Baseboard - Detach & reset - oversized or multimember",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "BC",
+    "description": "Tear out non-salvageable cement board & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "BCA",
+    "description": "Tear out non-salv. cement board & bag for disposal-aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "BCN",
+    "description": "Tear out non-salvageable cement board, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "BCNA",
+    "description": "Tear out non-salvageable cement board, no bag - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "BCS",
+    "description": "Tear out non-salvageable cement board & bag - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "BCSA",
+    "description": "Tear out non-salv. cement board & bag - Cat 3 wtr- aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "BCSN",
+    "description": "Tear out non-salvageable cement board, no bagging - Cat 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "BCSNA",
+    "description": "Tear out non-salv. cement board, no bag - Cat 3- after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "BIDITM",
+    "description": "Water Extraction & Remediation (Bid Item)",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BLK",
+    "description": "Block and pad furniture in room",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BLK<",
+    "description": "Block and pad furniture in room - Small amount",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BLK>",
+    "description": "Block and pad furniture in room - Large amount",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BLKA",
+    "description": "Block and pad furniture in room - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BLKA<",
+    "description": "Block and pad furniture in room - Small amount - after hrs",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BLKA>",
+    "description": "Block and pad furniture in room - Large amount - after hrs",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "BLKHR",
+    "description": "Block and pad furniture - hourly charge",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "BLKHRA",
+    "description": "Block and pad furniture - hourly charge - after hours",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "BMUD",
+    "description": "Add on to tear out mortar bed for tile",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CABFH",
+    "description": "Tear out cabinetry - full height unit",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABFHA",
+    "description": "Tear out cabinetry - full height unit - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABFHD",
+    "description": "Cabinet - full height unit - Detach",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABFHDA",
+    "description": "Cabinet - full height unit - Detach - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABLDS",
+    "description": "Cabinet - lower (base) unit w/shoring - Detach",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABLDSA",
+    "description": "Cabinet - lower (base) unit w/shoring - Detach - after hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABLOW",
+    "description": "Tear out cabinetry - lower (base) units",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABLOWA",
+    "description": "Tear out cabinetry - lower (base) units - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABLWD",
+    "description": "Cabinet - lower (base) unit - Detach",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABLWDA",
+    "description": "Cabinet - lower (base) unit - Detach - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABMCD",
+    "description": "Medicine cabinet - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "CABMCDA",
+    "description": "Medicine cabinet - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "CABUP",
+    "description": "Tear out cabinetry - upper (wall) units",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABUPA",
+    "description": "Tear out cabinetry - upper (wall) units - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABUPD",
+    "description": "Cabinet - upper (wall) unit - Detach",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABUPDA",
+    "description": "Cabinet - upper (wall) unit - Detach - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABVAN",
+    "description": "Tear out cabinetry - vanity",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABVANA",
+    "description": "Tear out cabinetry - vanity - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABVCD",
+    "description": "Cabinet - vanity and countertop - Detach",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABVCDA",
+    "description": "Cabinet - vanity and countertop - Detach - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABVNC",
+    "description": "Tear out cabinetry - vanity and countertop",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABVNCA",
+    "description": "Tear out cabinetry - vanity and countertop - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABVND",
+    "description": "Cabinet - vanity unit - Detach",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CABVNDA",
+    "description": "Cabinet - vanity unit - Detach - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CB",
+    "description": "Tear out cove base molding",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CBA",
+    "description": "Tear out cove base molding - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CBB",
+    "description": "Tear out cove base molding and bag for disp. - up to Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CBBA",
+    "description": "Tear out cove base and bag for disp. - up to Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CSV",
+    "description": "Remove polyethylene vapor barrier",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CSVS",
+    "description": "Remove polyethylene vapor barrier - Category 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTDK",
+    "description": "Tear out countertop subdeck & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTDKA",
+    "description": "Tear out countertop subdeck & bag for disposal - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTDKN",
+    "description": "Tear out countertop subdeck, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTDKNA",
+    "description": "Tear out countertop subdeck, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTDKS",
+    "description": "Tear out countertop subdeck & bag - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTDKSA",
+    "description": "Tear out countertop subdeck & bag - Cat 3 water - aft. hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTDKSN",
+    "description": "Tear out countertop subdeck, no bag - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTDKSNA",
+    "description": "Tear out countertop subdeck, no bag - Cat 3 water- aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTFBSD",
+    "description": "Backsplash - flat laid/solid surface - Detach",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CTFBSDA",
+    "description": "Backsplash - flat laid/solid surface - Detach- after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CTFL",
+    "description": "Tear out countertop - flat laid plastic laminate",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CTFLA",
+    "description": "Tear out countertop - flat laid plastic lam. - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CTFLD",
+    "description": "Countertop - flat laid plastic laminate - Detach",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CTFLDA",
+    "description": "Countertop - flat laid plastic lam. - Detach - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CTPF",
+    "description": "Tear out countertop - post formed plastic laminate",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CTPFA",
+    "description": "Tear out countertop - post formed plastic lam. - after hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CTPFD",
+    "description": "Countertop - post formed plastic laminate - Detach",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CTPFDA",
+    "description": "Countertop - post formed plastic lam. - Detach - after hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "CTSS",
+    "description": "Tear out countertop - solid surface/granite",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTSSA",
+    "description": "Tear out countertop - solid surface/granite - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTSSD",
+    "description": "Countertop - solid surface/granite - Detach",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTSSDA",
+    "description": "Countertop - solid surface/granite - Detach - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTTL",
+    "description": "Tear out non-salv. tile countertop & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTTLA",
+    "description": "Tear out non-salv. tile countertop & bag for disp- aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTTLN",
+    "description": "Tear out non-salvageable tile countertop, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTTLNA",
+    "description": "Tear out non-salv. tile countertop, no bagging - aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTTLS",
+    "description": "Tear out non-salv. tile countertop & bag - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTTLSA",
+    "description": "Tear out non-salv. tile countertop & bag-Cat 3 wtr-aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTTLSN",
+    "description": "Tear out non-salv. tile countertop, no bag - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "CTTLSNA",
+    "description": "Tear out non-salv. tile countertop, no bag- Cat 3- aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DHM",
+    "description": "Dehumidifier (per 24 hr period)- up to 69 ppd- No monitor.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHM>",
+    "description": "Dehumidifier (per 24 hr period) - 70-109 ppd - No monitor.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHM>>",
+    "description": "Dehumidifier (per 24 hr period)- 110-159 ppd - No monitor.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHM>>>",
+    "description": "Dehumidifier (per 24 hr period) - 160+ ppd - No monitor.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHMAC",
+    "description": "Dehumidifier w/environmental control - per 24 hrs",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHMB",
+    "description": "Dehumidifier booster (per 24 hour period) - No monitoring",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHMD<",
+    "description": "Dehumidifier (per 24 hr period) -Small-Desiccant-No monit.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHMD>",
+    "description": "Dehumidifier (per 24 hr period) -Large-Desiccant-No monit.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHMDT2K",
+    "description": "Trailer-mount dehumidifier - 2000 CFM- per 24 hr",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHMDT3K",
+    "description": "Dehumidifier - Desiccant -3000-4000 CFM No monit.-per 24hr",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHMDT5K",
+    "description": "Dehumidifier - Desiccant -4500-7500 CFM No monit.-per 24hr",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DHMDT9K",
+    "description": "Dehumidifier - Desiccant-8500-15000 CFM No monit.-per 24hr",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DISC",
+    "description": "Discounts (Bid Item)",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DORSLD",
+    "description": "Interior door slab only - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DORSLDA",
+    "description": "Interior door slab only - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DRY-",
+    "description": "Mini air mover (per 24 hour period) - No monitoring",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DRY+",
+    "description": "Air mover axial fan-up to 1/2 (per 24 hr period)-No monit.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DRY++",
+    "description": "Axial fan air mover - 1 HP (per 24 hr period)-No monit.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DRY1",
+    "description": "Structural drying per SF - Class 1 (Bid Item)",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRY1CF",
+    "description": "Structural drying per CF - Class 1 (Bid Item)",
+    "category": "WTR",
+    "unit": "CF"
+  },
+  {
+    "code": "DRY2",
+    "description": "Structural drying per SF - Class 2 (Bid Item)",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRY2CF",
+    "description": "Structural drying per CF - Class 2 (Bid Item)",
+    "category": "WTR",
+    "unit": "CF"
+  },
+  {
+    "code": "DRY3",
+    "description": "Structural drying per SF - Class 3 (Bid Item)",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRY3CF",
+    "description": "Structural drying per CF - Class 3 (Bid Item)",
+    "category": "WTR",
+    "unit": "CF"
+  },
+  {
+    "code": "DRY4",
+    "description": "Structural drying per SF - Class 4 (Bid Item)",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRY4CF",
+    "description": "Structural drying per CF - Class 4 (Bid Item)",
+    "category": "WTR",
+    "unit": "CF"
+  },
+  {
+    "code": "DRYC",
+    "description": "Structural drying per SF - Climate controlled (Bid Item)",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYCCF",
+    "description": "Structural drying per CF - Climate controlled (Bid Item)",
+    "category": "WTR",
+    "unit": "CF"
+  },
+  {
+    "code": "DRYCN",
+    "description": "Structural drying per SF - Non-climate cont. (Bid Item)",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYCNCF",
+    "description": "Structural drying per CF - Non-climate cont. (Bid Item)",
+    "category": "WTR",
+    "unit": "CF"
+  },
+  {
+    "code": "DRYED",
+    "description": "Dryer - electric - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DRYEDA",
+    "description": "Dryer - electric - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DRYGD",
+    "description": "Dryer - gas - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DRYGDA",
+    "description": "Dryer - gas - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DRYMA",
+    "description": "Multi-port air mover adapter (per 24 hr period)- No monit.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DRYN4",
+    "description": "Tear out wet drywall, no bagging, per LF - up to 4' tall",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYN4A",
+    "description": "Tear out wet drywall, no bagging, per LF - 4' aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYN4S",
+    "description": "Tear out wet drywall, no bagging, per LF - to 4' - Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYN4SA",
+    "description": "Tear out wet drywall, no bagging, LF - 4' Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYNA",
+    "description": "Tear out wet drywall, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYNI",
+    "description": "Tear out wet drywall, no bagging, per LF - up to 4\" tall",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYNIA",
+    "description": "Tear out wet drywall, no bagging, per LF - 4\" aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYNIS",
+    "description": "Tear out wet drywall, no bagging, per LF - to 4\" - Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYNISA",
+    "description": "Tear out wet drywall, no bagging, LF - 4\" Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYNLF",
+    "description": "Tear out wet drywall, no bagging, per LF - up to 2' tall",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYNLFA",
+    "description": "Tear out wet drywall, no bagging, per LF - 2' aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYNLS",
+    "description": "Tear out wet drywall, no bagging, per LF - to 2' - Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYNLSA",
+    "description": "Tear out wet drywall, no bagging, LF - 2' Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYNSA",
+    "description": "Tear out wet drywall, no bagging - Cat 3 - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYSA",
+    "description": "Air mover snout adapter 48\" (per 24 hr period) - No monit.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DRYW",
+    "description": "Tear out wet drywall, cleanup, bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYW4",
+    "description": "Tear out wet drywall, cleanup, bag, per LF - up to 4' tall",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYW4A",
+    "description": "Tear out wet drywall, cleanup, bag, per LF - 4' aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYW4SA",
+    "description": "Tear out wet drywall, cleanup, bag, LF - 4' Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYWA",
+    "description": "Tear out wet drywall, cleanup, bag - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYWGA",
+    "description": "Add-on cost for tearing out glued-on drywall - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYWH",
+    "description": "Add for wet drywall on high walls - 11' to 14' high",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYWH>",
+    "description": "Add for wet drywall on high walls - 14' to 20' high",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYWHA",
+    "description": "Add for wet drywall on high walls- 11' to 14' high-aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYWHA>",
+    "description": "Add for wet drywall on high walls- 14' to 20' high-aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DRYWI",
+    "description": "Tear out wet drywall, cleanup, bag, per LF - up to 4\" tall",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYWIA",
+    "description": "Tear out wet drywall, cleanup, bag, per LF - 4\" aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYWIS",
+    "description": "Tear out wet drywall, cleanup, bag, per LF - to 4\" - Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYWISA",
+    "description": "Tear out wet drywall, cleanup, bag, LF - 4\" Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYWLF",
+    "description": "Tear out wet drywall, cleanup, bag, per LF - up to 2' tall",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYWLFA",
+    "description": "Tear out wet drywall, cleanup, bag, per LF - 2' aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYWLSA",
+    "description": "Tear out wet drywall, cleanup, bag, LF - 2' Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "DRYWSA",
+    "description": "Tear out wet drywall, cleanup, bag - Cat 3 - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "DWD",
+    "description": "Dishwasher - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "DWDA",
+    "description": "Dishwasher - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "EXT",
+    "description": "Water extraction from carpeted floor",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXT+",
+    "description": "Water extraction from carpeted floor - Heavy",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTA",
+    "description": "Water extraction from carpeted floor- after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTA+",
+    "description": "Water extraction from carpeted floor - Heavy - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTDMP",
+    "description": "Contaminated water dump fee - (Bid Item)",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "EXTG",
+    "description": "Water extraction from carpeted floor - Category 2 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTG+",
+    "description": "Water extraction from carpeted floor - Cat 2 water - Heavy",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTGA",
+    "description": "Water extract from carpeted floor - Cat 2 wtr- after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTGA+",
+    "description": "Water extract carpeted flr - Cat 2 wtr - Heavy- after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTH",
+    "description": "Water extraction from hard surface floor",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTHA",
+    "description": "Water extraction from hard surface floor - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTHG",
+    "description": "Water extraction from hard surface floor - Cat 2 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTHGA",
+    "description": "Water extract from hrd surf flr - Cat 2 wtr - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTHS",
+    "description": "Water extraction from hard surface floor - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTHSA",
+    "description": "Water extract from hard surf flr - Cat 3 wtr - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTS",
+    "description": "Water extraction from carpeted floor - Category 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTS+",
+    "description": "Water extraction from carpeted floor - Cat 3 water - Heavy",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTSA",
+    "description": "Water extract from carpeted floor - Cat 3 wtr- after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTSA+",
+    "description": "Water extract carpeted floor - Cat 3 wtr- Hvy- after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTW",
+    "description": "Water extraction from floor - Weight-assisted",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTWA",
+    "description": "Water extraction floor - Weight-assisted - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "EXTWP",
+    "description": "Pumping & hauling of standing Category 3 water",
+    "category": "WTR",
+    "unit": "GL"
+  },
+  {
+    "code": "EXTWPA",
+    "description": "Pumping & hauling of standing Cat 3 water - after hours",
+    "category": "WTR",
+    "unit": "GL"
+  },
+  {
+    "code": "EXTWPC",
+    "description": "2\" Submersible pump with hose (per hour)",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "EXTWPT",
+    "description": "2\" Submersible trash pump with hose (per hour)",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "EXTWPTM",
+    "description": "Pumping of standing water - truck mounted (per hour)",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "FCC",
+    "description": "Tear out wet non-salvageable carpet, cut & bag for disp.",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCA",
+    "description": "Tear out wet non-salvage cpt, cut/bag - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCGD",
+    "description": "Tear out wet non-salvageable glue down carpet, cut/bag",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCGDA",
+    "description": "Tear out wet non-salv. gluedn. cpt, cut/bag- after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCGDN",
+    "description": "Tear out wet non-salvageable glue down carpet, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCGDNA",
+    "description": "Tear out wet non-salv. gluedn. cpt, no bag - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCGDSA",
+    "description": "Tear out wet non-salv.gluedn.cpt,cut/bg-Cat 3 wtr-aft. hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCGSN",
+    "description": "Tear out wet non-salv. glue down cpt, no bag - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCGSNA",
+    "description": "Tear out wet non-salv.gluedn.cpt,no bag-Cat 3 wtr-aft. hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCNA",
+    "description": "Tear out wet non-salvage carpet, no bag - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCSA",
+    "description": "Tear out wet non-salv. cpt, cut/bag-Cat 3 wtr - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCSN",
+    "description": "Tear out wet non-salvageable carpet, no bag - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCCSNA",
+    "description": "Tear out wet non-salv. cpt, no bag- Cat 3 wtr - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCT",
+    "description": "Tear out non-salvageable tile floor & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCTA",
+    "description": "Tear out non-salv. tile floor & bag for disposal after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCTN",
+    "description": "Tear out non-salvageable tile floor, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCTNA",
+    "description": "Tear out non-salvageable tile floor, no bagging- after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCTS",
+    "description": "Tear out non-salvageable tile floor & bag - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCTSA",
+    "description": "Tear out non-salv. tile floor & bag - Cat 3 water-aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCTSN",
+    "description": "Tear out non-salvageable tile floor, no bagging - Cat 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCTSNA",
+    "description": "Tear out non-salv. tile floor, no bagging - Cat 3- aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCV",
+    "description": "Tear out non-salvageable vinyl, cut & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVA",
+    "description": "Tear out non-salvageable vinyl, cut & bag - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVL",
+    "description": "Tear out non-salv vinyl, cut & bag - additional layer",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVLA",
+    "description": "Tear out non-salv vinyl, cut & bag - add'l layer after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVNA",
+    "description": "Tear out non-salvageable vinyl, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVS",
+    "description": "Tear out non-salv vinyl, cut & bag - Category 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVSA",
+    "description": "Tear out non-salv vinyl, cut & bag - Cat 3 water-after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVSL",
+    "description": "Tear out non-salv vinyl, cut & bag - Cat 3 wtr - add'l lyr",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVSLA",
+    "description": "Tear out non-salv vinyl, cut & bag - Cat 3 add'l lyr a/hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVSN",
+    "description": "Tear out non-salv vinyl, no bagging - Category 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVSNA",
+    "description": "Tear out non-salv vinyl, no bagging - Cat 3 water-aft. hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVT",
+    "description": "Tear out non-salvageable vinyl tile, cut & bag for disp.",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVTA",
+    "description": "Tear out non-salv. vinyl tile, cut & bag for disp. Aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVTS",
+    "description": "Tear out non-salv. vinyl tile, cut & bag for disp. Cat 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVTSA",
+    "description": "Tear out non-salv. vinyl tile, cut & bag- Cat 3 - aft. hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVTSNA",
+    "description": "Tear out non-salv. vinyl tile, no bag - Cat 3 - aft. hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVUSN",
+    "description": "Tear out vinyl & underlay, no bagging - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVUSNA",
+    "description": "Tear out vinyl & underlay, no bag - Cat 3 - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVUV",
+    "description": "Tear out non-salv. vinyl & underlay, cut & bag for disp.",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVUVA",
+    "description": "Tear out vinyl & underlay, bag for disp. - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVUVN",
+    "description": "Tear out non-salv. vinyl & underlay, cut, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVUVNA",
+    "description": "Tear out non-salv. vinyl & underlay, cut, no bag-after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVUVS",
+    "description": "Tear out vinyl & underlay, bag for disp. - Cat 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCVUVSA",
+    "description": "Tear out vinyl & underlay & bag - Cat 3 water - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCW",
+    "description": "Tear out non-salv solid/eng. wood flr & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWA",
+    "description": "Tear out non-salv solid/eng. wood flr & bag - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWGC",
+    "description": "Add for tear out wd flr glued down over concrete substrate",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWGCA",
+    "description": "Add for tear out wd flr glued down over concrete-after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWGW",
+    "description": "Add for tear out wood floor glued down over wood substrate",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWGWA",
+    "description": "Add for tear out wood floor glued down over wood-after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWL",
+    "description": "Tear out non-salv floating floor & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWLA",
+    "description": "Tear out non-salv floating floor & bag - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWLN",
+    "description": "Tear out non-salv floating floor, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWLNA",
+    "description": "Tear out non-salv floating floor, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWLSA",
+    "description": "Tear out non-salv floating floor & bag- Cat 3 wtr-aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWLSN",
+    "description": "Tear out non-salv floating floor, no bagging - Category 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWLSNA",
+    "description": "Tear out non-salv floating floor, no bag - Cat 3 -aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWN",
+    "description": "Tear out non-salv. solid/eng. wood flooring, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWNA",
+    "description": "Tear out non-salv. solid/eng. wood flr, no bag - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWSA",
+    "description": "Tear out non-salv wood floor & bag - Cat 3 water - aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWSC",
+    "description": "Screen wood floor",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWSN",
+    "description": "Tear out non-salv wood floor, no bagging - Category 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FCWSNA",
+    "description": "Tear out non-salv wood floor, no bag - Cat 3 - aft. hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "FHEPAC",
+    "description": "Add for HEPA filter - large cylinder",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "FLD",
+    "description": "Add on to tear out floor drain - tub/shower- metal/plastic",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "FURN",
+    "description": "Drying furnace - ind. fired heater w/ducting - 85 kBtuh",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "FURN10",
+    "description": "Drying furnace - ind. fired heater w/ducting - 100 kBtuh",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "FURN17",
+    "description": "Drying furnace - ind. fired heater w/ducting - 170 kBtuh",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "FURN25",
+    "description": "Drying furnace - ind. fired heater w/ducting - 250 kBtuh",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "FURN40",
+    "description": "Drying furnace - ind. fired heater w/ducting - 400 kBtuh",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "GDD",
+    "description": "Garbage disposal / disposer - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "GDDA",
+    "description": "Garbage disposal / disposer - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "GRMA",
+    "description": "Apply anti-microbial agent to  - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "GRMB",
+    "description": "Apply plant-based anti-microbial agent to",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "GRMBA",
+    "description": "Apply plant-based anti-microbial agent to  - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "GRMBIO",
+    "description": "Apply biological cleaning agent (spore-based) to",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "GRMBIOA",
+    "description": "Apply bio cleaning agent (spore-based) to  - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "GRMS",
+    "description": "Apply mold/mildew stain remover to",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "GRMSA",
+    "description": "Apply mold/mildew stain remover to  - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "HBAG",
+    "description": "Plastic bag - for hazardous material cleanup - Medium",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HBAG<",
+    "description": "Plastic bag - for hazardous material cleanup - Small",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HBAG>",
+    "description": "Plastic bag - for hazardous material cleanup - Large",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HBAGG",
+    "description": "Plastic glove bag - for hazardous material cleanup",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HBAGG>",
+    "description": "Plastic glove bag - for hazardous material cleanup - Large",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HBOX",
+    "description": "Box and liner - for hazardous material cleanup - Medium",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HBOX<",
+    "description": "Box and liner - for hazardous material cleanup - Small",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HBOX>",
+    "description": "Box and liner - for hazardous material cleanup - Large",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HC14",
+    "description": "Plastic container - hazardous material cleanup - 14 gl",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HC30",
+    "description": "Plastic container - hazardous material cleanup - 30 gl",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HC60",
+    "description": "Plastic container - hazardous material cleanup - 60 gl",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HCON",
+    "description": "Plastic container - hazardous material cleanup - Medium",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HCON<",
+    "description": "Plastic container - hazardous material cleanup - Small",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HCON>",
+    "description": "Plastic container - hazardous material cleanup - Large",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HDRY",
+    "description": "Hang dry carpet in plant",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "HDRY+",
+    "description": "Hang dry custom oriental rug in plant",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "HEAT",
+    "description": "Heat drying - hydronic boiler/power unit - 200 kBtu",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "HEAT>",
+    "description": "Heat drying - hydronic boiler/power unit - 250 kBtu",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "HEAT>>",
+    "description": "Heat drying - hydronic boiler/power unit - 300 kBtu",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "HEATA",
+    "description": "Heat drying - ducted air - 200 kBtu - 2300+ cfm",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "HEATA>",
+    "description": "Heat drying - ducted air - 400 kBtu - 5200+ cfm",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "HEATX",
+    "description": "Heat drying - thermal exchanger with air mover - 50 kBtu",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "HEATX>",
+    "description": "Heat drying - thermal exchanger with air mover - 80 kBtu",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "HTAM",
+    "description": "Heat drying - thermal air mover - Electric",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "HTAM>",
+    "description": "Heat drying - thermal air mover - Electric - Large",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "HTAMB",
+    "description": "Booster for thermal air mover/exchange system",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "HTBL",
+    "description": "Drying blanket/mat (per 24 hr period) - No monitoring",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HTIP",
+    "description": "Infrared heat panel (per 24 hr period) - No monitoring",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HTSC",
+    "description": "Sensored control system for electric heat drying (24 hr)",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "HTX",
+    "description": "Heat drying - thermal air exchanger",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "INSA",
+    "description": "Tear out and bag wet insulation - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "INSCA",
+    "description": "Tear out and bag wet insulation in confined space- aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "INSCN",
+    "description": "Tear out wet insulation in confined space, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "INSCNA",
+    "description": "Tear out wet insul. confined space, no bagging - aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "INSCSA",
+    "description": "Tear out and bag wet insul. confined space- Cat 3- aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "INSCSN",
+    "description": "Tear out wet insul. in confined space, no bagging - Cat 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "INSCSNA",
+    "description": "Tear out wet insul. conf space, no bagging- Cat 3- aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "INSN4",
+    "description": "Tear out wet insulation, no bagging, per LF - to 4' tall",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSN4A",
+    "description": "Tear out wet insulation, no bagging, per LF - 4' after hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSN4S",
+    "description": "Tear out wet insulation, no bagging, per LF - 4' - Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSN4SA",
+    "description": "Tear out wet insulation, no bagging, LF - 4' Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSNA",
+    "description": "Tear out wet insulation, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "INSNLF",
+    "description": "Tear out wet insulation, no bagging, per LF - to 2' tall",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSNLFA",
+    "description": "Tear out wet insulation, no bagging, per LF - 2' after hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSNLS",
+    "description": "Tear out wet insulation, no bagging, per LF - 2' - Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSNLSA",
+    "description": "Tear out wet insulation, no bagging, LF - 2' Cat 3 aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSSA",
+    "description": "Tear out and bag wet insulation - Category 3 - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "INSSNA",
+    "description": "Tear out wet insulation, no bagging - Cat 3 - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "INSW4",
+    "description": "Tear out and bag wet insulation, per LF - to 4' tall",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSW4A",
+    "description": "Tear out and bag wet insulation, per LF - 4' - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSW4S",
+    "description": "Tear out and bag wet insulation, per LF - 4' - Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSW4SA",
+    "description": "Tear out and bag wet insulation, LF - 4' Cat 3 after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSWLF",
+    "description": "Tear out and bag wet insulation, per LF - to 2' tall",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSWLFA",
+    "description": "Tear out and bag wet insulation, per LF - 2' - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSWLS",
+    "description": "Tear out and bag wet insulation, per LF - 2' - Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "INSWLSA",
+    "description": "Tear out and bag wet insulation, LF - 2' Cat 3 - after hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "LAB",
+    "description": "Water Extraction & Remediation Technician - per hour",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "LABA",
+    "description": "Water Extraction & Remediation Technician - after hours",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "LABC",
+    "description": "Cleaning Technician - per hour",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "LABCA",
+    "description": "Cleaning Technician - after hours",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "LABS",
+    "description": "Cleaning & Remediation - Supervisory - per hr",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "LABSA",
+    "description": "Cleaning & Remediation - Supervisory - after hours",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "LIFT",
+    "description": "Lift carpet for drying",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "LIFTA",
+    "description": "Lift carpet for drying - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "MA5",
+    "description": "Adapter for ducted drying- 5 ports (per 24 hrs)- No monit.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "MA9",
+    "description": "Adapter for ducted drying- 9 ports (per 24 hrs)- No monit.",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "MASKFLA",
+    "description": "Floor protection - self-adhesive plastic film - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "MASKFLP",
+    "description": "Floor protection - cloth - skid resistant leak proof",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "MASKFPN",
+    "description": "Floor protection - neoprene - reusable",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "MN",
+    "description": "Water Extraction & Remediation - Labor Minimum",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "MR",
+    "description": "Per job charge for 3rd party monitoring/review (Bid Item)",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "MUCK",
+    "description": "Muck-out/Flood loss cleanup",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "MUCK+",
+    "description": "Muck-out/Flood loss cleanup - Heavy",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "MUCKCS",
+    "description": "Muck-out/Flood loss cleanup - confined space",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "MUCKCS-",
+    "description": "Muck-out/Flood loss cleanup - confined space - Light",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "MUCKCS+",
+    "description": "Muck-out/Flood loss cleanup - confined space - Heavy",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "MUCKHR",
+    "description": "Muck-out/Flood loss cleanup - per hour (Labor only)",
+    "category": "WTR",
+    "unit": "HR"
+  },
+  {
+    "code": "PAD",
+    "description": "Tear out wet carpet pad and bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PADA",
+    "description": "Tear out wet carpet pad, cut/bag - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PADNA",
+    "description": "Tear out wet carpet pad, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PADSA",
+    "description": "Tear out wet carpet pad, cut/bag - Cat 3 wtr - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PADSN",
+    "description": "Tear out wet carpet pad, no bagging - Category 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PADSNA",
+    "description": "Tear out wet carpet pad, no bag - Cat 3 wtr - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PATCHJ",
+    "description": "Precisely cut & remove drywall - per LF",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "PDB",
+    "description": "Water Extraction & Remediation (Paid Bill)",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "PLA",
+    "description": "Tear out wet plaster, cleanup, bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PLAA",
+    "description": "Tear out wet plaster, cleanup, bag - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PLAS",
+    "description": "Tear out wet plaster, cleanup, bag - Category 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PLASA",
+    "description": "Tear out wet plaster, cleanup, bag - Cat 3 - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PLASN",
+    "description": "Tear out wet plaster, no bagging - Category 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PLASNA",
+    "description": "Tear out wet plaster, no bagging - Cat 3 - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PLYTK",
+    "description": "Tear out toe kick and bag for disposal",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "PLYTKA",
+    "description": "Tear out toe kick and bag for disposal - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "PLYTKS",
+    "description": "Tear out toe kick and bag for disposal - Category 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "PLYTKSA",
+    "description": "Tear out toe kick and bag for disposal - Cat 3 - aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "PLYTN",
+    "description": "Tear out toe kick, no bagging",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "PLYTNA",
+    "description": "Tear out toe kick, no bagging - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "PLYTSN",
+    "description": "Tear out toe kick, no bagging - Category 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "PLYTSNA",
+    "description": "Tear out toe kick, no bagging - Cat 3 - aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "PNL",
+    "description": "Tear out wet paneling, bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PNLA",
+    "description": "Tear out wet paneling, bag for disposal - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PNLN",
+    "description": "Tear out wet paneling, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PNLNA",
+    "description": "Tear out wet paneling, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PNLS",
+    "description": "Tear out wet paneling, bag for disposal - Cat 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PNLSA",
+    "description": "Tear out wet paneling, bag for disp. - Cat 3 - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PNLSN",
+    "description": "Tear out wet paneling, no bagging - Cat 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "PNLSNA",
+    "description": "Tear out wet paneling, no bagging - Cat 3 - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "POWD",
+    "description": "Power distribution box - below 100 amp (per day)",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "POWD>",
+    "description": "Power distribution box - 100+ amp (per day)",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "POWDW",
+    "description": "Power distribution box - below 100 amp (per week)",
+    "category": "WTR",
+    "unit": "WK"
+  },
+  {
+    "code": "POWDW>",
+    "description": "Power distribution box - 100+ amp (per week)",
+    "category": "WTR",
+    "unit": "WK"
+  },
+  {
+    "code": "PPER",
+    "description": "Disposable rain suit",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "PROTA",
+    "description": "Protect - Cover with plastic - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "RFD",
+    "description": "Refrigerator - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "RFDA",
+    "description": "Refrigerator - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "RGED",
+    "description": "Range - freestanding - electric - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "RGEDA",
+    "description": "Range - freestanding - electric - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "RGGD",
+    "description": "Range - freestanding - gas - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "RGGDA",
+    "description": "Range - freestanding - gas - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "RM",
+    "description": "Remote monitoring sys. w/up to 10 sensors (per 24 hr prd)",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "RMG",
+    "description": "Remote monitoring - additional gateway (per 24 hr period)",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "RMS",
+    "description": "Remote monitoring - each additional sensor (per 24 hr prd)",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "SF",
+    "description": "Tear out subfloor & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFA",
+    "description": "Tear out subfloor & bag for disposal - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFN",
+    "description": "Tear out subfloor, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFNA",
+    "description": "Tear out subfloor, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFS",
+    "description": "Tear out subfloor & bag for disposal - Category 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSA",
+    "description": "Tear out subfloor & bag for disposal - Cat 3 - aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSL",
+    "description": "Tear out subfloor, sleepers & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSLA",
+    "description": "Tear out subfloor, sleepers & bag for disposal - after hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSLN",
+    "description": "Tear out subfloor, sleepers, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSLNA",
+    "description": "Tear out subfloor, sleepers, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSLS",
+    "description": "Tear out subflr, sleepers & bag for disposal - Category 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSLSA",
+    "description": "Tear out subflr, sleepers & bag for disp - Cat 3 - aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSLSN",
+    "description": "Tear out subflr, sleepers, no bagging - Category 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSLSNA",
+    "description": "Tear out subflr, sleepers, no bagging - Cat 3 - aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSN",
+    "description": "Tear out subfloor, no bagging - Category 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SFSNA",
+    "description": "Tear out subfloor, no bagging - Cat 3 - aft hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "SNKD",
+    "description": "Sink - single basin - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "SNKDA",
+    "description": "Sink - single basin - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "SNKDD",
+    "description": "Sink - double basin - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "SNKDDA",
+    "description": "Sink - double basin - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "SNKPD",
+    "description": "Pedestal sink - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "SNKPDA",
+    "description": "Pedestal sink - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "SNKUD",
+    "description": "Sink - undermount - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "SNKUDA",
+    "description": "Sink - undermount - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "SWRCC",
+    "description": "Add on to tear out tile concrete shower curb - per LF",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "SWRCF",
+    "description": "Add on to tear out tile framed shower curb - per LF",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "SWRPMD",
+    "description": "Add on to tear out shower drain-for use w/ wtrprf membrane",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "TACK",
+    "description": "Tear out tackless strip and bag for disposal",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TACKA",
+    "description": "Tear out tackless strip and bag for disposal - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TACKG",
+    "description": "Tackless strip guard",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TACKGA",
+    "description": "Tackless strip guard - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TACKSA",
+    "description": "Tear out tackless strip and bag for disp - Cat 3 - aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TACKSN",
+    "description": "Tear out tackless strip, no bagging - Category 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TACKSNA",
+    "description": "Tear out tackless strip, no bagging - Cat 3 - after hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TEST",
+    "description": "Contamination - air or surface testing & lab analysis",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "TEST+",
+    "description": "Contamination - pre & post test - full service (Bid Item)",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "TESTATP",
+    "description": "Contamination - on-site ATP testing",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "THERM",
+    "description": "Thermal imaging - (Bid Item)",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "TIL",
+    "description": "Tear out non-salv. tile & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "TILA",
+    "description": "Tear out non-salv. tile & bag for disposal - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "TILN",
+    "description": "Tear out non-salvageable tile, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "TILNA",
+    "description": "Tear out non-salv. tile, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "TILS",
+    "description": "Tear out non-salv. tile & bag - Category 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "TILSA",
+    "description": "Tear out non-salv. tile & bag - Cat 3 water - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "TILSN",
+    "description": "Tear out non-salv. tile, no bagging - Category 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "TILSNA",
+    "description": "Tear out non-salv. tile, no bagging - Cat 3 - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "TLTD",
+    "description": "Toilet - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "TLTDA",
+    "description": "Toilet - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "TRAN",
+    "description": "Transport carpet for drying",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "TRI",
+    "description": "Tear out trim",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TRIA",
+    "description": "Tear out trim - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TRID",
+    "description": "Trim - Detach",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TRIDA",
+    "description": "Trim - Detach - after hours",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TRIM",
+    "description": "Tear out trim and bag for disposal - up to Cat 3",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TRIMA",
+    "description": "Tear out trim and bag for disposal - up to Cat 3 - aft hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TRIMTA",
+    "description": "Add-on for tear out trim/base from tile/grout - after hrs",
+    "category": "WTR",
+    "unit": "LF"
+  },
+  {
+    "code": "TUBD",
+    "description": "Bathtub - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "TUBDA",
+    "description": "Bathtub - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "ULAY",
+    "description": "Tear out non-salv underlayment & bag for disposal",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ULAYA",
+    "description": "Tear out non-salv underlayment & bag - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ULAYN",
+    "description": "Tear out non-salv underlayment, no bagging",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ULAYNA",
+    "description": "Tear out non-salv underlayment, no bagging - after hours",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ULAYS",
+    "description": "Tear out non-salv underlayment & bag - Category 3 water",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ULAYSA",
+    "description": "Tear out non-salv underlayment & bag - Cat 3 wtr - aft.hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ULAYSN",
+    "description": "Tear out non-salv underlayment, no bagging - Category 3",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "ULAYSNA",
+    "description": "Tear out non-salv underlayment, no bagging - Cat 3 - a/hrs",
+    "category": "WTR",
+    "unit": "SF"
+  },
+  {
+    "code": "WALL",
+    "description": "Wall cavity drying-Inj. type (per 24 hr period) No monit.",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "WALLD",
+    "description": "Wall cavity drying-Dctd type (per 24 hr period) No monit.",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "WALLH",
+    "description": "Drill holes for wall cavity drying",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "WALLHA",
+    "description": "Drill holes for wall cavity drying - after hrs",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "WETNR",
+    "description": "Water extraction without third party review",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "WETR",
+    "description": "Water extraction with third party review",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "WFD",
+    "description": "Wood flr drying - subfloor air flow (per 24 hr) No monit.",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "WFDAD",
+    "description": "Wood floor drying add-on kit (per 24 hr period) No monit.",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "WFI",
+    "description": "Wood floor drying extraction mat (per 24 hr prd) No monit.",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "WFWS",
+    "description": "Water separator (per 24 hr period) No monitoring",
+    "category": "WTR",
+    "unit": "DA"
+  },
+  {
+    "code": "WHD",
+    "description": "Water heater - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "WHDA",
+    "description": "Water heater - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "WSHD",
+    "description": "Washer/Washing machine - Detach",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "WSHDA",
+    "description": "Washer/Washing machine - Detach - after hours",
+    "category": "WTR",
+    "unit": "EA"
+  },
+  {
+    "code": "CANPNL",
+    "description": "36\" wide steel canopy panel",
+    "category": "XST",
+    "unit": "LF"
+  },
+  {
+    "code": "AGP",
+    "description": "Exterior Structures (Agreed Price)",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "BIDITM",
+    "description": "Exterior Structures (Bid Item)",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "CANCOL",
+    "description": "8\" x 8\" steel canopy column",
+    "category": "XST",
+    "unit": "LF"
+  },
+  {
+    "code": "CANCOV",
+    "description": "Canopy cover",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "CANCOVC",
+    "description": "Canopy cover - Commercial",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "CANFTG",
+    "description": "5' x 5' x 5' canopy footing",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GRNAV",
+    "description": "Greenhouse metal framing package",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "GRNHB",
+    "description": "Greenhouse bench - steel - fixed (4' x 12')",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GRNHGH",
+    "description": "Greenhouse - Ground heating system",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "GRNHVE",
+    "description": "Greenhouse - Fans/Louvers - ends",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GRNHVS",
+    "description": "Greenhouse - Motorized side roll-ups",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GRNRF",
+    "description": "Greenhouse Covering - Roof (6 mil greenhouse film-double)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "GRNWL",
+    "description": "Greenhouse Covering - Walls (polycarbonate)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "GZDOV",
+    "description": "Gazebo - Double Roof - Octagon - Vinyl - Add on",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZDOV>",
+    "description": "Gazebo - Double Roof - Octagon - Vinyl - Large - Add on",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZDOV>>",
+    "description": "Gazebo - Double Roof - Octagon - Vinyl - XLg - Add on",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZDOW",
+    "description": "Gazebo - Double Roof - Octagon - Cedar/Treated - Add on",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZDOW>",
+    "description": "Gazebo - Double Roof - Octagon - Cedar/Trtd - Lrg - Add on",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZDOW>>",
+    "description": "Gazebo - Double Roof - Octagon - Cedar/Trtd - XLg - Add on",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZDRV",
+    "description": "Gazebo - Double Roof - Oval/Rect. - Vinyl - Add on SF",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "GZDRW",
+    "description": "Gazebo - Double Roof - Oval/Rect. - Cedar/Trtd - Add on SF",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "GZOC",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Cedar - Medium",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZOC<",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Cedar - Small",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZOC>",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Cedar - Large",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZOT",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Treated Pine - Medium",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZOT<",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Treated Pine - Small",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZOT>",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Treated Pine - Large",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZOT>>",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Treated Pine - XLarge",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZOV",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Vinyl - Medium",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZOV<",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Vinyl - Small",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZOV>",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Vinyl - Large",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZOV>>",
+    "description": "Gazebo - Pre-manuf. Kit - Octagon - Vinyl - XLarge",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRC",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Cedar - Medium",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRC<",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Cedar - Small",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRC>",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Cedar - Large",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRC>>",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Cedar - XLarge",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRT",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Treated Pine - Med.",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRT<",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Treated Pine -Small",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRT>",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Treated Pine -Large",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRT>>",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Treated Pine - XLg",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRV",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Vinyl - Medium",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRV<",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Vinyl - Small",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRV>",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Vinyl - Large",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "GZRV>>",
+    "description": "Gazebo - Pre-manuf. Kit - Oval/Rect. - Vinyl - XLarge",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "HP",
+    "description": "Hoop Building kit (4400 sf or less)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "HP>",
+    "description": "Hoop Building kit (4401 sf or greater)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "HPEP",
+    "description": "Hoop Bldg. - End Panel (36' to 60' width)",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "HPEP<",
+    "description": "Hoop Bldg. - End Panel (35' or less width)",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "HPEP>",
+    "description": "Hoop Bldg. - End Panel (61' or greater width)",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "HPEPS",
+    "description": "Hoop Bldg. - End Panel Support Kit (36' to 60' width)",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "HPEPS>",
+    "description": "Hoop Bldg. - End Panel Support Kit (61' or greater width)",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "LAB",
+    "description": "Exterior Structure Installer - per hour",
+    "category": "XST",
+    "unit": "HR"
+  },
+  {
+    "code": "LABL",
+    "description": "Exterior Structure - General Laborer - per hour",
+    "category": "XST",
+    "unit": "HR"
+  },
+  {
+    "code": "MISC",
+    "description": "Exterior Structure - General Laborer - per hour",
+    "category": "XST",
+    "unit": "HR"
+  },
+  {
+    "code": "MN",
+    "description": "Exterior Structures - Labor Minimum",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "PDB",
+    "description": "Exterior Structures (Paid Bill)",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "PGA",
+    "description": "Pergola - Pre-manufactured Kit - Aluminum",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PGC",
+    "description": "Pergola - Pre-manufactured Kit - Cedar",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PGV",
+    "description": "Pergola - Pre-manufactured Kit - Vinyl",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PSM",
+    "description": "Picnic shelter - Metal (401-800 sf)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PSM<",
+    "description": "Picnic shelter - Metal (400 sf or smaller)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PSM>",
+    "description": "Picnic shelter - Metal (801-1200 sf)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PSM>>",
+    "description": "Picnic shelter - Metal (1200 sf or larger)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PSW",
+    "description": "Picnic shelter - Wood (401-800 sf)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PSW<",
+    "description": "Picnic shelter - Wood (400 sf or smaller)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PSW>",
+    "description": "Picnic shelter - Wood (801-1200 sf)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PSW>>",
+    "description": "Picnic shelter - Wood (1201-1800 sf)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PSW>>>",
+    "description": "Picnic shelter - Wood (1801 sf or larger)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "PSWW",
+    "description": "Picnic shelter - Wood - 40'+ wide (1801 sf or larger)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "QU",
+    "description": "Quonset Building Kit (2801 sf - 5000 sf)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "QU<",
+    "description": "Quonset Building Kit (2800 sf or less)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "QU>",
+    "description": "Quonset Building Kit (5001 sf or greater)",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "QUEPO",
+    "description": "Quonset Building - End Panel - open",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "QUEPS",
+    "description": "Quonset Building - End Panel - Solid",
+    "category": "XST",
+    "unit": "SF"
+  },
+  {
+    "code": "QUSP",
+    "description": "Quonset Building - Skylight Panels",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SHEDMB",
+    "description": "Storage shed - Metal - Barn type (gambrel) - 10' x 14'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SHEDMB<",
+    "description": "Storage shed - Metal - Barn type (gambrel) - 10' x 8'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SHEDMG",
+    "description": "Storage shed - Metal - Gable type - 10' x 8'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SHEDMG<",
+    "description": "Storage shed - Metal - Gable type - 8' x 6'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SHEDMG>",
+    "description": "Storage shed - Metal - Gable type - 10' x 12'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SHEDV",
+    "description": "Storage shed - Vinyl - Gable type - 10' x 8'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SHEDV<",
+    "description": "Storage shed - Vinyl - Gable type - 8' x 6'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SHEDV>",
+    "description": "Storage shed - Vinyl - Gable type - 10' x 13'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SHEDVRS",
+    "description": "Storage shed - Vinyl - Detach & reset",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SMG1017",
+    "description": "Storage shed - Metal - Gable type - 10' x 17'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SMG1021",
+    "description": "Storage shed - Metal - Gable type - 10' x 21'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SMG1025",
+    "description": "Storage shed - Metal - Gable type - 10' x 25'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SW10X12",
+    "description": "Storage shed - Wood - 10' x 12'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SW10X14",
+    "description": "Storage shed - Wood - 10' x 14'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SW12X14",
+    "description": "Storage shed - Wood - 12' x 14'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SW12X16",
+    "description": "Storage shed - Wood - 12' x 16'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SW8X10",
+    "description": "Storage shed - Wood - 8' x 10'",
+    "category": "XST",
+    "unit": "EA"
+  },
+  {
+    "code": "SW8X6",
+    "description": "Storage shed - Wood - 8' x 6'",
+    "category": "XST",
+    "unit": "EA"
   }
 ]
