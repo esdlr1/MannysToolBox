@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, Undo, Redo } from 'lucide-react'
+import { Bold, Italic, Underline, List, ListOrdered, Image as ImageIcon, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, Undo, Redo, Youtube } from 'lucide-react'
 
 interface RichTextEditorProps {
   content: string
@@ -61,6 +61,38 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Start
     const url = prompt('Enter URL:')
     if (url) {
       execCommand('createLink', url)
+    }
+  }
+
+  const insertYouTube = () => {
+    const url = prompt('Enter YouTube URL:')
+    if (!url) return
+
+    // Extract video ID from various YouTube URL formats
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
+    const match = url.match(youtubeRegex)
+    
+    if (!match || !match[1]) {
+      alert('Invalid YouTube URL. Please enter a valid YouTube video URL.')
+      return
+    }
+
+    const videoId = match[1]
+    const embedCode = `<div class="youtube-embed-wrapper" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 1rem 0;"><iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
+    
+    // Insert the embed code
+    const selection = window.getSelection()
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0)
+      range.deleteContents()
+      const div = document.createElement('div')
+      div.innerHTML = embedCode
+      const fragment = document.createDocumentFragment()
+      while (div.firstChild) {
+        fragment.appendChild(div.firstChild)
+      }
+      range.insertNode(fragment)
+      updateContent()
     }
   }
 
@@ -163,6 +195,14 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Start
             />
           </>
         )}
+        <button
+          type="button"
+          onClick={insertYouTube}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+          title="Insert YouTube Video"
+        >
+          <Youtube className="w-4 h-4" />
+        </button>
         <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
         <button
           type="button"
