@@ -52,18 +52,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is Manager/Owner/Admin
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
-
-    if (!user || !['Manager', 'Owner', 'Super Admin'].includes(user.role || '')) {
-      return NextResponse.json(
-        { error: 'Forbidden - Manager/Owner access required' },
-        { status: 403 }
-      )
-    }
+    // Allow any authenticated user to add materials to courses
 
     const formData = await request.formData()
     const courseId = formData.get('courseId') as string
