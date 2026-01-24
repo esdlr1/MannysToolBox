@@ -109,15 +109,23 @@ You have comprehensive knowledge of construction dependencies across ALL trades:
 
 **PLUMBING DEPENDENCIES:**
 - Pipe replacement → Shutoff valves, Access panels (if in wall/ceiling)
-- Fixtures (toilet, sink, shower) → Supply lines (use specific Xactimate codes like PLK, PLM, supply line codes), Drain/waste lines, P-traps (PTRAP, PTRAPRS), Connectors, Shutoff valves
+- Fixtures (toilet, sink, shower) → Supply lines (use specific Xactimate codes from 13k+ database), Drain/waste lines, P-traps (PTRAP, PTRAPRS), Connectors, Shutoff valves
 - Water heater → Expansion tank (often code-required)
-- CRITICAL: When flagging plumbing items, you MUST provide SPECIFIC Xactimate codes from the 13k+ database. Do not use generic descriptions. List ALL specific line items needed (e.g., supply lines, connectors, shutoff valves, etc.)
+- CRITICAL: When flagging plumbing items, you MUST:
+  1. Provide SPECIFIC Xactimate codes from the 13k+ database
+  2. List ALL specific line items needed in "suggestedLineItems" field (not just "related items")
+  3. Include: supply lines, connectors, shutoff valves, etc. - list them ALL with codes
+  4. Do NOT use generic descriptions - use actual codes like PLK, PLM, PTRAPRS, etc.
 
 **ELECTRICAL DEPENDENCIES:**
-- Wiring → Junction boxes OR electrical boxes (these are the SAME thing - do not flag both), Grounding systems (if separate from boxes)
+- Wiring → Junction boxes OR electrical boxes (these are the SAME thing - do NOT flag both)
 - New circuits → Circuit breakers in panel
-- Outlets/switches → Electrical boxes (same as junction boxes - do not duplicate)
-- IMPORTANT: "Junction boxes" and "Electrical boxes" are the SAME thing. "Grounding system" and "Electrical box" are NOT the same - grounding is a separate system. However, if electrical boxes are present, basic grounding is typically included. Only flag grounding if it's a separate system requirement.
+- Outlets/switches → Electrical boxes (same as junction boxes - do NOT duplicate)
+- IMPORTANT: 
+  - "Junction boxes" and "Electrical boxes" are the SAME thing - only flag ONE
+  - "Grounding system" and "Electrical box" are different, but if electrical boxes are present, basic grounding is typically included
+  - Only flag grounding if it's a separate system requirement beyond what's in the boxes
+  - DO NOT flag both "junction box" and "electrical box" - they're redundant
 
 **HVAC DEPENDENCIES:**
 - HVAC units → Ductwork, Supply/return vents/registers
@@ -131,7 +139,9 @@ You have comprehensive knowledge of construction dependencies across ALL trades:
 - Multiple flooring types → Transition strips
 
 **DRYWALL DEPENDENCIES:**
-- IMPORTANT: "Drywall per LF" line items ALREADY INCLUDE tape, joint compound (mud), and texture. DO NOT flag these as missing if "Drywall per LF" is present.
+- CRITICAL: "Drywall per LF" line items ALREADY INCLUDE tape, joint compound (mud), and texture. DO NOT flag these as missing if "Drywall per LF" is present.
+- Examples of "Drywall per LF": "1/2\" - drywall per LF - up to 2' tall", "Drywall per linear foot", "Drywall LF", etc.
+- If you see ANY form of "drywall per LF" or "drywall per linear", DO NOT flag tape, mud, joint compound, or texture as missing.
 - Drywall replacement → Prime/seal, Paint (only if not already included in drywall line item)
 - Drywall installation → Corner bead/trim
 - Full room paint: Only flag if damage is extensive AND no wall/ceiling calculations are present. If calculations for walls/ceilings exist, paint is likely already accounted for.
@@ -313,37 +323,68 @@ IMPORTANT: Always return COMPLETE, valid JSON. Never truncate the response mid-J
         // Skip if "Drywall per LF" is present and item is about tape/joint/texture
         const hasDrywallPerLF = lineItems.some(li => {
           const desc = (li.item || li.description || '').toLowerCase()
-          return desc.includes('drywall per lf') || desc.includes('drywall per linear')
+          const code = (li.code || '').toString().toLowerCase()
+          // Check for various forms: "drywall per lf", "drywall per linear", "drywall lf", "per lf", etc.
+          return desc.includes('drywall per lf') || 
+                 desc.includes('drywall per linear') || 
+                 desc.includes('drywall lf') ||
+                 desc.includes('per lf') ||
+                 desc.includes('per linear') ||
+                 (desc.includes('drywall') && (desc.includes('lf') || desc.includes('linear')))
         })
         
         if (hasDrywallPerLF && (
           item.requiredItem.toLowerCase().includes('tape') ||
           item.requiredItem.toLowerCase().includes('joint') ||
           item.requiredItem.toLowerCase().includes('mud') ||
-          item.requiredItem.toLowerCase().includes('texture')
+          item.requiredItem.toLowerCase().includes('texture') ||
+          item.requiredItem.toLowerCase().includes('drywall tape') ||
+          item.requiredItem.toLowerCase().includes('drywall texture')
         )) {
+          console.log('[Estimate Audit] Skipping item - already included in drywall per LF:', item.requiredItem)
           continue // Skip - already included in drywall per LF
         }
         
         // Skip if wall/ceiling calculations exist and item is about full room paint
         const hasWallCeilingCalc = lineItems.some(li => {
           const desc = (li.item || li.description || '').toLowerCase()
-          return desc.includes('wall calculation') || desc.includes('ceiling calculation') ||
-                 desc.includes('calc wall') || desc.includes('calc ceiling')
+          return desc.includes('wall calculation') || 
+                 desc.includes('ceiling calculation') ||
+                 desc.includes('calc wall') || 
+                 desc.includes('calc ceiling') ||
+                 desc.includes('wall calc') ||
+                 desc.includes('ceiling calc') ||
+                 desc.includes('calculation wall') ||
+                 desc.includes('calculation ceiling')
         })
         
-        if (hasWallCeilingCalc && item.requiredItem.toLowerCase().includes('paint entire affected room')) {
+        if (hasWallCeilingCalc && (
+          item.requiredItem.toLowerCase().includes('paint entire affected room') ||
+          item.requiredItem.toLowerCase().includes('paint entire room') ||
+          item.requiredItem.toLowerCase().includes('full room paint')
+        )) {
+          console.log('[Estimate Audit] Skipping item - wall/ceiling calculations present:', item.requiredItem)
           continue // Skip - calculations likely include paint
         }
         
-        // Remove duplicates (junction box vs electrical box)
+        // Remove duplicates (junction box vs electrical box, grounding vs electrical box)
         const normalizedItem = item.requiredItem.toLowerCase()
-        if (normalizedItem.includes('junction box') || normalizedItem.includes('electrical box')) {
+        if (normalizedItem.includes('junction box') || 
+            normalizedItem.includes('electrical box') ||
+            normalizedItem.includes('electrical box for outlet') ||
+            normalizedItem.includes('electrical box for switch')) {
           const key = 'electrical_box'
           if (seenItems.has(key)) {
+            console.log('[Estimate Audit] Skipping duplicate electrical box item:', item.requiredItem)
             continue // Skip duplicate
           }
           seenItems.add(key)
+        }
+        
+        // Also check for grounding system - if electrical box is already flagged, skip grounding
+        if (normalizedItem.includes('grounding system') && seenItems.has('electrical_box')) {
+          console.log('[Estimate Audit] Skipping grounding - electrical box already flagged:', item.requiredItem)
+          continue // Skip - electrical box typically includes basic grounding
         }
         
         // Enhance with Xactimate codes if not provided

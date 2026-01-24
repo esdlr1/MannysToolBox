@@ -15,6 +15,7 @@ export interface DependencyRule {
   trigger: {
     keywords: string[][]
     description: string
+    excludeKeywords?: string[][] // Keywords that exclude this rule (e.g., "drywall per lf")
   }
   required: {
     keywords: string[]
@@ -23,6 +24,10 @@ export interface DependencyRule {
   missingItem: string
   reason: string
   priority: 'critical' | 'minor'
+  excludeIf?: {
+    keywords: string[][]
+    description: string
+  }
 }
 
 export const dependencyRules: DependencyRule[] = [
@@ -527,6 +532,30 @@ export function checkDependencies(
 
     if (!triggerMatches) {
       continue // Rule doesn't apply
+    }
+    
+    // Check for exclusion keywords (e.g., "drywall per lf" excludes tape/texture rules)
+    if (rule.trigger.excludeKeywords) {
+      const hasExclusion = rule.trigger.excludeKeywords.some((excludeGroup) =>
+        excludeGroup.every((excludeKeyword) =>
+          normalizedItems.some((item) => item.includes(excludeKeyword.toLowerCase()))
+        )
+      )
+      if (hasExclusion) {
+        continue // Rule excluded (e.g., "drywall per lf" is present, so don't flag tape/texture)
+      }
+    }
+    
+    // Check for excludeIf conditions (e.g., don't flag paint if wall/ceiling calculations exist)
+    if (rule.excludeIf) {
+      const hasExcludeCondition = rule.excludeIf.keywords.some((excludeGroup) =>
+        excludeGroup.every((excludeKeyword) =>
+          normalizedItems.some((item) => item.includes(excludeKeyword.toLowerCase()))
+        )
+      )
+      if (hasExcludeCondition) {
+        continue // Rule excluded based on condition
+      }
     }
 
     // Check if required items are present (using improved matching with synonyms)

@@ -196,8 +196,15 @@ export default function EstimateAuditTool() {
                       className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {item.requiredItem}
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                            {item.requiredItem}
+                            {item.xactimateCode && (
+                              <span className="ml-2 text-xs font-mono text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded">
+                                {item.xactimateCode}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <span
                           className={`text-xs font-semibold px-2 py-1 rounded-full ${
@@ -209,10 +216,28 @@ export default function EstimateAuditTool() {
                           {item.priority === 'critical' ? 'Critical' : 'Minor'}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{item.reason}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{item.reason}</p>
+                      
+                      {/* Show suggested line items directly - these are what's needed */}
+                      {item.suggestedLineItems && item.suggestedLineItems.length > 0 && (
+                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="text-xs font-semibold text-blue-900 dark:text-blue-300 mb-2">
+                            Suggested Line Items to Add:
+                          </div>
+                          <ul className="space-y-1">
+                            {item.suggestedLineItems.map((lineItem, lidx) => (
+                              <li key={`${idx}-${lidx}`} className="text-xs text-blue-800 dark:text-blue-200 font-mono">
+                                • {lineItem}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {/* Show related items found (what triggered this suggestion) */}
                       {item.relatedItemsFound && item.relatedItemsFound.length > 0 && (
                         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                          Related items found: {item.relatedItemsFound.join(', ')}
+                          <span className="font-medium">Related items found:</span> {item.relatedItemsFound.join(', ')}
                         </div>
                       )}
                     </div>
