@@ -80,45 +80,44 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Start
     if (!editorRef.current) return
 
     const videoId = match[1]
-    const embedCode = `<div class="youtube-embed-wrapper" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 1rem 0; border-radius: 0.5rem; background: #000;"><iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`
     
     // Ensure editor is focused
     editorRef.current.focus()
+    
+    // Create the embed wrapper div
+    const wrapperDiv = document.createElement('div')
+    wrapperDiv.className = 'youtube-embed-wrapper'
+    wrapperDiv.style.cssText = 'position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; margin: 1rem 0; border-radius: 0.5rem; background: #000;'
+    
+    // Create the iframe
+    const iframe = document.createElement('iframe')
+    iframe.src = `https://www.youtube.com/embed/${videoId}`
+    iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;'
+    iframe.setAttribute('frameborder', '0')
+    iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture')
+    iframe.setAttribute('allowfullscreen', '')
+    
+    wrapperDiv.appendChild(iframe)
     
     // Insert the embed code at cursor position
     const selection = window.getSelection()
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0)
       range.deleteContents()
-      
-      // Create a temporary container to parse the HTML
-      const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = embedCode
-      
-      // Insert each node from the embed code
-      const nodes = Array.from(tempDiv.childNodes)
-      nodes.forEach((node, index) => {
-        if (index === 0) {
-          range.insertNode(node)
-        } else {
-          const newRange = range.cloneRange()
-          newRange.setStartAfter(nodes[index - 1] as Node)
-          newRange.setEndAfter(nodes[index - 1] as Node)
-          newRange.insertNode(node)
-        }
-      })
+      range.insertNode(wrapperDiv)
       
       // Move cursor after the inserted content
-      range.collapse(false)
+      range.setStartAfter(wrapperDiv)
+      range.collapse(true)
       selection.removeAllRanges()
       selection.addRange(range)
     } else {
       // If no selection, append to the end
-      const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = embedCode
-      while (tempDiv.firstChild) {
-        editorRef.current.appendChild(tempDiv.firstChild)
-      }
+      editorRef.current.appendChild(wrapperDiv)
+      
+      // Add a line break after for better editing experience
+      const br = document.createElement('br')
+      editorRef.current.appendChild(br)
     }
     
     updateContent()
