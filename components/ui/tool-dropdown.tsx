@@ -127,8 +127,7 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
             style={{
               maxHeight: 'calc(100vh - 200px)',
               top: '100%',
-              marginTop: '0.5rem',
-              overflow: 'hidden'
+              marginTop: '0.5rem'
             }}
           >
             {/* Search Input */}
@@ -149,11 +148,11 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
 
             {/* Tools List - Scrollable */}
             <div 
-              className="overflow-y-auto" 
+              className="overflow-y-scroll overscroll-contain" 
               style={{ 
                 WebkitOverflowScrolling: 'touch',
-                maxHeight: '500px',
-                overflowX: 'hidden'
+                height: '500px',
+                maxHeight: '500px'
               }}
             >
               {Object.keys(toolsByCategory).length === 0 ? (
