@@ -253,6 +253,24 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Start
           margin: 1rem 0;
           border-radius: 0.5rem;
         }
+        [contenteditable] .youtube-embed-wrapper {
+          position: relative;
+          padding-bottom: 56.25%;
+          height: 0;
+          overflow: hidden;
+          max-width: 100%;
+          margin: 1rem 0;
+          border-radius: 0.5rem;
+          background: #000;
+        }
+        [contenteditable] .youtube-embed-wrapper iframe {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border: none;
+        }
         [contenteditable] a {
           color: #3b82f6;
           text-decoration: underline;
