@@ -49,6 +49,7 @@ model User {
   createdSurveys                  Survey[]                     @relation("SurveyCreator")
   surveyResponses                 SurveyResponse[]             @relation("SurveyRespondent")
   createdContractors              Contractor[]                 @relation("ContractorCreator")
+  logicRules                      LogicRule[]
 
   @@index([departmentId])
   @@map("users")
@@ -535,4 +536,25 @@ model Contractor {
   @@index([state])
   @@index([zipcode])
   @@map("contractors")
+}
+
+// User-taught logic for estimate audit, comparison, Whats Xact, PhotoXact
+model LogicRule {
+  id        String   @id @default(cuid())
+  userId    String
+  ruleType  String   // "dependency_rule" | "synonym" | "prompt_hint"
+  scope     String   // "estimate_audit" | "estimate_comparison" | "whats_xact_photo" | "photoxact" | "all"
+  name      String?  // Optional short label
+  payload   Json     // Type-specific: DependencyRule-like, { termA, termB }, or { text }
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([ruleType])
+  @@index([scope])
+  @@index([isActive])
+  @@map("logic_rules")
 }

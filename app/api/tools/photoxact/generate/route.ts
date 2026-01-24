@@ -7,6 +7,7 @@ import { readFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import { searchByKeyword, findByCode } from '@/lib/xactimate-lookup'
 import { generateTCSAnalysis } from '@/lib/tcs-analysis-service'
+import { getPromptHints } from '@/lib/logic-rules'
 import { XactimateAnalysis, getAllLineItems, XactimateLineItem } from '@/types/xactimate-analysis'
 
 export const dynamic = 'force-dynamic'
@@ -164,6 +165,17 @@ export async function POST(request: NextRequest) {
       // Continue with regular estimate even if TCS Analysis fails
     }
 
+    // User-taught PhotoXact rules (from Teach the logic)
+    const promptHints = await getPromptHints('photoxact')
+    const taughtRulesBlock =
+      promptHints.length > 0
+        ? `
+ADDITIONAL RULES (user-taught – follow these):
+${promptHints.map((h) => `- ${h}`).join('\n')}
+
+`
+        : ''
+
     // Use TCS Analysis results to inform the estimate if available
     const tcsContext = xactimateAnalysis ? `
 TCS PROFESSIONAL ANALYSIS RESULTS (use this to inform your estimate):
@@ -215,7 +227,7 @@ IMPORTANT RULES:
 - Include all related items for complete restoration
 - Organize by room/location when applicable
 - If you can see work/damage in the photo, include it in the estimate
-
+${taughtRulesBlock}
 Return your response as JSON in this exact format:
 {
   "estimate": {

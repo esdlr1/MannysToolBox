@@ -6,6 +6,7 @@ import { callAI } from '@/lib/ai'
 import { parseEstimatePDF } from '@/lib/pdf-parser'
 import { existsSync } from 'fs'
 import { checkDependencies } from '@/lib/estimate-dependencies'
+import { getDependencyRules, getMergedKeywordSynonyms } from '@/lib/logic-rules'
 import { searchByKeyword, findByCode } from '@/lib/xactimate-lookup'
 
 export const dynamic = 'force-dynamic'
@@ -95,8 +96,12 @@ export async function POST(request: NextRequest) {
     }
     const lineItems = estimate.lineItems || []
 
-    // Use comprehensive dependency checking system
-    const heuristicMissing = checkDependencies(lineItems)
+    // Use comprehensive dependency checking (built-in + user-taught rules and synonyms)
+    const [additionalRules, synonyms] = await Promise.all([
+      getDependencyRules(),
+      getMergedKeywordSynonyms(),
+    ])
+    const heuristicMissing = checkDependencies(lineItems, { additionalRules, synonyms })
 
     const auditPrompt = `
 You are an expert construction estimator specializing in Xactimate and Symbility estimates. Analyze this SINGLE estimate to check for missing line items that should accompany each other.

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { callAI } from '@/lib/ai'
 import { preprocessComparison, validateComparisonResult } from '@/lib/estimate-comparison'
+import { getSynonyms, getSynonymPairs, getPromptHints } from '@/lib/logic-rules'
 import { parseEstimatePDF } from '@/lib/pdf-parser'
 import { existsSync } from 'fs'
 
@@ -120,8 +121,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Pre-process for better comparison accuracy
-    const preprocessing = preprocessComparison(adjusterData, contractorData)
+    // Pre-process for better comparison accuracy (with user-taught synonyms)
+    const [taughtSynonyms, synonymPairs, promptHints] = await Promise.all([
+      getSynonyms(),
+      getSynonymPairs(),
+      getPromptHints('estimate_comparison'),
+    ])
+    const preprocessing = preprocessComparison(adjusterData, contractorData, taughtSynonyms)
 
     // Prepare structured data for AI comparison
     const adjusterSummary = {
@@ -166,6 +172,8 @@ SYNONYM MATCHING - These are the SAME:
 - "Drywall" = "Sheetrock" = "Gypsum board"
 - "Kitchen" = "Kit" = "K"
 - "Living Room" = "LR" = "Living Rm"
+${synonymPairs.length > 0 ? synonymPairs.map(p => `- "${p.termA}" = "${p.termB}"`).join('\n') : ''}
+${promptHints.length > 0 ? `\nADDITIONAL RULES (follow these):\n${promptHints.map(h => `- ${h}`).join('\n')}\n` : ''}
 
 ITEMS ALREADY MATCHED WITH HIGH CONFIDENCE (these exist in BOTH estimates - DO NOT list them):
 ${JSON.stringify(highConfidenceMatches.map(m => ({

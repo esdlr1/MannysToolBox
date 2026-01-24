@@ -168,6 +168,16 @@ export default function Navigation() {
                   >
                     Survey
                   </Link>
+                  <Link
+                    href="/teach-logic"
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                      pathname === '/teach-logic'
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Teach the logic
+                  </Link>
                 </div>
               )}
               {/* Pick your tool dropdown */}
@@ -251,6 +261,13 @@ export default function Navigation() {
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         Profile
+                      </Link>
+                      <Link
+                        href="/teach-logic"
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Teach the logic
                       </Link>
                       {(session.user?.role === 'Super Admin' || session.user?.role === 'Owner') && (
                         <>
@@ -454,6 +471,17 @@ export default function Navigation() {
                         >
                           Survey
                         </Link>
+                        <Link
+                          href="/teach-logic"
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                            pathname === '/teach-logic'
+                              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                          }`}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Teach the logic
+                        </Link>
                       </div>
                     </div>
                     <hr className="my-2 border-gray-200 dark:border-gray-700" />
@@ -487,6 +515,7 @@ export default function Navigation() {
                 {session ? (
                   <>
                     <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Profile</Link>
+                    <Link href="/teach-logic" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Teach the logic</Link>
                     {(session.user?.role === 'Super Admin' || session.user?.role === 'Owner') && (
                       <Link href="/admin/approvals" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">User Approvals</Link>
                     )}

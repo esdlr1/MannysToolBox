@@ -491,11 +491,18 @@ export const dependencyRules: DependencyRule[] = [
   },
 ]
 
+export interface CheckDependenciesOptions {
+  additionalRules?: DependencyRule[]
+  synonyms?: Record<string, string[]>
+}
+
 /**
- * Check all dependency rules against line items
+ * Check all dependency rules against line items.
+ * Optional: additionalRules (user-taught) and synonyms (merged with built-in) for matching.
  */
 export function checkDependencies(
-  lineItems: Array<{ description?: string; item?: string; code?: string }>
+  lineItems: Array<{ description?: string; item?: string; code?: string }>,
+  options?: CheckDependenciesOptions
 ): Array<{
   requiredItem: string
   reason: string
@@ -513,6 +520,9 @@ export function checkDependencies(
     confidence?: number
   }> = []
 
+  const rules = dependencyRules.concat(options?.additionalRules || [])
+  const synonyms = options?.synonyms || keywordSynonyms
+
   // Normalize all item texts
   const itemTexts = lineItems.map((item) => {
     const description = item.description || item.item || ''
@@ -522,7 +532,7 @@ export function checkDependencies(
   const normalizedItems = itemTexts.map((text) => text.toLowerCase())
 
   // Check each rule
-  for (const rule of dependencyRules) {
+  for (const rule of rules) {
     // Check if trigger conditions are met
     const triggerMatches = rule.trigger.keywords.every((keywordGroup) =>
       keywordGroup.some((keyword) =>
@@ -559,7 +569,7 @@ export function checkDependencies(
     }
 
     // Check if required items are present (using improved matching with synonyms)
-    const hasRequired = itemExists(lineItems, rule.required.keywords, keywordSynonyms)
+    const hasRequired = itemExists(lineItems, rule.required.keywords, synonyms)
 
     if (!hasRequired) {
       // Check if this item should be excluded based on context

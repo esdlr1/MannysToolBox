@@ -23,12 +23,13 @@ export interface ComparisonPreprocessing {
 }
 
 /**
- * Pre-process estimates before AI comparison
- * This helps identify obvious matches and discrepancies
+ * Pre-process estimates before AI comparison.
+ * extraSynonyms: user-taught synonyms merged with built-in for matching.
  */
 export function preprocessComparison(
   adjusterData: ParsedEstimate,
-  contractorData: ParsedEstimate
+  contractorData: ParsedEstimate,
+  extraSynonyms?: Record<string, string[]>
 ): ComparisonPreprocessing {
   const suggestedMatches: Array<{
     adjusterItem: LineItem
@@ -163,8 +164,8 @@ export function preprocessComparison(
     return intersection.size / union.size
   }
 
-  // Construction terminology synonyms
-  const synonyms: Record<string, string[]> = {
+  // Construction terminology synonyms (built-in + user-taught)
+  const builtIn: Record<string, string[]> = {
     'remove': ['demo', 'demolish', 'tear out', 'rip out', 'remove and replace', 'r&r'],
     'replace': ['install', 'install new', 'new', 'r&r', 'remove and replace'],
     'repair': ['fix', 'patch', 'restore'],
@@ -173,6 +174,12 @@ export function preprocessComparison(
     'sq ft': ['sqft', 'square feet', 'sf', 'sq.ft'],
     'linear feet': ['lf', 'ln ft', 'linear ft', 'lin ft'],
     'each': ['ea', 'e.a.', 'piece'],
+  }
+  const synonyms: Record<string, string[]> = { ...builtIn }
+  if (extraSynonyms) {
+    for (const [k, arr] of Object.entries(extraSynonyms)) {
+      synonyms[k] = [...(synonyms[k] || []), ...(arr || [])]
+    }
   }
 
   function expandSynonyms(text: string): string {
