@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { title, description, category, duration } = await request.json()
+    const { title, description, content, category, duration } = await request.json()
 
     if (!title) {
       return NextResponse.json(
@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         description,
+        content,
         category,
         duration: duration ? parseInt(duration) : null,
         createdById: session.user.id,
@@ -123,6 +124,7 @@ export async function POST(request: NextRequest) {
         id: course.id,
         title: course.title,
         description: course.description,
+        content: course.content,
         category: course.category,
         duration: course.duration,
         isActive: course.isActive,
