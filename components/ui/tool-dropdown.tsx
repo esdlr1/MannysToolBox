@@ -125,9 +125,11 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
             transition={{ duration: 0.2 }}
             className="absolute w-full mt-2 rounded-2xl border-2 shadow-2xl bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 z-50 flex flex-col"
             style={{
-              maxHeight: 'calc(100vh - 200px)',
+              maxHeight: '600px',
               top: '100%',
-              marginTop: '0.5rem'
+              marginTop: '0.5rem',
+              display: 'flex',
+              flexDirection: 'column'
             }}
           >
             {/* Search Input */}
@@ -148,11 +150,13 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
 
             {/* Tools List - Scrollable */}
             <div 
-              className="overflow-y-scroll overscroll-contain" 
+              className="overflow-y-scroll" 
               style={{ 
                 WebkitOverflowScrolling: 'touch',
-                height: '500px',
-                maxHeight: '500px'
+                maxHeight: '450px',
+                minHeight: '200px',
+                flex: '1 1 auto',
+                overflowX: 'hidden'
               }}
             >
               {Object.keys(toolsByCategory).length === 0 ? (
