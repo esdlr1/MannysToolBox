@@ -125,7 +125,7 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
             transition={{ duration: 0.2 }}
             className="absolute w-full mt-2 rounded-2xl border-2 shadow-2xl bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 z-50 flex flex-col"
             style={{
-              maxHeight: '600px',
+              maxHeight: '550px',
               top: '100%',
               marginTop: '0.5rem',
               display: 'flex',
@@ -133,16 +133,16 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
             }}
           >
             {/* Search Input */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Search tools..."
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-600"
+                  className="w-full pl-9 pr-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-600"
                   autoFocus
                 />
               </div>
@@ -153,7 +153,7 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
               className="overflow-y-scroll" 
               style={{ 
                 WebkitOverflowScrolling: 'touch',
-                maxHeight: '450px',
+                maxHeight: '500px',
                 minHeight: '200px',
                 flex: '1 1 auto',
                 overflowX: 'hidden'
@@ -171,7 +171,7 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: categoryIndex * 0.05 }}
-                      className="px-6 py-2 text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+                      className="px-4 py-1 text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
                     >
                       {category}
                     </motion.div>
@@ -184,28 +184,28 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.2, delay: (categoryIndex * 0.05) + (index * 0.03) }}
                         onClick={() => handleSelect(tool)}
-                        className="w-full px-6 py-4 text-left transition-colors duration-200 hover:bg-red-50 dark:hover:bg-gray-800 text-gray-900 dark:text-white flex items-center justify-between group border-b border-gray-100 dark:border-gray-700 last:border-0"
+                        className="w-full px-4 py-2.5 text-left transition-colors duration-200 hover:bg-red-50 dark:hover:bg-gray-800 text-gray-900 dark:text-white flex items-center justify-between group border-b border-gray-100 dark:border-gray-700 last:border-0"
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium">{tool.name}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="font-medium text-sm">{tool.name}</span>
                             {tool.usesAI && (
                               <motion.span
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full"
+                                className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full flex-shrink-0"
                               >
-                                <Sparkles className="w-3 h-3" />
+                                <Sparkles className="w-2.5 h-2.5" />
                                 AI
                               </motion.span>
                             )}
                             {tool.supportsFileUpload && (
-                              <span className="px-2 py-0.5 text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full">
+                              <span className="px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-full flex-shrink-0">
                                 Files
                               </span>
                             )}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 line-clamp-2">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 line-clamp-1">
                             {tool.description}
                           </div>
                         </div>
@@ -214,9 +214,9 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                            className="ml-4"
+                            className="ml-3 flex-shrink-0"
                           >
-                            <Check className="w-5 h-5 text-red-600 dark:text-red-400" />
+                            <Check className="w-4 h-4 text-red-600 dark:text-red-400" />
                           </motion.div>
                         )}
                       </motion.button>
