@@ -533,12 +533,19 @@ export default function ContractorsPage() {
                   )}
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    Added by {contractor.createdBy.name || contractor.createdBy.email}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500">
-                    {format(new Date(contractor.createdAt), 'MMM dd, yyyy')}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        Added by
+                      </p>
+                      <p className="text-sm text-gray-900 dark:text-white font-semibold">
+                        {contractor.createdBy.name || contractor.createdBy.email}
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      {format(new Date(contractor.createdAt), 'MMM dd, yyyy')}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
