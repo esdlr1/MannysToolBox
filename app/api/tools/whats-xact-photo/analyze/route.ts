@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { callAI } from '@/lib/ai'
 import { readFile } from 'fs/promises'
 import { existsSync } from 'fs'
+import { searchByKeyword, findByCode } from '@/lib/xactimate-lookup'
 
 export const dynamic = 'force-dynamic'
 
@@ -73,8 +74,16 @@ export async function POST(request: NextRequest) {
     const imageDataUrl = `data:${mimeType};base64,${base64Image}`
 
     // Create prompt for vision API with Xactimate code examples
+    // Focus on FULL RESTORATION SCOPE, not just visible damage
     const visionPrompt = `
-Analyze this construction/damage photo and identify ALL visible line items that would be needed for a construction estimate.
+Analyze this construction/damage photo and identify ALL line items needed to restore the property to PRE-LOSS CONDITION.
+
+CRITICAL: This is a RESTORATION ESTIMATE, not just visible damage. You must think about:
+1. What is VISIBLY damaged (what you can see)
+2. What is LIKELY damaged but not visible (behind walls, under floors, etc.)
+3. What PREP WORK is needed (protection, demolition, cleanup)
+4. What FINISH WORK is needed (paint, trim, final touches)
+5. What RELATED ITEMS are needed (if drywall is damaged, you need paint, texture, etc.)
 
 CRITICAL: You MUST provide actual Xactimate codes for each item. Do NOT use "UNKNOWN" unless absolutely necessary.
 
@@ -101,15 +110,24 @@ For each item you see, provide:
 3. Estimated quantity/measurement (e.g., "120 sq ft", "3 each", "15 linear feet")
 4. Location/room where visible (if applicable)
 
-Focus on identifying:
-- Building materials (drywall, flooring, paint, roofing, siding, etc.)
-- Fixtures and finishes (cabinets, countertops, fixtures, trim, etc.)
-- Structural elements (beams, studs, framing, etc.)
-- Damage that needs repair (water damage, fire damage, structural damage, etc.)
-- Demolition/removal items (if damage is visible)
-- Electrical, plumbing, HVAC components (if visible)
+Focus on identifying COMPLETE RESTORATION SCOPE:
+- VISIBLE DAMAGE: What you can clearly see damaged in the photo
+- HIDDEN DAMAGE: What is likely damaged but not visible (e.g., if water damage is visible, think about what's behind walls, under floors)
+- PREP WORK: Protection (COUNTER, drop cloths), demolition (D, D+, D-), cleanup (MUCK, MUCK-)
+- REPAIR WORK: Building materials (drywall MASKSF/MASKLF, flooring FL, paint BTF10/FINALR, etc.)
+- FINISH WORK: Paint (BTF10, FINALR, TEXMK), texture, trim (TRIM, CROWN, BS), caulking
+- RELATED ITEMS: If drywall is damaged, you need: demolition, drywall, texture, paint, trim
+- FIXTURES: Cabinets (CTDK, CTFL, CTGE), countertops (COUNTER, CTCON), plumbing (PLK, SNKRS, FAURS), electrical (ELE, RECEPT, SWR)
+- STRUCTURAL: Framing, beams, studs if visible or likely affected
+- CLEANUP: MUCK (muck out), debris removal, final cleanup
 
-Be thorough - list everything you can see that would be part of a construction estimate.
+RESTORATION THINKING:
+- If you see water damage, think: water extraction, drying, demolition of wet materials, replacement, paint, cleanup
+- If you see fire damage, think: soot cleanup, demolition, replacement, paint, odor treatment
+- If you see structural damage, think: structural repair, framing, drywall, paint, finish work
+- ALWAYS include prep work (protection, demolition) and finish work (paint, texture, trim)
+
+Be COMPREHENSIVE - think about the ENTIRE restoration process, not just what's visible.
 
 Return your response as JSON in this exact format:
 {
@@ -143,22 +161,27 @@ IMPORTANT:
     const aiResponse = await callAI({
       prompt: visionPrompt,
       toolId: 'whats-xact-photo',
-      systemPrompt: `You are an expert Xactimate construction estimator with deep knowledge of:
+      systemPrompt: `You are an expert Xactimate RESTORATION estimator with deep knowledge of:
 - Xactimate line item codes and their exact formats (e.g., MASKSF, BTF10, CTDK, PLK, ELE)
 - Standard Xactimate code patterns (e.g., codes ending in RS = "remove and set", codes with +/- = quality levels)
 - Construction materials and finishes with their specific Xactimate codes
 - Building components and systems with proper code assignments
-- Damage assessment and repair scope
+- COMPLETE RESTORATION SCOPE - not just visible damage, but full restoration to pre-loss condition
 - Construction terminology and measurements
+- Restoration workflow: prep → demolition → repair → finish → cleanup
 
-Your task is to analyze construction photos and identify all visible line items with their CORRECT Xactimate codes.
+Your task is to analyze construction photos and identify ALL line items needed for COMPLETE RESTORATION to pre-loss condition.
 
 CRITICAL REQUIREMENTS:
-1. You MUST provide actual Xactimate codes for each item - do NOT use "UNKNOWN"
-2. Use standard Xactimate code formats (e.g., MASKSF for drywall masking, BTF10 for paint base coat)
-3. Match codes to the specific item type and quality level visible
-4. Use proper Xactimate descriptions (e.g., "Remove and replace" not "R&R")
-5. Be thorough and accurate - only include items you can clearly see in the photo
+1. Think about FULL RESTORATION SCOPE, not just visible damage
+2. Include prep work (protection, demolition, cleanup)
+3. Include finish work (paint, texture, trim, caulking)
+4. Include related items (if drywall is damaged, include paint, texture, trim)
+5. Think about hidden damage (if water damage is visible, what's behind walls?)
+6. You MUST provide actual Xactimate codes for each item - do NOT use "UNKNOWN"
+7. Use standard Xactimate code formats matching the 13,000+ line item database
+8. Match codes to the specific item type and quality level
+9. Use proper Xactimate descriptions (e.g., "Remove and replace" not "R&R")
 
 Common code patterns:
 - RS suffix = Remove and Set
@@ -213,6 +236,62 @@ Common code patterns:
       result.notes = []
     }
 
+    // Post-process: Validate and improve codes using Xactimate database
+    const validatedLineItems = []
+    const invalidCodes: string[] = []
+    
+    for (const item of result.lineItems) {
+      const code = item.code?.toString().trim().toUpperCase()
+      
+      if (!code || code === 'UNKNOWN') {
+        // Try to find code by description
+        if (item.description) {
+          const matches = searchByKeyword(item.description, 5)
+          if (matches.length > 0) {
+            // Use the best match
+            item.code = matches[0].code
+            item.description = matches[0].description // Use official description
+            validatedLineItems.push(item)
+            continue
+          }
+        }
+        invalidCodes.push(item.code || 'UNKNOWN')
+        continue
+      }
+      
+      // Validate code exists in database
+      const xactItem = findByCode(code)
+      if (xactItem) {
+        // Use official description from database
+        item.description = xactItem.description
+        validatedLineItems.push(item)
+      } else {
+        // Code not found - try to find by description
+        if (item.description) {
+          const matches = searchByKeyword(item.description, 5)
+          if (matches.length > 0) {
+            item.code = matches[0].code
+            item.description = matches[0].description
+            validatedLineItems.push(item)
+          } else {
+            invalidCodes.push(code)
+          }
+        } else {
+          invalidCodes.push(code)
+        }
+      }
+    }
+    
+    // Update result with validated items
+    result.lineItems = validatedLineItems
+    result.summary.totalItems = validatedLineItems.length
+    
+    // Add warning if codes were invalid
+    if (invalidCodes.length > 0) {
+      result.warnings = result.warnings || []
+      result.warnings.push(`Some codes were not found in Xactimate database and were corrected: ${invalidCodes.join(', ')}`)
+    }
+    
     // Add image URL for frontend display
     result.imageUrl = `/api/files/${fileId}`
     result.fileName = fileRecord.originalName
