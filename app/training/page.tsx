@@ -137,7 +137,7 @@ export default function TrainingPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setCourses([data.course, ...courses])
+        await loadCourses() // Reload to get updated counts
         setNewCourse({ title: '', description: '', category: '', duration: '' })
         setShowCreateCourse(false)
         setError('')
@@ -464,17 +464,52 @@ export default function TrainingPage() {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900 dark:text-white mb-1">{course.title}</h4>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-semibold text-gray-900 dark:text-white">{course.title}</h4>
+                      {!course.isActive && (
+                        <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                          Hidden
+                        </span>
+                      )}
+                    </div>
                     {course.category && (
                       <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
                         {course.category}
                       </span>
                     )}
                   </div>
-                  {course.isActive ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  ) : (
-                    <X className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  {canManage && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleToggleCourseActive(course.id, course.isActive)}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          course.isActive
+                            ? 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                            : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                        title={course.isActive ? 'Hide course' : 'Show course'}
+                      >
+                        {course.isActive ? (
+                          <CheckCircle2 className="w-5 h-5" />
+                        ) : (
+                          <X className="w-5 h-5" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCourse(course.id)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        title="Delete course"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+                  {!canManage && (
+                    course.isActive ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    ) : (
+                      <X className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                    )
                   )}
                 </div>
                 {course.description && (
@@ -558,14 +593,12 @@ export default function TrainingPage() {
                 <div className="text-center py-8">
                   <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 dark:text-gray-400">No materials added yet</p>
-                  {canManage && (
-                    <button
-                      onClick={() => setShowAddMaterialModal(true)}
-                      className="mt-4 px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
-                    >
-                      Add First Material
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setShowAddMaterialModal(true)}
+                    className="mt-4 px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+                  >
+                    Add First Material
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -600,14 +633,13 @@ export default function TrainingPage() {
                           </a>
                         )}
                       </div>
-                      {canManage && (
-                        <button
-                          onClick={() => handleDeleteMaterial(material.id)}
-                          className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleDeleteMaterial(material.id)}
+                        className="flex-shrink-0 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        title="Delete material"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   ))}
                 </div>
