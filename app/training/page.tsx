@@ -567,15 +567,13 @@ export default function TrainingPage() {
                   {courses.find(c => c.id === selectedCourseId)?.title || 'Course Materials'}
                 </h3>
                 <div className="flex gap-2">
-                  {canManage && (
-                    <button
-                      onClick={() => setShowAddMaterialModal(true)}
-                      className="px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center gap-1"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Material
-                    </button>
-                  )}
+                  <button
+                    onClick={() => setShowAddMaterialModal(true)}
+                    className="px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Material
+                  </button>
                   <button
                     onClick={() => {
                       setShowMaterialsModal(false)
