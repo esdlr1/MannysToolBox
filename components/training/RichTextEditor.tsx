@@ -225,7 +225,7 @@ export default function RichTextEditor({ content, onChange, placeholder = 'Start
         <button
           type="button"
           onClick={insertYouTube}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+          className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors text-red-600 dark:text-red-400"
           title="Insert YouTube Video"
         >
           <Youtube className="w-4 h-4" />
