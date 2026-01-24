@@ -152,7 +152,7 @@ export default function ProfilePage() {
         {/* Header Section with Profile Card */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
           {/* Header Background */}
-          <div className="h-32 bg-gradient-to-r from-red-600 via-red-700 to-red-800 dark:from-red-800 dark:via-red-900 dark:to-red-950"></div>
+          <div className="h-32 bg-gradient-to-r from-amber-100 via-amber-50 to-stone-100 dark:from-amber-900/30 dark:via-amber-800/20 dark:to-stone-900/30"></div>
           
           {/* Profile Content */}
           <div className="px-8 pb-8 -mt-16">
