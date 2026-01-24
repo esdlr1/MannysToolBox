@@ -47,6 +47,17 @@ const tools: Tool[] = [
     usesAI: true,
     supportsFileUpload: true,
   },
+  {
+    id: 'photoxact',
+    name: 'PhotoXact',
+    description: 'Upload a photo of damaged area. AI will create a complete construction estimate with Xactimate codes, quantities, prices, and full estimate structure.',
+    category: 'Construction',
+    subdomain: 'photoxact',
+    component: 'tools/photoxact/index',
+    requiresAuth: true,
+    usesAI: true,
+    supportsFileUpload: true,
+  },
 ]
 
 // Helper function to ensure tool properties
