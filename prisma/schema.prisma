@@ -48,6 +48,7 @@ model User {
   employeeContact                 EmployeeContact?             @relation("EmployeeContact")
   createdSurveys                  Survey[]                     @relation("SurveyCreator")
   surveyResponses                 SurveyResponse[]             @relation("SurveyRespondent")
+  createdContractors              Contractor[]                 @relation("ContractorCreator")
 
   @@index([departmentId])
   @@map("users")
@@ -515,10 +516,10 @@ model Contractor {
   email       String?
   phoneNumber String?
   location    String?
-  company     String?  // Optional company name
-  specialty    String?  // e.g., "Plumbing", "Electrical", "Roofing"
+  company     String? // Optional company name
+  specialty   String? // e.g., "Plumbing", "Electrical", "Roofing"
   notes       String?  @db.Text
-  createdById String   // Employee who added the contractor
+  createdById String // Employee who added the contractor
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
