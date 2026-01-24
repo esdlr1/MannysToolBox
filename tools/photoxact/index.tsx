@@ -24,6 +24,42 @@ interface EstimateSummary {
   byRoom: Record<string, number>
 }
 
+interface XactimateLineItem {
+  category: string
+  title: string
+  description: string
+  damageCode: string
+  laborType: string
+  materialGrade: string
+  processCode?: string
+  notes?: string
+  code?: string
+}
+
+interface RoomAnalysis {
+  roomType: string
+  lineItems: XactimateLineItem[]
+  damageCategory: string
+  waterCategory?: string
+  severityLevel?: string
+  notes?: string
+}
+
+interface XactimateAnalysis {
+  rooms: RoomAnalysis[]
+  overallDamageCategory: string
+  projectNotes?: string
+  createdAt: string
+  mainReportContent?: string
+  summary: {
+    totalRooms: number
+    totalLineItems: number
+    categories: number
+    damageCodes: number
+    laborTypes: number
+  }
+}
+
 interface PhotoXactEstimate {
   estimate: {
     projectName: string
@@ -44,6 +80,7 @@ interface PhotoXactEstimate {
   imageUrl: string
   fileName: string
   warnings?: string[]
+  xactimateAnalysis?: XactimateAnalysis // TheClearScope feature
 }
 
 export default function PhotoXactTool() {
@@ -495,6 +532,163 @@ export default function PhotoXactTool() {
                     <li key={idx}>{note}</li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {/* TCS Professional Analysis (Xactimate Analysis) - TheClearScope Feature */}
+            {estimate.xactimateAnalysis && (
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-6">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                    TCS Professional Analysis
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Comprehensive Xactimate-style room-by-room analysis
+                  </p>
+                </div>
+
+                {/* Summary Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Rooms</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {estimate.xactimateAnalysis.summary.totalRooms}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Line Items</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {estimate.xactimateAnalysis.summary.totalLineItems}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Categories</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {estimate.xactimateAnalysis.summary.categories}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Damage Codes</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {estimate.xactimateAnalysis.summary.damageCodes}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Labor Types</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {estimate.xactimateAnalysis.summary.laborTypes}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Overall Damage Category */}
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-900/50">
+                  <div className="text-sm font-semibold text-red-800 dark:text-red-200 mb-1">
+                    Overall Damage Category
+                  </div>
+                  <div className="text-lg font-bold text-red-900 dark:text-red-100">
+                    {estimate.xactimateAnalysis.overallDamageCategory}
+                  </div>
+                </div>
+
+                {/* Project Notes */}
+                {estimate.xactimateAnalysis.projectNotes && (
+                  <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-900/50">
+                    <div className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">
+                      Project Notes
+                    </div>
+                    <div className="text-sm text-blue-900 dark:text-blue-100">
+                      {estimate.xactimateAnalysis.projectNotes}
+                    </div>
+                  </div>
+                )}
+
+                {/* Room-by-Room Analysis */}
+                <div className="space-y-6">
+                  {estimate.xactimateAnalysis.rooms.map((room, roomIdx) => (
+                    <div
+                      key={roomIdx}
+                      className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-gray-50 dark:bg-gray-800"
+                    >
+                      {/* Room Header */}
+                      <div className="mb-4">
+                        <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                          {room.roomType}
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full text-sm font-medium">
+                            {room.damageCategory}
+                          </span>
+                          {room.waterCategory && (
+                            <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
+                              {room.waterCategory}
+                            </span>
+                          )}
+                          {room.severityLevel && (
+                            <span className="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-full text-sm font-medium">
+                              {room.severityLevel}
+                            </span>
+                          )}
+                        </div>
+                        {room.notes && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                            {room.notes}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Room Line Items */}
+                      <div className="space-y-3">
+                        {room.lineItems.map((item, itemIdx) => (
+                          <div
+                            key={itemIdx}
+                            className="p-4 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700"
+                          >
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  {item.code && (
+                                    <span className="text-xs font-mono font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">
+                                      {item.code}
+                                    </span>
+                                  )}
+                                  <span className="text-xs px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">
+                                    {item.category}
+                                  </span>
+                                  <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                                    {item.damageCode}
+                                  </span>
+                                  <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded">
+                                    {item.laborType}
+                                  </span>
+                                  <span className="text-xs px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded">
+                                    {item.materialGrade}
+                                  </span>
+                                </div>
+                                <div className="font-semibold text-gray-900 dark:text-white mb-1">
+                                  {item.title}
+                                </div>
+                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                  {item.description}
+                                </div>
+                                {item.processCode && (
+                                  <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                    Process: {item.processCode}
+                                  </div>
+                                )}
+                                {item.notes && (
+                                  <div className="text-xs text-gray-500 dark:text-gray-500 mt-1 italic">
+                                    Note: {item.notes}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

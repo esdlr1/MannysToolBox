@@ -6,6 +6,8 @@ import { callAI } from '@/lib/ai'
 import { readFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import { searchByKeyword, findByCode } from '@/lib/xactimate-lookup'
+import { generateTCSAnalysis } from '@/lib/tcs-analysis-service'
+import { XactimateAnalysis, getAllLineItems } from '@/types/xactimate-analysis'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,6 +73,24 @@ export async function POST(request: NextRequest) {
     }
 
     const imageDataUrl = `data:${mimeType};base64,${base64Image}`
+
+    // Generate TCS Professional Analysis (Xactimate Analysis) - TheClearScope logic
+    console.log('[PhotoXact] Generating TCS Professional Analysis...')
+    let xactimateAnalysis: XactimateAnalysis | null = null
+    try {
+      xactimateAnalysis = await generateTCSAnalysis({
+        images: [imageDataUrl],
+        damageDescription: propertyAddress || projectName || 'Property damage assessment',
+        userLocation: propertyAddress,
+      })
+      console.log('[PhotoXact] TCS Analysis complete:', {
+        rooms: xactimateAnalysis.rooms.length,
+        totalLineItems: getAllLineItems(xactimateAnalysis).length,
+      })
+    } catch (tcsError: any) {
+      console.error('[PhotoXact] TCS Analysis error:', tcsError)
+      // Continue with regular estimate even if TCS Analysis fails
+    }
 
     // Create comprehensive prompt for full estimate generation
     const estimatePrompt = `
@@ -234,44 +254,69 @@ Your estimate must be professional, complete, and ready to use.`,
       )
     }
 
-    // Post-process: Validate all codes against database and enhance
+    // Post-process: Validation with correction - prefer fixing over rejecting
     const validatedLineItems = []
-    const invalidCodes: string[] = []
+    const rejectedItems: Array<{ code: string; description: string; reason: string }> = []
+    const correctedItems: Array<{ oldCode: string; newCode: string; reason: string }> = []
+    
+    console.log('[PhotoXact] Validating', result.estimate.lineItems?.length || 0, 'items from AI response')
     
     for (const item of result.estimate.lineItems || []) {
       const code = item.code?.toString().trim().toUpperCase()
       const description = (item.description || '').trim()
       
-      if (!code) {
-        // No code - search by description
+      if (!code || code === 'UNKNOWN') {
+        // No code provided - search by description
         if (description) {
-          const matches = searchByKeyword(description, 5)
+          const matches = searchByKeyword(description, 15) // Increased from 5 to 15
           if (matches.length > 0) {
-            const bestMatch = matches.find((m: any) => {
+            // Use the best match that actually matches the description
+            const bestMatch = matches.find(m => {
               const matchDesc = m.description.toLowerCase()
               const itemDesc = description.toLowerCase()
+              // Check if key words match
               const itemWords = itemDesc.split(/\s+/).filter((w: string) => w.length > 3)
               return itemWords.some((word: string) => matchDesc.includes(word))
             }) || matches[0]
             
             item.code = bestMatch.code
-            item.description = bestMatch.description
+            item.description = bestMatch.description // Use official description from database
             validatedLineItems.push(item)
+            correctedItems.push({ oldCode: code || 'UNKNOWN', newCode: bestMatch.code, reason: 'Found code by description search' })
+            console.log('[PhotoXact] Corrected item:', { oldCode: code || 'UNKNOWN', newCode: bestMatch.code, description })
             continue
           }
         }
-        invalidCodes.push('NO CODE')
+        // Even if no match found, if description is meaningful, try broader search
+        if (description && description.length > 5) {
+          // Try searching with individual keywords
+          const keywords = description.toLowerCase().split(/\s+/).filter((w: string) => w.length > 4)
+          for (const keyword of keywords) {
+            const matches = searchByKeyword(keyword, 5)
+            if (matches.length > 0) {
+              item.code = matches[0].code
+              item.description = matches[0].description
+              validatedLineItems.push(item)
+              correctedItems.push({ oldCode: code || 'UNKNOWN', newCode: matches[0].code, reason: `Found code by keyword search: ${keyword}` })
+              console.log('[PhotoXact] Corrected item by keyword:', { keyword, newCode: matches[0].code })
+              break
+            }
+          }
+          if (item.code) continue // Found a match, skip rejection
+        }
+        rejectedItems.push({ code: code || 'UNKNOWN', description, reason: 'No code and no match found in database' })
+        console.log('[PhotoXact] Rejected item (no code):', { description })
         continue
       }
       
       // Validate code exists in database
       const xactItem = findByCode(code)
       if (!xactItem) {
-        // Code doesn't exist - search by description
+        // Code doesn't exist - search by description to find correct code
         if (description) {
-          const matches = searchByKeyword(description, 5)
+          const matches = searchByKeyword(description, 15) // Increased from 5 to 15
           if (matches.length > 0) {
-            const bestMatch = matches.find((m: any) => {
+            const bestMatch = matches.find(m => {
               const matchDesc = m.description.toLowerCase()
               const itemDesc = description.toLowerCase()
               const itemWords = itemDesc.split(/\s+/).filter((w: string) => w.length > 3)
@@ -281,19 +326,169 @@ Your estimate must be professional, complete, and ready to use.`,
             item.code = bestMatch.code
             item.description = bestMatch.description
             validatedLineItems.push(item)
-            invalidCodes.push(code)
+            correctedItems.push({ oldCode: code, newCode: bestMatch.code, reason: `Code ${code} not found, replaced with ${bestMatch.code}` })
+            console.log('[PhotoXact] Corrected invalid code:', { oldCode: code, newCode: bestMatch.code })
             continue
           }
+          // Try keyword-based search as fallback
+          const keywords = description.toLowerCase().split(/\s+/).filter((w: string) => w.length > 4)
+          for (const keyword of keywords) {
+            const matches = searchByKeyword(keyword, 5)
+            if (matches.length > 0) {
+              item.code = matches[0].code
+              item.description = matches[0].description
+              validatedLineItems.push(item)
+              correctedItems.push({ oldCode: code, newCode: matches[0].code, reason: `Code ${code} not found, found by keyword: ${keyword}` })
+              console.log('[PhotoXact] Corrected by keyword:', { oldCode: code, keyword, newCode: matches[0].code })
+              break
+            }
+          }
+          if (item.code && item.code !== code) continue // Found a match
         }
-        invalidCodes.push(code)
+        rejectedItems.push({ code, description, reason: `Code ${code} not found in database and no description match` })
+        console.log('[PhotoXact] Rejected item (invalid code):', { code, description })
         continue
       }
       
-      // Code exists - use official description
+      // Code exists - verify description matches AND check for obvious mismatches
+      const xactDesc = xactItem.description.toLowerCase()
+      const itemDesc = description.toLowerCase()
+      
+      // Check for obvious mismatches first - reject codes that don't match descriptions
+      const obviousMismatches = [
+        { 
+          code: 'PLM', 
+          wrong: ['timber', 'pile', 'equipment', 'mobilization', 'bid item'], 
+          correct: ['plumber', 'plumbing'],
+          actualDescription: 'Plumber - per hour' // PLM is LABOR, not a material item
+        },
+        { 
+          code: 'TEXMK', 
+          wrong: ['smooth', 'no texture', 'flat', 'plain'], 
+          correct: ['texture', 'knockdown'],
+          actualDescription: 'Texture drywall - machine - knockdown'
+        },
+        { 
+          code: 'BTF10', 
+          wrong: ['no insulation', 'empty', 'no batt', 'exposed', 'no insulation visible', 'bare'], 
+          correct: ['insulation', 'batt'],
+          actualDescription: 'Batt insulation - 10" - R30 - paper / foil faced'
+        }
+      ]
+      
+      let shouldReject = false
+      let rejectReason = ''
+      
+      for (const mismatch of obviousMismatches) {
+        if (code === mismatch.code) {
+          // Check if description contains wrong keywords
+          const hasWrong = mismatch.wrong.some(w => 
+            itemDesc.includes(w) || description.toLowerCase().includes(w)
+          )
+          
+          // Check if description contains correct keywords
+          const hasCorrect = mismatch.correct.some(c => 
+            itemDesc.includes(c) || xactDesc.includes(c) || description.toLowerCase().includes(c)
+          )
+          
+          // Special check for PLM - it's labor, not a material item
+          if (code === 'PLM' && !xactDesc.includes('plumber') && !xactDesc.includes('hour')) {
+            // Try to find a better code for plumbing materials
+            const plumbingMatches = searchByKeyword('plumbing', 10)
+            const materialMatch = plumbingMatches.find(m => 
+              !m.description.toLowerCase().includes('hour') && 
+              !m.description.toLowerCase().includes('labor') &&
+              !m.description.toLowerCase().includes('plumber')
+            )
+            if (materialMatch) {
+              item.code = materialMatch.code
+              item.description = materialMatch.description
+              validatedLineItems.push(item)
+              correctedItems.push({ oldCode: code, newCode: materialMatch.code, reason: 'PLM is labor, replaced with material code' })
+              console.log('[PhotoXact] Corrected PLM to material code:', { newCode: materialMatch.code })
+              shouldReject = false
+              break
+            }
+            shouldReject = true
+            rejectReason = `PLM is "Plumber - per hour" (labor), not a material item. Description doesn't match.`
+            break
+          }
+          
+          // If description has wrong keywords and doesn't have correct ones, reject
+          if (hasWrong && !hasCorrect) {
+            shouldReject = true
+            rejectReason = `Code ${code} (${mismatch.actualDescription}) doesn't match description "${description}" - obvious mismatch`
+            break
+          }
+          
+          // If code is TEXMK or BTF10 and description suggests item is NOT visible, reject
+          if ((code === 'TEXMK' || code === 'BTF10') && hasWrong) {
+            shouldReject = true
+            rejectReason = `Code ${code} (${mismatch.actualDescription}) - item not visible in photo based on description`
+            break
+          }
+        }
+      }
+      
+      if (shouldReject) {
+        rejectedItems.push({ code, description, reason: rejectReason })
+        console.log('[PhotoXact] Rejected item (mismatch):', { code, description, reason: rejectReason })
+        continue
+      }
+      
+      // Check if description is reasonably close to the database description
+      const xactWords = new Set<string>(xactDesc.split(/\s+/).filter((w: string) => w.length > 2))
+      const itemWords = new Set<string>(itemDesc.split(/\s+/).filter((w: string) => w.length > 2))
+      const commonWords = Array.from(itemWords).filter((w: string) => xactWords.has(w))
+      const similarity = commonWords.length / Math.max(xactWords.size, itemWords.size, 1)
+      
+      // Lowered threshold from 0.3 to 0.15 - be more lenient
+      if (similarity < 0.15) {
+        // Code exists but doesn't match description - search by description for correct code
+        const matches = searchByKeyword(description, 15) // Increased from 5
+        if (matches.length > 0) {
+          const bestMatch = matches.find(m => {
+            const matchDesc = m.description.toLowerCase()
+            const itemWords = itemDesc.split(/\s+/).filter((w: string) => w.length > 3)
+            return itemWords.some((word: string) => matchDesc.includes(word))
+          }) || matches[0]
+          
+          // Only replace if the new code is a better match
+          const newMatchDesc = bestMatch.description.toLowerCase()
+          const newCommonWords = Array.from(itemWords).filter((w: string) => newMatchDesc.includes(w))
+          const newSimilarity = newCommonWords.length / Math.max(newMatchDesc.split(/\s+/).length, itemWords.size, 1)
+          
+          if (newSimilarity > similarity) {
+            item.code = bestMatch.code
+            item.description = bestMatch.description
+            validatedLineItems.push(item)
+            correctedItems.push({ oldCode: code, newCode: bestMatch.code, reason: `Code ${code} (${xactItem.description}) doesn't match description, replaced with ${bestMatch.code}` })
+            console.log('[PhotoXact] Corrected low similarity:', { oldCode: code, newCode: bestMatch.code, oldSimilarity: similarity.toFixed(2), newSimilarity: newSimilarity.toFixed(2) })
+            continue
+          }
+        }
+        // Even if similarity is low, if we have a valid code, keep it but use the official description
+        // This is more lenient - we keep items with valid codes even if description doesn't match perfectly
+        item.code = xactItem.code
+        item.description = xactItem.description
+        validatedLineItems.push(item)
+        correctedItems.push({ oldCode: code, newCode: code, reason: `Low similarity (${similarity.toFixed(2)}), but code is valid - using official description` })
+        console.log('[PhotoXact] Kept item with low similarity:', { code, similarity: similarity.toFixed(2) })
+        continue
+      }
+      
+      // Code exists and description matches - use official description
       item.code = xactItem.code
       item.description = xactItem.description
       validatedLineItems.push(item)
     }
+    
+    console.log('[PhotoXact] Validation complete:', {
+      total: result.estimate.lineItems?.length || 0,
+      validated: validatedLineItems.length,
+      rejected: rejectedItems.length,
+      corrected: correctedItems.length
+    })
     
     // Update estimate with validated items
     result.estimate.lineItems = validatedLineItems
@@ -325,10 +520,41 @@ Your estimate must be professional, complete, and ready to use.`,
     result.imageUrl = `/api/files/${fileId}`
     result.fileName = fileRecord.originalName
     
-    // Add warnings if codes were invalid
-    if (invalidCodes.length > 0) {
+    // Add Xactimate Analysis (TCS Professional Analysis) - TheClearScope feature
+    if (xactimateAnalysis) {
+      result.xactimateAnalysis = {
+        rooms: xactimateAnalysis.rooms,
+        overallDamageCategory: xactimateAnalysis.overallDamageCategory,
+        projectNotes: xactimateAnalysis.projectNotes,
+        createdAt: xactimateAnalysis.createdAt.toISOString(),
+        mainReportContent: xactimateAnalysis.mainReportContent,
+        summary: {
+          totalRooms: xactimateAnalysis.rooms.length,
+          totalLineItems: getAllLineItems(xactimateAnalysis).length,
+          categories: new Set(getAllLineItems(xactimateAnalysis).map(item => item.category)).size,
+          damageCodes: new Set(getAllLineItems(xactimateAnalysis).map(item => item.damageCode)).size,
+          laborTypes: new Set(getAllLineItems(xactimateAnalysis).map(item => item.laborType)).size,
+        },
+      }
+    }
+    
+    // Add warnings for rejected and corrected items
+    if (rejectedItems.length > 0 || correctedItems.length > 0) {
       result.warnings = result.warnings || []
-      result.warnings.push(`${invalidCodes.length} codes were corrected or removed`)
+      
+      if (correctedItems.length > 0) {
+        result.warnings.push(`${correctedItems.length} items were corrected:`)
+        correctedItems.forEach(corrected => {
+          result.warnings!.push(`- ${corrected.oldCode} → ${corrected.newCode}: ${corrected.reason}`)
+        })
+      }
+      
+      if (rejectedItems.length > 0) {
+        result.warnings.push(`${rejectedItems.length} items were rejected:`)
+        rejectedItems.forEach(rejected => {
+          result.warnings!.push(`- ${rejected.code}: ${rejected.reason}`)
+        })
+      }
     }
 
     // Auto-save the estimate
