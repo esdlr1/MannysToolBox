@@ -7,9 +7,81 @@ import { readFile } from 'fs/promises'
 import { existsSync } from 'fs'
 import { searchByKeyword, findByCode } from '@/lib/xactimate-lookup'
 import { generateTCSAnalysis } from '@/lib/tcs-analysis-service'
-import { XactimateAnalysis, getAllLineItems } from '@/types/xactimate-analysis'
+import { XactimateAnalysis, getAllLineItems, XactimateLineItem } from '@/types/xactimate-analysis'
 
 export const dynamic = 'force-dynamic'
+
+// Helper function to generate estimate from TCS Analysis
+async function generateEstimateFromTCSAnalysis(
+  analysis: XactimateAnalysis,
+  projectInfo: { projectName: string; claimNumber: string; propertyAddress: string }
+) {
+  const allLineItems = getAllLineItems(analysis)
+  
+  // Convert TCS line items to estimate line items
+  const estimateLineItems = allLineItems.map((item: XactimateLineItem, idx: number) => {
+    // Find the room for this item
+    const room = analysis.rooms.find(r => r.lineItems.includes(item))
+    
+    // Try to find Xactimate code if not already set
+    let code = item.code
+    if (!code && item.category && item.description) {
+      const matches = searchByKeyword(`${item.category} ${item.description}`, 5)
+      if (matches.length > 0) {
+        code = matches[0].code
+      }
+    }
+    
+    // Estimate quantity and pricing (basic estimates)
+    const quantity = item.quantity || 1.0
+    const unit = item.unit || 'EA'
+    const unitPrice = item.unitPrice || (code ? 50.0 : 100.0) // Default pricing
+    const totalPrice = quantity * unitPrice
+    
+    return {
+      code: code || `ITEM${idx + 1}`,
+      description: item.description || item.title,
+      quantity,
+      unit,
+      unitPrice,
+      totalPrice,
+      room: room?.roomType || 'General',
+      category: item.category || 'Other',
+    }
+  })
+  
+  // Calculate summary
+  const totalCost = estimateLineItems.reduce((sum, item) => sum + item.totalPrice, 0)
+  const byCategory: Record<string, number> = {}
+  const byRoom: Record<string, number> = {}
+  
+  estimateLineItems.forEach(item => {
+    byCategory[item.category] = (byCategory[item.category] || 0) + item.totalPrice
+    byRoom[item.room] = (byRoom[item.room] || 0) + item.totalPrice
+  })
+  
+  return {
+    estimate: {
+      projectName: projectInfo.projectName,
+      claimNumber: projectInfo.claimNumber,
+      propertyAddress: projectInfo.propertyAddress,
+      date: new Date().toISOString().split('T')[0],
+      lineItems: estimateLineItems,
+      summary: {
+        totalLineItems: estimateLineItems.length,
+        totalCost,
+        byCategory,
+        byRoom,
+      },
+      rooms: Array.from(new Set(estimateLineItems.map(item => item.room))),
+    },
+    notes: [
+      `Generated from TCS Professional Analysis`,
+      `Overall Damage Category: ${analysis.overallDamageCategory}`,
+      analysis.projectNotes || '',
+    ].filter(Boolean),
+  }
+}
 
 function isOpenAIAuthError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error || '')
@@ -92,11 +164,24 @@ export async function POST(request: NextRequest) {
       // Continue with regular estimate even if TCS Analysis fails
     }
 
+    // Use TCS Analysis results to inform the estimate if available
+    const tcsContext = xactimateAnalysis ? `
+TCS PROFESSIONAL ANALYSIS RESULTS (use this to inform your estimate):
+- Overall Damage Category: ${xactimateAnalysis.overallDamageCategory}
+- Rooms Identified: ${xactimateAnalysis.rooms.map(r => r.roomType).join(', ')}
+- Total Line Items: ${getAllLineItems(xactimateAnalysis).length}
+- Project Notes: ${xactimateAnalysis.projectNotes || 'None'}
+
+Use this analysis to create a comprehensive estimate with proper Xactimate codes, quantities, and pricing.
+` : ''
+
     // Create comprehensive prompt for full estimate generation
     const estimatePrompt = `
 Analyze this construction/damage photo and create a COMPLETE, PROFESSIONAL construction estimate.
 
-CRITICAL: Create a FULL ESTIMATE document, not just a list of items. This should be a complete, ready-to-use estimate.
+YOUR GOAL: Create a FULL, READY-TO-USE estimate with all necessary line items, quantities, and pricing.
+
+${tcsContext}
 
 PROJECT INFORMATION:
 ${projectName ? `Project Name: ${projectName}` : ''}
@@ -104,31 +189,32 @@ ${claimNumber ? `Claim Number: ${claimNumber}` : ''}
 ${propertyAddress ? `Property Address: ${propertyAddress}` : ''}
 
 ESTIMATE REQUIREMENTS:
-1. Analyze ALL visible damage and restoration needs
+1. Analyze ALL visible damage and restoration needs - be thorough
 2. Include ALL line items needed for complete restoration to pre-loss condition
-3. Use ACTUAL Xactimate codes from the 13,000+ database
-4. Provide accurate quantities based on what's visible
-5. Include unit prices (use standard Xactimate pricing)
+3. Use ACTUAL Xactimate codes from the 13,000+ database (search if you're not sure of a code)
+4. Provide accurate quantities based on what's visible (estimate reasonably)
+5. Include unit prices (use standard Xactimate pricing - estimate if needed)
 6. Calculate total prices for each line item
 7. Organize by rooms/locations
 8. Include summary totals
 
-WHAT TO INCLUDE:
-- VISIBLE DAMAGE: What you can clearly see
-- PREP WORK: Protection, demolition, cleanup
-- REPAIR WORK: All materials and labor needed
-- FINISH WORK: Paint, texture, trim, caulking
+WHAT TO INCLUDE (be comprehensive):
+- VISIBLE DAMAGE: What you can clearly see in the photo
+- PREP WORK: Protection, demolition, cleanup, debris removal
+- REPAIR WORK: All materials and labor needed for restoration
+- FINISH WORK: Paint, texture, trim, caulking, final touches
 - RELATED ITEMS: Complete scope (e.g., if drywall is damaged, include: demo, drywall, texture, paint, trim)
 - FIXTURES: All fixtures that need repair/replacement
-- MEASUREMENTS: Room dimensions, areas, linear feet, etc.
+- MEASUREMENTS: Room dimensions, areas, linear feet (estimate from photo)
 
 IMPORTANT RULES:
-- ONLY use Xactimate codes that exist in the 13k+ database
-- Verify codes match descriptions
-- Use proper Xactimate descriptions
-- Calculate quantities based on visible damage
+- Use Xactimate codes from the 13k+ database - if unsure, use descriptive codes or search by description
+- Match codes to descriptions as closely as possible
+- Use proper Xactimate descriptions from the database
+- Calculate quantities based on visible damage (reasonable estimates are acceptable)
 - Include all related items for complete restoration
 - Organize by room/location when applicable
+- If you can see work/damage in the photo, include it in the estimate
 
 Return your response as JSON in this exact format:
 {
@@ -176,7 +262,12 @@ Return your response as JSON in this exact format:
   "notes": ["Any relevant notes about the estimate"]
 }
 
-CRITICAL: Return ONLY valid JSON. No markdown, no explanations. This must be a complete, professional estimate.
+CRITICAL: 
+- Return ONLY valid JSON. No markdown, no explanations. 
+- This must be a complete, professional estimate.
+- If you can see damage or work in the photo, include it in the estimate.
+- Use reasonable estimates for quantities and prices.
+- DO NOT say "I'm unable to create an estimate" - create the best estimate you can based on what's visible.
 `
 
     console.log('[PhotoXact] Generating estimate from photo...', {
@@ -202,17 +293,20 @@ Your expertise includes:
 - Complete dependency inclusion (prep, repair, finish work)
 
 CRITICAL REQUIREMENTS:
-1. Create a COMPLETE estimate - not just line items, but a full estimate document
-2. Use ONLY codes that exist in the 13k+ Xactimate database
-3. Calculate quantities based on visible damage
+1. Create a COMPLETE estimate - analyze the photo and create a full estimate document
+2. Use codes from the 13k+ Xactimate database (search by description if needed)
+3. Calculate quantities based on visible damage (reasonable estimates are acceptable)
 4. Include ALL items needed for complete restoration
 5. Organize by rooms/locations
 6. Calculate accurate totals
 7. Use proper Xactimate descriptions and formatting
+8. ALWAYS create an estimate - never say you're unable to create one
+9. If you can see damage or work in the photo, include it in the estimate
+10. Be thorough and comprehensive - include all visible work and needed repairs
 
-Your estimate must be professional, complete, and ready to use.`,
+Your estimate must be professional, complete, and ready to use. Always return valid JSON with a complete estimate structure.`,
       imageUrl: imageDataUrl,
-      temperature: 0.1,
+      temperature: 0.3, // Slightly higher for more creative/complete estimates
       maxTokens: 8000,
       model: 'gpt-4o',
     })
@@ -231,19 +325,57 @@ Your estimate must be professional, complete, and ready to use.`,
     let result
     try {
       let cleaned = aiResponse.result.trim()
+      
+      // Log the raw response for debugging
+      console.log('[PhotoXact] Raw AI Response (first 1000 chars):', cleaned.substring(0, 1000))
+      
+      // Remove markdown code blocks
       cleaned = cleaned.replace(/```json\n?/g, '').replace(/```\n?/g, '')
+      
+      // Try to find JSON in the response
       const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {
-        throw new Error('No JSON found in AI response')
+        // If no JSON found and we have TCS Analysis, use it to create estimate
+        if (xactimateAnalysis) {
+          console.log('[PhotoXact] No JSON in response, using TCS Analysis to generate estimate')
+          result = await generateEstimateFromTCSAnalysis(xactimateAnalysis, {
+            projectName: projectName || 'Photo Estimate',
+            claimNumber: claimNumber || '',
+            propertyAddress: propertyAddress || '',
+          })
+        } else {
+          console.error('[PhotoXact] No JSON found and no TCS Analysis available')
+          console.error('[PhotoXact] Full AI Response:', cleaned)
+          throw new Error('No JSON found in AI response. AI said: ' + cleaned.substring(0, 200))
+        }
+      } else {
+        result = JSON.parse(jsonMatch[0])
       }
-      result = JSON.parse(jsonMatch[0])
     } catch (parseError: any) {
       console.error('[PhotoXact] AI response parse error:', parseError)
-      console.error('[PhotoXact] AI Response:', aiResponse.result.substring(0, 500))
-      return NextResponse.json(
-        { error: 'Failed to parse estimate', details: parseError.message },
-        { status: 500 }
-      )
+      console.error('[PhotoXact] AI Response (full):', aiResponse.result)
+      
+      // If we have TCS Analysis, try to use it as fallback
+      if (xactimateAnalysis) {
+        console.log('[PhotoXact] Using TCS Analysis as fallback to generate estimate')
+        try {
+          result = await generateEstimateFromTCSAnalysis(xactimateAnalysis, {
+            projectName: projectName || 'Photo Estimate',
+            claimNumber: claimNumber || '',
+            propertyAddress: propertyAddress || '',
+          })
+        } catch (fallbackError: any) {
+          return NextResponse.json(
+            { error: 'Failed to generate estimate', details: parseError.message, fallbackError: fallbackError.message },
+            { status: 500 }
+          )
+        }
+      } else {
+        return NextResponse.json(
+          { error: 'Failed to parse estimate', details: parseError.message },
+          { status: 500 }
+        )
+      }
     }
 
     // Validate and enhance estimate structure
