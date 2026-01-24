@@ -286,8 +286,8 @@ Your response will be validated against the 13k+ Xactimate database. Invalid cod
             const bestMatch = matches.find(m => {
               const matchDesc = m.description.toLowerCase()
               const itemDesc = description.toLowerCase()
-              const itemWords = itemDesc.split(/\s+/).filter(w => w.length > 3)
-              return itemWords.some(word => matchDesc.includes(word))
+              const itemWords = itemDesc.split(/\s+/).filter((w: string) => w.length > 3)
+              return itemWords.some((word: string) => matchDesc.includes(word))
             }) || matches[0]
             
             item.code = bestMatch.code
