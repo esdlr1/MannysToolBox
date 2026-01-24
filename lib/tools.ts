@@ -36,6 +36,17 @@ const tools: Tool[] = [
     usesAI: false,
     supportsFileUpload: true,
   },
+  {
+    id: 'whats-xact-photo',
+    name: 'Whats Xact - Photo',
+    description: 'Upload a photo of a construction site or damage. AI will identify all visible line items with Xactimate codes, descriptions, and estimated quantities.',
+    category: 'Construction',
+    subdomain: 'whats-xact-photo',
+    component: 'tools/whats-xact-photo/index',
+    requiresAuth: true,
+    usesAI: true,
+    supportsFileUpload: true,
+  },
 ]
 
 // Helper function to ensure tool properties

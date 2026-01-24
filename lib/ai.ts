@@ -9,6 +9,7 @@ export interface AIRequest {
   systemPrompt?: string
   temperature?: number
   maxTokens?: number
+  imageUrl?: string // Base64 encoded image or URL for vision API
 }
 
 export interface AIResponse {
@@ -81,27 +82,54 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
         : `You are a helpful AI assistant. ${request.context || ''}`
       )
 
+    // Determine model - use gpt-4o for vision, otherwise use configured model
+    const model = request.imageUrl 
+      ? 'gpt-4o' // GPT-4o has excellent vision capabilities
+      : (process.env.OPENAI_MODEL || 'gpt-4o-mini')
+    
     console.log('[OpenAI] Making API call...', {
-      model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+      model,
       promptLength: request.prompt.length,
       systemPromptLength: systemPrompt.length,
+      hasImage: !!request.imageUrl,
       maxTokens: request.maxTokens ?? 2000,
     })
 
     const startTime = Date.now()
     
+    // Build messages array - support vision if imageUrl is provided
+    const messages: any[] = [
+      { role: 'system', content: systemPrompt }
+    ]
+    
+    if (request.imageUrl) {
+      // Vision API - use gpt-4o for vision capabilities
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: request.prompt },
+          { 
+            type: 'image_url', 
+            image_url: { 
+              url: request.imageUrl.startsWith('data:') 
+                ? request.imageUrl 
+                : `data:image/jpeg;base64,${request.imageUrl}` 
+            } 
+          }
+        ]
+      })
+    } else {
+      // Text-only API
+      messages.push({ role: 'user', content: request.prompt })
+    }
+    
     // Wrap API call with timeout (3 minutes)
     const completion = await Promise.race([
       client.chat.completions.create({
-        // Default to cheaper model, but can be overridden via OPENAI_MODEL env var
-        // Options: 'gpt-4o-mini' (cheapest, recommended), 'gpt-3.5-turbo' (very cheap), 'gpt-4-turbo' (most accurate but expensive)
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: request.prompt }
-        ],
+        model,
+        messages,
         temperature: request.temperature ?? 0.7,
-        max_tokens: request.maxTokens ?? 2000, // Increased for detailed comparisons
+        max_tokens: request.maxTokens ?? 2000,
       }),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('OpenAI API call timed out after 3 minutes')), 3 * 60 * 1000)
