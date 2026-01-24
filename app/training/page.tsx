@@ -121,6 +121,77 @@ export default function TrainingPage() {
     }
   }
 
+  const loadCourseMaterials = async (courseId: string) => {
+    try {
+      const response = await fetch(`/api/training/materials?courseId=${courseId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setCourseMaterials(data.materials || [])
+      }
+    } catch (error) {
+      console.error('Error loading course materials:', error)
+    }
+  }
+
+  const handleOpenCourse = (courseId: string) => {
+    setSelectedCourseId(courseId)
+    setShowMaterialsModal(true)
+    loadCourseMaterials(courseId)
+  }
+
+  const handleAddMaterial = async () => {
+    if (!selectedCourseId || !newMaterial.title.trim()) {
+      setError('Title is required')
+      return
+    }
+
+    if (newMaterial.fileType === 'link' && !newMaterial.fileUrl?.trim()) {
+      setError('URL is required for link materials')
+      return
+    }
+
+    if (newMaterial.fileType !== 'link' && !newMaterial.file) {
+      setError('File is required')
+      return
+    }
+
+    setLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('courseId', selectedCourseId)
+      formData.append('title', newMaterial.title)
+      formData.append('description', newMaterial.description || '')
+      formData.append('fileType', newMaterial.fileType)
+      if (newMaterial.fileType === 'link') {
+        formData.append('fileUrl', newMaterial.fileUrl || '')
+      }
+      if (newMaterial.file) {
+        formData.append('file', newMaterial.file)
+      }
+
+      const response = await fetch('/api/training/materials', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (response.ok) {
+        await loadCourseMaterials(selectedCourseId)
+        await loadCourses() // Refresh course list to update materials count
+        setNewMaterial({ title: '', description: '', fileType: 'link', fileUrl: '', file: null })
+        setShowAddMaterialModal(false)
+        setError('')
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Failed to add material')
+      }
+    } catch (error) {
+      console.error('Error adding material:', error)
+      setError('Failed to add material')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleCreateCourse = async () => {
     if (!newCourse.title.trim()) {
       setError('Course title is required')
