@@ -372,9 +372,9 @@ Your response will be validated against the 13k+ Xactimate database. Invalid cod
       }
       
       // Check if description is reasonably close to the database description
-      const xactWords = new Set(xactDesc.split(/\s+/).filter((w: string) => w.length > 2))
-      const itemWords = new Set(itemDesc.split(/\s+/).filter((w: string) => w.length > 2))
-      const commonWords = [...itemWords].filter((w: string) => xactWords.has(w))
+      const xactWords = new Set<string>(xactDesc.split(/\s+/).filter((w: string) => w.length > 2))
+      const itemWords = new Set<string>(itemDesc.split(/\s+/).filter((w: string) => w.length > 2))
+      const commonWords = Array.from(itemWords).filter((w: string) => xactWords.has(w))
       const similarity = commonWords.length / Math.max(xactWords.size, itemWords.size, 1)
       
       // If similarity is too low (< 30%), the code doesn't match the description
@@ -390,7 +390,7 @@ Your response will be validated against the 13k+ Xactimate database. Invalid cod
           
           // Only replace if the new code is a better match
           const newMatchDesc = bestMatch.description.toLowerCase()
-          const newCommonWords = [...itemWords].filter((w: string) => newMatchDesc.includes(w))
+          const newCommonWords = Array.from(itemWords).filter((w: string) => newMatchDesc.includes(w))
           const newSimilarity = newCommonWords.length / Math.max(newMatchDesc.split(/\s+/).length, itemWords.size, 1)
           
           if (newSimilarity > similarity) {
