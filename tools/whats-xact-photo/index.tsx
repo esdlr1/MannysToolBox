@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { FileUpload } from '@/components/FileUpload'
 import { logUsage } from '@/lib/utils'
-import { AlertCircle, Camera, Loader2, Image as ImageIcon, CheckCircle2 } from 'lucide-react'
+import { AlertCircle, Camera, Loader2, Image as ImageIcon, CheckCircle2, Search, Sparkles } from 'lucide-react'
 
 interface LineItem {
   code: string
@@ -24,6 +24,13 @@ interface PhotoAnalysisResult {
   fileName: string
 }
 
+interface SearchResult {
+  code: string
+  description: string
+  category: string
+  unit: string
+}
+
 export default function WhatsXactPhotoTool() {
   const { data: session } = useSession()
   const [file, setFile] = useState<{ id: string; filename: string; originalName: string; url: string } | null>(null)
@@ -31,6 +38,12 @@ export default function WhatsXactPhotoTool() {
   const [result, setResult] = useState<PhotoAnalysisResult | null>(null)
   const [error, setError] = useState('')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  
+  // Search functionality
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [searching, setSearching] = useState(false)
+  const [showSearchResults, setShowSearchResults] = useState(false)
 
   const handleUpload = (uploadedFile: { id: string; filename: string; originalName: string; url: string }) => {
     setFile(uploadedFile)
@@ -50,6 +63,53 @@ export default function WhatsXactPhotoTool() {
       .catch(err => {
         console.error('Failed to load image preview:', err)
       })
+  }
+
+  const handleSearch = async (query: string) => {
+    if (!query.trim() || query.length < 2) {
+      setSearchResults([])
+      setShowSearchResults(false)
+      return
+    }
+
+    setSearching(true)
+    setShowSearchResults(true)
+
+    try {
+      const response = await fetch('/api/tools/whats-xact-photo/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Search failed')
+      }
+
+      const data = await response.json()
+      setSearchResults(data.results || [])
+    } catch (err) {
+      console.error('Search error:', err)
+      setSearchResults([])
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchQuery(value)
+    
+    // Debounce search
+    if (value.trim().length >= 2) {
+      const timeoutId = setTimeout(() => {
+        handleSearch(value)
+      }, 300)
+      return () => clearTimeout(timeoutId)
+    } else {
+      setSearchResults([])
+      setShowSearchResults(false)
+    }
   }
 
   const handleAnalyze = async () => {
@@ -110,6 +170,85 @@ export default function WhatsXactPhotoTool() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Xactimate Line Item Search */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-8 mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Xactimate Line Item Search
+            </h2>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Describe what you need and we'll help you find the right Xactimate code from our 13,000+ line item database.
+          </p>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              placeholder="e.g., 'drywall repair', 'plumbing sink', 'paint wall', 'MASKSF'..."
+              className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-600"
+            />
+            {searching && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <Loader2 className="w-5 h-5 animate-spin text-gray-400" />
+              </div>
+            )}
+          </div>
+
+          {/* Search Results */}
+          {showSearchResults && searchResults.length > 0 && (
+            <div className="mt-4 max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
+              <div className="p-2 text-xs font-semibold text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                Found {searchResults.length} matching item{searchResults.length !== 1 ? 's' : ''}
+              </div>
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {searchResults.map((item, idx) => (
+                  <div
+                    key={`${item.code}-${idx}`}
+                    className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    onClick={() => {
+                      setSearchQuery(`${item.code} - ${item.description}`)
+                      setShowSearchResults(false)
+                    }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-mono font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded">
+                            {item.code}
+                          </span>
+                          {item.category && (
+                            <span className="text-xs text-gray-500 dark:text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">
+                              {item.category}
+                            </span>
+                          )}
+                          {item.unit && (
+                            <span className="text-xs text-gray-500 dark:text-gray-500">
+                              {item.unit}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {item.description}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showSearchResults && searchQuery.length >= 2 && !searching && searchResults.length === 0 && (
+            <div className="mt-4 p-4 text-center text-sm text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg">
+              No matching items found. Try a different search term.
+            </div>
+          )}
         </div>
 
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-8 mb-8">
