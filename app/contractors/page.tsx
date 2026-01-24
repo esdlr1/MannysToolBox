@@ -264,13 +264,29 @@ export default function ContractorsPage() {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Location
                   </label>
-                  <input
-                    type="text"
-                    value={contractorForm.location}
-                    onChange={(e) => setContractorForm({ ...contractorForm, location: e.target.value })}
-                    placeholder="e.g., City, State or Address"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
-                  />
+                  <div className="grid grid-cols-3 gap-2">
+                    <input
+                      type="text"
+                      value={contractorForm.city}
+                      onChange={(e) => setContractorForm({ ...contractorForm, city: e.target.value })}
+                      placeholder="City"
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
+                    <input
+                      type="text"
+                      value={contractorForm.state}
+                      onChange={(e) => setContractorForm({ ...contractorForm, state: e.target.value })}
+                      placeholder="State"
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
+                    <input
+                      type="text"
+                      value={contractorForm.zipcode}
+                      onChange={(e) => setContractorForm({ ...contractorForm, zipcode: e.target.value })}
+                      placeholder="Zipcode"
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
