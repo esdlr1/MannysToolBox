@@ -10,6 +10,7 @@ export interface AIRequest {
   temperature?: number
   maxTokens?: number
   imageUrl?: string // Base64 encoded image or URL for vision API
+  model?: string // Optional model override (defaults to gpt-4o for vision, gpt-4o-mini for text)
 }
 
 export interface AIResponse {
@@ -82,10 +83,12 @@ export async function callAI(request: AIRequest): Promise<AIResponse> {
         : `You are a helpful AI assistant. ${request.context || ''}`
       )
 
-    // Determine model - use gpt-4o for vision, otherwise use configured model
-    const model = request.imageUrl 
-      ? 'gpt-4o' // GPT-4o has excellent vision capabilities
-      : (process.env.OPENAI_MODEL || 'gpt-4o-mini')
+    // Determine model - use override if provided, otherwise use gpt-4o for vision, or configured model
+    const model = request.model 
+      ? request.model // Use explicit model override
+      : (request.imageUrl 
+        ? 'gpt-4o' // GPT-4o has excellent vision capabilities
+        : (process.env.OPENAI_MODEL || 'gpt-4o-mini'))
     
     console.log('[OpenAI] Making API call...', {
       model,

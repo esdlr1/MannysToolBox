@@ -146,12 +146,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Simplified comparison prompt - focus on what's in one but not the other
+    // CRITICAL: Only show high-confidence matches to avoid confusion
+    const highConfidenceMatches = preprocessing.suggestedMatches
+      .filter(m => m.confidence >= 0.95)
+      .slice(0, 150) // Show more matches to help AI avoid false positives
+    
     const comparisonPrompt = `
 TASK: Compare two construction estimates and list what's in one but not the other.
 
-SIMPLE RULE: Two items are THE SAME if:
-1. They have the same Xactimate/Symbility code (e.g., "MASKSF" = "MASKSF")
-2. OR they have very similar descriptions AND same quantity AND same price (within $1)
+CRITICAL RULES - Two items are THE SAME if ANY of these are true:
+1. Same Xactimate/Symbility code (e.g., "MASKSF" = "MASKSF") - ALWAYS MATCH
+2. Very similar description (80%+ word overlap) AND same quantity (within 10%) AND same unit price (within $1)
+3. Same description AND same quantity AND same total price (within $1)
 
 SYNONYM MATCHING - These are the SAME:
 - "Remove and replace" = "R&R" = "Demo and install" = "Remove & Replace"
@@ -161,26 +167,27 @@ SYNONYM MATCHING - These are the SAME:
 - "Kitchen" = "Kit" = "K"
 - "Living Room" = "LR" = "Living Rm"
 
-ITEMS ALREADY MATCHED (these exist in BOTH estimates - ignore them):
-${JSON.stringify(preprocessing.suggestedMatches.slice(0, 100).map(m => ({
-  contractor: `${m.contractorItem.code || ''} ${m.contractorItem.item}`,
-  adjuster: `${m.adjusterItem.code || ''} ${m.adjusterItem.item}`,
-  reason: m.confidence >= 0.95 ? 'Same code' : 'Similar description'
+ITEMS ALREADY MATCHED WITH HIGH CONFIDENCE (these exist in BOTH estimates - DO NOT list them):
+${JSON.stringify(highConfidenceMatches.map(m => ({
+  contractor: `${m.contractorItem.code || 'NO CODE'} ${m.contractorItem.item} | Qty: ${m.contractorItem.quantity} | Price: $${m.contractorItem.unitPrice}`,
+  adjuster: `${m.adjusterItem.code || 'NO CODE'} ${m.adjusterItem.item} | Qty: ${m.adjusterItem.quantity} | Price: $${m.adjusterItem.unitPrice}`,
+  reason: m.confidence >= 0.95 ? 'Same code' : 'Similar description + qty + price'
 })), null, 2)}
 
 WHAT TO FIND:
 1. Items in CONTRACTOR estimate but NOT in ADJUSTER estimate
 2. Items in ADJUSTER estimate but NOT in CONTRACTOR estimate
 
-HOW TO CHECK:
-For each contractor item, search the adjuster estimate for:
-- Same code (if code exists)
-- Similar description (accounting for synonyms above)
-- Same quantity + same price (within $1)
+HOW TO CHECK (be VERY conservative):
+For each item, check if it matches ANY item in the other estimate using:
+1. Same code (if both have codes) - if match found, item EXISTS in both
+2. Similar description (80%+ word overlap) AND same quantity (within 10%) AND same unit price (within $1) - if match found, item EXISTS in both
+3. Check the "ITEMS ALREADY MATCHED" list above - if item is there, it EXISTS in both
 
-If you find a match using any of these methods, the item EXISTS in both estimates - do NOT list it.
+CRITICAL: If you find a match using ANY method, the item EXISTS in both estimates - DO NOT list it.
 
-Only list items where you cannot find a match using any method above.
+Only list items where you are CERTAIN there is NO match using any method above.
+When in doubt, assume items match (don't list them).
 
 ADJUSTER ESTIMATE SUMMARY:
 ${JSON.stringify(adjusterSummary, null, 2)}
@@ -228,30 +235,92 @@ Contractor: ${JSON.stringify(contractorData.measurements || [], null, 2)}
 }
 
 INSTRUCTIONS:
-- "contractorOnlyItems" = Items in CONTRACTOR estimate but NOT in ADJUSTER estimate
-- "adjusterOnlyItems" = Items in ADJUSTER estimate but NOT in CONTRACTOR estimate
-- Only include items that are truly missing (not just worded differently)
+- "contractorOnlyItems" = Items in CONTRACTOR estimate but NOT in ADJUSTER estimate (after checking all matching methods)
+- "adjusterOnlyItems" = Items in ADJUSTER estimate but NOT in CONTRACTOR estimate (after checking all matching methods)
+- BE CONSERVATIVE: Only include items that are TRULY missing (not just worded differently)
+- If an item appears in the "ITEMS ALREADY MATCHED" list, it EXISTS in both - DO NOT list it
+- When uncertain, err on the side of NOT listing an item (assume it matches)
 - Return ONLY valid JSON, no markdown, no explanations
 `
 
-    // Limit line items in prompt to prevent token overflow
-    const maxItemsPerEstimate = 100 // Limit to prevent prompt from being too large
-    const adjusterItems = (adjusterData.lineItems || []).slice(0, maxItemsPerEstimate)
-    const contractorItems = (contractorData.lineItems || []).slice(0, maxItemsPerEstimate)
+    // Dynamic item limit calculation based on token budget
+    // gpt-4o has 128k context window, we'll use ~100k for safety
+    // Each line item averages ~200-300 tokens when JSON stringified
+    // Reserve tokens for: system prompt (~500), user prompt structure (~2000), response (~8000)
+    const totalLineItems = (adjusterData.lineItems?.length || 0) + (contractorData.lineItems?.length || 0)
+    const estimatedTokensPerItem = 250 // Average tokens per line item in JSON
+    const reservedTokens = 500 + 2000 + 8000 // System + prompt structure + response
+    const availableTokens = 100000 - reservedTokens // ~100k context window
+    const maxItemsTotal = Math.floor(availableTokens / estimatedTokensPerItem)
+    
+    // Calculate dynamic limit per estimate (distribute evenly, but ensure at least 50 items each)
+    const adjusterItemCount = adjusterData.lineItems?.length || 0
+    const contractorItemCount = contractorData.lineItems?.length || 0
+    const totalItems = adjusterItemCount + contractorItemCount
+    
+    let maxItemsPerEstimate: number
+    let adjusterItems: any[]
+    let contractorItems: any[]
+    let adjusterTruncated = false
+    let contractorTruncated = false
+    
+    if (totalItems <= maxItemsTotal) {
+      // All items fit - use all of them
+      maxItemsPerEstimate = Math.max(adjusterItemCount, contractorItemCount)
+      adjusterItems = adjusterData.lineItems || []
+      contractorItems = contractorData.lineItems || []
+    } else {
+      // Need to truncate - distribute proportionally
+      const adjusterRatio = adjusterItemCount / totalItems
+      const contractorRatio = contractorItemCount / totalItems
+      
+      maxItemsPerEstimate = Math.floor(maxItemsTotal * adjusterRatio)
+      const contractorMax = Math.floor(maxItemsTotal * contractorRatio)
+      
+      // Ensure minimum of 50 items each if possible
+      if (maxItemsPerEstimate < 50 && adjusterItemCount >= 50) {
+        maxItemsPerEstimate = 50
+      }
+      if (contractorMax < 50 && contractorItemCount >= 50) {
+        const adjustedContractorMax = 50
+        maxItemsPerEstimate = Math.min(maxItemsPerEstimate, maxItemsTotal - adjustedContractorMax)
+      }
+      
+      adjusterItems = (adjusterData.lineItems || []).slice(0, maxItemsPerEstimate)
+      contractorItems = (contractorData.lineItems || []).slice(0, Math.min(contractorMax, maxItemsTotal - adjusterItems.length))
+      
+      adjusterTruncated = adjusterItemCount > adjusterItems.length
+      contractorTruncated = contractorItemCount > contractorItems.length
+      
+      if (adjusterTruncated || contractorTruncated) {
+        console.warn('[Estimate Comparison] Items truncated due to token limits:', {
+          adjuster: `${adjusterItemCount} items (showing ${adjusterItems.length})`,
+          contractor: `${contractorItemCount} items (showing ${contractorItems.length})`,
+          maxItemsTotal,
+          warning: 'Some items may not be compared accurately'
+        })
+      }
+    }
 
     // Update the prompt with limited items
     const limitedComparisonPrompt = comparisonPrompt
       .replace(
         /FULL ADJUSTER LINE ITEMS:[\s\S]*?FULL CONTRACTOR LINE ITEMS:/,
-        `FULL ADJUSTER LINE ITEMS (showing first ${Math.min(maxItemsPerEstimate, adjusterItems.length)} of ${adjusterData.lineItems?.length || 0}):
+        `FULL ADJUSTER LINE ITEMS (${adjusterItems.length} of ${adjusterData.lineItems?.length || 0}${adjusterTruncated ? ' - WARNING: Some items truncated due to token limits' : ''}):
 ${JSON.stringify(adjusterItems, null, 2)}
 
-FULL CONTRACTOR LINE ITEMS (showing first ${Math.min(maxItemsPerEstimate, contractorItems.length)} of ${contractorData.lineItems?.length || 0}):`
+FULL CONTRACTOR LINE ITEMS (${contractorItems.length} of ${contractorData.lineItems?.length || 0}${contractorTruncated ? ' - WARNING: Some items truncated due to token limits' : ''}):`
       )
 
     console.log('[Estimate Comparison] Calling AI with:', {
+      model: 'gpt-4o',
       adjusterItems: adjusterItems.length,
       contractorItems: contractorItems.length,
+      adjusterTotal: adjusterData.lineItems?.length || 0,
+      contractorTotal: contractorData.lineItems?.length || 0,
+      adjusterTruncated,
+      contractorTruncated,
+      maxItemsTotal,
       promptLength: limitedComparisonPrompt.length,
       promptSizeKB: Math.round(limitedComparisonPrompt.length / 1024),
     })
@@ -276,6 +345,7 @@ MATCHING RULES:
 Return ONLY valid JSON matching the schema. No markdown, no explanations.`,
           temperature: 0.1, // Lower temperature for more consistent results
           maxTokens: 8000, // Increased to handle larger responses
+          model: 'gpt-4o', // Use gpt-4o for better accuracy
         }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('AI call timed out after 3 minutes')), 3 * 60 * 1000)
@@ -331,6 +401,43 @@ Return ONLY valid JSON matching the schema. No markdown, no explanations.`,
           contractorOnlyTotal: 0,
           adjusterOnlyTotal: 0,
         }
+      }
+      
+      // IMPORTANT: Cross-validate AI results against preprocessing matches
+      // Remove items from AI results that were already matched by preprocessing
+      const matchedContractorCodes = new Set(
+        preprocessing.suggestedMatches
+          .filter(m => m.confidence >= 0.95)
+          .map(m => m.contractorItem.code)
+          .filter(Boolean)
+      )
+      const matchedAdjusterCodes = new Set(
+        preprocessing.suggestedMatches
+          .filter(m => m.confidence >= 0.95)
+          .map(m => m.adjusterItem.code)
+          .filter(Boolean)
+      )
+      
+      // Filter out false positives - items that were already matched
+      comparisonResult.contractorOnlyItems = comparisonResult.contractorOnlyItems.filter((item: any) => {
+        if (item.code && matchedContractorCodes.has(item.code)) {
+          console.log('[Estimate Comparison] Filtered out false positive - contractor item already matched:', item.code)
+          return false
+        }
+        return true
+      })
+      
+      comparisonResult.adjusterOnlyItems = comparisonResult.adjusterOnlyItems.filter((item: any) => {
+        if (item.code && matchedAdjusterCodes.has(item.code)) {
+          console.log('[Estimate Comparison] Filtered out false positive - adjuster item already matched:', item.code)
+          return false
+        }
+        return true
+      })
+      
+      // Add warning if items were truncated
+      if (adjusterTruncated || contractorTruncated) {
+        comparisonResult.warning = `Some items were not compared (${adjusterTruncated ? 'adjuster' : ''}${adjusterTruncated && contractorTruncated ? ' and ' : ''}${contractorTruncated ? 'contractor' : ''} estimate had more than ${maxItemsPerEstimate} items). Results may be incomplete.`
       }
 
       // Calculate summary if not provided
