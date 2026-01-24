@@ -125,6 +125,51 @@ export default function Navigation() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-4">
+              {/* Tabs Section */}
+              {session && (
+                <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg overflow-x-auto mr-4">
+                  <Link
+                    href="/training"
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                      pathname === '/training'
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Training
+                  </Link>
+                  <Link
+                    href="/contacts"
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                      pathname === '/contacts'
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Contacts
+                  </Link>
+                  <Link
+                    href="/contractors"
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                      pathname === '/contractors'
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Contractors
+                  </Link>
+                  <Link
+                    href="/survey"
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
+                      pathname === '/survey'
+                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    }`}
+                  >
+                    Survey
+                  </Link>
+                </div>
+              )}
               {/* Pick your tool dropdown */}
               <div className="relative" ref={toolMenuRef}>
                 <button
