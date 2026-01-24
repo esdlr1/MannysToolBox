@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Users } from 'lucide-react'
+import { Loader2, Users, UserPlus, UserCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
@@ -11,12 +11,22 @@ interface Manager {
   id: string
   name: string | null
   email: string
+  role: string
+  isApproved: boolean
 }
 
 interface Employee {
   id: string
   name: string | null
   email: string
+}
+
+interface PotentialManager {
+  id: string
+  name: string | null
+  email: string
+  role: string
+  isApproved: boolean
 }
 
 interface Assignment {
@@ -29,10 +39,13 @@ export default function ManagerAssignmentsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [managers, setManagers] = useState<Manager[]>([])
+  const [potentialManagers, setPotentialManagers] = useState<PotentialManager[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [activeManagerId, setActiveManagerId] = useState<string | null>(null)
   const [saving, setSaving] = useState<string | null>(null)
+  const [promoting, setPromoting] = useState<string | null>(null)
+  const [showPotentialManagers, setShowPotentialManagers] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -59,6 +72,7 @@ export default function ManagerAssignmentsPage() {
       }
       const data = await response.json()
       setManagers(data.managers || [])
+      setPotentialManagers(data.potentialManagers || [])
       setEmployees(data.employees || [])
       setAssignments(data.assignments || [])
       if (!activeManagerId && data.managers?.length) {
@@ -114,6 +128,32 @@ export default function ManagerAssignmentsPage() {
     }
   }
 
+  const promoteToManager = async (userId: string) => {
+    try {
+      setPromoting(userId)
+      setError('')
+      const response = await fetch('/api/admin/manager-assignments', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          action: 'promote',
+        }),
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to promote user to manager')
+      }
+
+      // Refresh the data
+      await fetchAssignments()
+    } catch (err: any) {
+      setError(err.message || 'Failed to promote user to manager')
+    } finally {
+      setPromoting(null)
+    }
+  }
+
   if (status === 'loading' || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -130,7 +170,7 @@ export default function ManagerAssignmentsPage() {
           <h1 className="text-3xl font-bold">Manager Assignments</h1>
         </div>
         <p className="text-muted-foreground">
-          Assign employees to managers. Owners and Super Admins can see all employees.
+          Promote users to Manager role and assign employees to managers. Owners and Super Admins can manage all managers and employees.
         </p>
       </div>
 
@@ -141,30 +181,73 @@ export default function ManagerAssignmentsPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Managers</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {managers.length === 0 && (
-              <p className="text-sm text-muted-foreground">No managers found.</p>
-            )}
-            {managers.map((manager) => (
-              <button
-                key={manager.id}
-                onClick={() => setActiveManagerId(manager.id)}
-                className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
-                  activeManagerId === manager.id
-                    ? 'bg-red-50 border-red-200 text-red-700'
-                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle>Managers</CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPotentialManagers(!showPotentialManagers)}
               >
-                <div className="font-medium">{manager.name || manager.email}</div>
-                <div className="text-xs text-gray-500">{manager.email}</div>
-              </button>
-            ))}
-          </CardContent>
-        </Card>
+                {showPotentialManagers ? <UserCheck className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {!showPotentialManagers ? (
+                <>
+                  {managers.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No managers found.</p>
+                  )}
+                  {managers.map((manager) => (
+                    <button
+                      key={manager.id}
+                      onClick={() => setActiveManagerId(manager.id)}
+                      className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
+                        activeManagerId === manager.id
+                          ? 'bg-red-50 border-red-200 text-red-700'
+                          : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="font-medium">{manager.name || manager.email}</div>
+                      <div className="text-xs text-gray-500">{manager.email}</div>
+                    </button>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium mb-2">Promote to Manager</p>
+                  {potentialManagers.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No users available to promote.</p>
+                  )}
+                  {potentialManagers.map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-gray-900">
+                          {user.name || user.email}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          {user.email} • {user.role || 'No role'}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => promoteToManager(user.id)}
+                        disabled={promoting === user.id}
+                        size="sm"
+                        className="ml-2"
+                      >
+                        {promoting === user.id ? 'Promoting...' : 'Promote'}
+                      </Button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="lg:col-span-2">
           <Card>
