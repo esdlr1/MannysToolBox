@@ -10,54 +10,59 @@
 - Explain your OBSERVATIONS clearly, then provide REASONING to identify the exact issue. Add console logs when needed to gather more information.
 
 
-## Core Business Systems
+Construction Industry Platform Overview
 
-### Construction Estimate Processing Hub
-Importance Score: 95/100
-- Centralized estimate comparison engine with construction-specific matching
-- Industry-standard validation rules for estimate auditing
-- Xactimate code integration and dependency mapping
-- Construction material and labor code relationship tracking
+Core Business Components:
 
-Key Components:
-- Estimate Comparison Engine (app/api/tools/estimate-comparison/compare/route.ts)
-- Estimate Audit System (app/api/tools/estimate-audit/analyze/route.ts)
-- Construction Parser (lib/estimate-parser.ts)
+1. Estimate Analysis Engine (90/100)
+- Construction estimate validation and comparison
+- Trade-specific dependency checking (roofing, plumbing, electrical, HVAC)
+- Intelligent line item matching with industry terminology handling
+- Material and labor requirement validation
 
-### Daily Operations Management
-Importance Score: 85/100
-- Employee daily submission tracking with OCR integration
-- Time-based workflow enforcement for construction planning
-- Manager notification system for submission compliance
-- Construction site activity logging
+2. Photo Analysis System (85/100)
+- AI-powered construction damage assessment
+- Automated Xactimate code assignment
+- Room-by-room damage categorization
+- Material measurement extraction
 
-### Construction Management Hierarchy
-Importance Score: 75/100
-- Role-based construction management workflows
-- Hierarchical employee-manager relationship system
-- Scope-based access control for submissions
-- Construction-specific certification tracking
+3. Construction Workflow Management (75/100)
+- Daily reporting system with deadline enforcement
+- Multi-level approval workflows
+- Construction certification tracking
+- Department-based team management
 
-### Industry Communication System
-Importance Score: 70/100
-- Multi-level announcement priority system
-- Construction site-specific notifications
-- Job site critical notice management
-- Category-based construction communications
+Key Domain Models:
 
-## Domain-Specific Features
+1. Estimate Dependencies
+- Trade-specific material relationships
+- Labor requirements mapping
+- Construction phase dependencies
+- Code-based validation rules
 
-### Estimate Processing
-- Specialized construction line item matching
-- Industry terminology normalization
-- Construction code dependency validation
-- Material and labor relationship mapping
+2. Damage Assessment
+- Water damage categories
+- Construction material types
+- Room-specific damage patterns
+- Severity classification system
 
-### Workflow Management
-- Construction deadline enforcement
-- Site manager oversight system
-- Certification lifecycle management
-- Employee-manager relationship tracking
+3. Management Hierarchy
+- Role-based permissions (Super Admin, Owner, Manager, Employee)
+- Department organization
+- Cross-team visibility rules
+- Certification requirements
+
+Integration Points:
+- Xactimate code system
+- TCS Professional Analysis
+- Construction certification validation
+- Industry-standard estimate formats
+
+Business Logic Organization:
+/app/api/tools/ - Core analysis tools
+/lib/ - Domain-specific services
+/app/teach-logic/ - AI training system
+/app/admin/ - Management workflows
 
 $END$
 

@@ -1,35 +1,43 @@
 ---
-description: Technical specification for subdomain-based routing and tool isolation architecture
+description: Specifications for subdomain-based tool routing and access control implementation
 ---
 
 
 # domain-routing-architecture
 
-Subdomain-based Tool Access Control System
-Importance Score: 65/100
+Domain-Specific Tool Routing System (Importance Score: 85/100)
 
-Primary Component (middleware.ts):
+Core Components:
+1. Subdomain-Based Tool Access
+- Each construction tool gets dedicated subdomain (e.g. estimate.domain.com, photos.domain.com)
+- Automatic tool-specific page routing based on subdomain detection
+- Reserved subdomains (www, mannystoolbox) bypass tool routing logic
+- Environment-aware subdomain parsing (localhost vs production patterns)
 
-Tool Isolation Architecture:
-- Each business tool exists as an isolated instance on unique subdomains
-- Maps specific tool IDs to dedicated subdomains
-- Enforces strict 1:1 relationship between tools and their access points
+2. Tool Access Control Layer
+- Subdomain validation against registered tool IDs
+- Enforced tool-subdomain matching for security
+- Automatic redirection of root paths to tool-specific pages
+- Multi-tenant architecture at DNS level
 
-Access Control Rules:
-1. Primary Domain Exclusions
-   - Blocks tool routing on main domains ('www', 'mannystoolbox')
-   - Preserves root domain for central dashboard/navigation
+3. Tool Isolation Rules
+- Each tool operates in isolated subdomain context
+- Cross-tool access requires explicit permission
+- Tool-specific resource containment
+- Subdomain-scoped session management
 
-2. Tool Access Validation
-   - Validates subdomain matches against authorized tool mappings
-   - Prevents cross-tool access through subdomain manipulation
-   - Maintains tool isolation through routing boundaries
+Implementation Structure:
+/middleware.ts
+- Primary tool routing logic
+- Subdomain validation system
+- Access control enforcement
+- Environment-specific domain handling
 
-3. Environment-Specific Routing
-   - Development: Allows localhost testing with simulated subdomains
-   - Production: Enforces strict subdomain-based access control
-
-The system implements a multi-tenant architecture where business tools maintain complete isolation through subdomain boundaries, supporting organizational requirements for segmented tool access and control.
+Domain-Specific Patterns:
+- Construction tool isolation workflow
+- Tool-specific access boundaries
+- Hierarchical tool organization
+- Domain-level multi-tenancy
 
 $END$
 

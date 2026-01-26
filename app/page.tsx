@@ -180,14 +180,6 @@ export default function Home() {
               >
                 Survey
               </Link>
-              <Link
-                href="/teach-logic"
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
-                  'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                Teach the logic
-              </Link>
             </div>
           )}
 

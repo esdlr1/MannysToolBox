@@ -26,17 +26,6 @@ const SCOPES: { value: Scope; label: string }[] = [
   { value: 'all', label: 'All tools' },
 ]
 
-// Recommended PhotoXact rules (from kitchen cabinet/plumbing feedback)
-const PHOTOXACT_RECOMMENDED_HINTS: string[] = [
-  'When the scope includes drywall hung/taped/floated/ready for paint, or paint/seal/prime, include a line item for wall texture (match existing) unless the visible wall surface clearly shows no texture (smooth/level 5).',
-  'When the photo shows a kitchen cabinet with exposed plumbing (P-trap, supply lines under a sink), the estimate MUST include: R&R (removal and reset) of P-trap, plumbing supply lines, sink, and countertop. A supply line only is not sufficient; include the full plumbing and fixture scope.',
-  'When the scope includes paint, texture, demolition, or work that produces dust or debris, include masking and protection: floor protection, countertop protection, and masking of adjacent surfaces as applicable.',
-  'For cabinetry and countertop: do NOT assume or estimate square footage from the photo. Add a note or line that the user must provide cabinet and countertop square footage (or unit counts) for an accurate estimate. Do not guess SF from the image.',
-  'When mitigation or water-damage restoration is in scope, include ALL removal/demolition line items: remove cabinet components, remove flooring, remove baseboard, remove affected drywall, etc., as needed for access, drying, or replacement. Do not omit removals.',
-  'When mitigation or water-damage restoration is in scope, include drying equipment: air movers (air mover, carpet fan), dehumidifiers, and wall cavity or under-cabinet drying as applicable. If "wall cavity drying" or "fill holes" is in scope, drying equipment must be included.',
-  'For kitchen floor: do NOT assume or estimate square footage from the photo. Add a note or line that the user must provide kitchen floor measurements for an accurate estimate. Do not guess floor area from the image.',
-]
-
 function parseKeywordGroups(text: string): string[][] {
   const groups: string[][] = []
   let current: string[] = []
@@ -53,10 +42,6 @@ function parseKeywordGroups(text: string): string[][] {
   }
   if (current.length) groups.push(current)
   return groups
-}
-
-function formatKeywordGroups(groups: string[][]): string {
-  return groups.map((g) => g.join('\n')).join('\n---\n')
 }
 
 export default function TeachLogicPage() {
@@ -88,7 +73,6 @@ export default function TeachLogicPage() {
   // Form state for prompt_hint
   const [hintScope, setHintScope] = useState<Scope>('estimate_comparison')
   const [hintText, setHintText] = useState('')
-  const [addingRecommended, setAddingRecommended] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -98,8 +82,8 @@ export default function TeachLogicPage() {
       if (!res.ok) throw new Error('Failed to load rules')
       const data = await res.json()
       setRules(data.rules || [])
-    } catch (e: any) {
-      setError(e?.message || 'Failed to load')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to load')
     } finally {
       setLoading(false)
     }
@@ -135,8 +119,8 @@ export default function TeachLogicPage() {
       } else {
         setHintText('')
       }
-    } catch (e: any) {
-      setError(e?.message || 'Failed to create')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to create')
     }
   }
 
@@ -150,8 +134,8 @@ export default function TeachLogicPage() {
         throw new Error(d?.error || 'Failed to delete')
       }
       await load()
-    } catch (e: any) {
-      setError(e?.message || 'Failed to delete')
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to delete')
     }
   }
 
@@ -203,38 +187,6 @@ export default function TeachLogicPage() {
       return
     }
     create('prompt_hint', hintScope, { text: t })
-  }
-
-  const addRecommendedPhotoXact = async () => {
-    setError('')
-    setAddingRecommended(true)
-    const existing = new Set(
-      byType('prompt_hint')
-        .filter((r) => r.scope === 'photoxact')
-        .map((r) => (r.payload as { text?: string })?.text ?? '')
-    )
-    let added = 0
-    for (const text of PHOTOXACT_RECOMMENDED_HINTS) {
-      if (existing.has(text)) continue
-      try {
-        const res = await fetch('/api/logic-rules', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ruleType: 'prompt_hint', scope: 'photoxact', payload: { text } }),
-        })
-        const data = await res.json()
-        if (res.ok) {
-          added++
-          existing.add(text)
-        } else {
-          setError(data?.error || 'Failed to add one or more rules')
-        }
-      } catch {
-        setError('Failed to add recommended rules')
-      }
-    }
-    setAddingRecommended(false)
-    await load()
   }
 
   const byType = (t: RuleType) => rules.filter((r) => r.ruleType === t)
@@ -529,7 +481,7 @@ export default function TeachLogicPage() {
               </section>
             )}
 
-            {/* Prompt hints */}
+            {/* Prompt hints - no Recommended PhotoXact rules box */}
             {tab === 'prompt_hint' && (
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -584,24 +536,6 @@ export default function TeachLogicPage() {
                     </div>
                   </div>
                 )}
-
-                {/* Recommended PhotoXact rules (from kitchen/plumbing feedback) */}
-                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
-                  <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-200 mb-2">
-                    Recommended PhotoXact rules
-                  </h3>
-                  <p className="text-sm text-amber-800 dark:text-amber-300 mb-3">
-                    These 7 rules address: texture when drywall/paint; full plumbing R&amp;R under kitchen sink (P-trap, supply, sink, countertop); masking; asking for cabinet/counter/floor SF instead of assuming; mitigation removals; and drying equipment.
-                  </p>
-                  <button
-                    onClick={addRecommendedPhotoXact}
-                    disabled={addingRecommended}
-                    className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg flex items-center gap-2"
-                  >
-                    {addingRecommended ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                    Add all 7 recommended PhotoXact rules
-                  </button>
-                </div>
 
                 <ul className="space-y-2">
                   {byType('prompt_hint').map((r) => {
