@@ -58,6 +58,17 @@ const tools: Tool[] = [
     usesAI: true,
     supportsFileUpload: true,
   },
+  {
+    id: 'supplement-tracker',
+    name: 'Supplement Tracker',
+    description: 'Track estimate supplements and changes weekly. Record customer name, claim number, original amount, and supplement amount. Export PDF reports to show production.',
+    category: 'Productivity',
+    subdomain: 'supplement-tracker',
+    component: 'tools/supplement-tracker/index',
+    requiresAuth: true,
+    usesAI: false,
+    supportsFileUpload: false,
+  },
 ]
 
 // Helper function to ensure tool properties

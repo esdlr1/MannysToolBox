@@ -123,13 +123,11 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute w-full mt-2 rounded-2xl border-2 shadow-2xl bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 z-50 flex flex-col"
+            className="absolute w-full mt-2 rounded-2xl border-2 shadow-2xl bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 z-50 flex flex-col overflow-hidden"
             style={{
-              maxHeight: '550px',
+              maxHeight: 'min(70vh, 420px)',
               top: '100%',
               marginTop: '0.5rem',
-              display: 'flex',
-              flexDirection: 'column'
             }}
           >
             {/* Search Input */}
@@ -148,16 +146,10 @@ export function ToolDropdown({ tools, placeholder = 'Pick your tool' }: ToolDrop
               </div>
             </div>
 
-            {/* Tools List - Scrollable */}
+            {/* Tools List - Scrollable (min-h-0 allows flex child to shrink and show scrollbar) */}
             <div 
-              className="overflow-y-scroll" 
-              style={{ 
-                WebkitOverflowScrolling: 'touch',
-                maxHeight: '500px',
-                minHeight: '200px',
-                flex: '1 1 auto',
-                overflowX: 'hidden'
-              }}
+              className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
+              style={{ WebkitOverflowScrolling: 'touch' }}
             >
               {Object.keys(toolsByCategory).length === 0 ? (
                 <div className="p-8 text-center text-gray-500 dark:text-gray-400">

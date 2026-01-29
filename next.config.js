@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Don't bundle pdfkit so it can load its font files (Helvetica.afm, etc.) from node_modules
+  serverExternalPackages: ['pdfkit'],
   // Fix for chunk loading issues
   webpack: (config, { isServer }) => {
     if (!isServer) {

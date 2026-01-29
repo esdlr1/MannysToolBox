@@ -50,6 +50,7 @@ model User {
   surveyResponses                 SurveyResponse[]             @relation("SurveyRespondent")
   createdContractors              Contractor[]                 @relation("ContractorCreator")
   logicRules                      LogicRule[]
+  supplementTrackerEntries        SupplementTracker[]
 
   @@index([departmentId])
   @@map("users")
@@ -557,4 +558,27 @@ model LogicRule {
   @@index([scope])
   @@index([isActive])
   @@map("logic_rules")
+}
+
+// Supplement Tracker - Track estimate supplements and changes
+model SupplementTracker {
+  id                String   @id @default(cuid())
+  userId            String
+  customerName      String
+  claimNumber       String
+  originalAmount    Float    // Estimate amount before supplement
+  supplementAmount  Float    // Amount of the supplement
+  finalAmount       Float    // Calculated: originalAmount + supplementAmount
+  weekStartDate     DateTime @db.Date // Start of the week (Monday) for tracking
+  notes             String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([weekStartDate])
+  @@index([userId, weekStartDate])
+  @@index([createdAt])
+  @@map("supplement_tracker")
 }
