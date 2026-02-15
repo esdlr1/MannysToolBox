@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getSubmissionStats, getMissingSubmissions, getTodayDate, isWorkday, getEmployeeIdsForScope } from '@/lib/daily-notepad'
+import { getSubmissionStats, getMissingSubmissions, getTodayDate, isWorkday, getEmployeeIdsForScope, parseTagsFromQuery } from '@/lib/daily-notepad'
 import { prisma } from '@/lib/prisma'
 import { startOfWeek, endOfWeek, subDays, startOfMonth, endOfMonth } from 'date-fns'
 
@@ -35,11 +35,11 @@ export async function GET(request: NextRequest) {
     const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
     const managerFilterId = searchParams.get('managerId') || undefined
+    const tags = parseTagsFromQuery(searchParams)
+    const scopeFilters = { teamId, departmentId, managerId: user.role === 'Manager' ? session.user.id : (managerFilterId || undefined), tags: tags.length ? tags : undefined }
     // Managers can only see their own employees
     // Owners can filter by any manager or see all
-    const managerId = user.role === 'Manager' 
-      ? session.user.id 
-      : (managerFilterId || undefined)
+    const managerId = scopeFilters.managerId
 
     const today = getTodayDate()
     let startDate: Date
@@ -60,15 +60,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Get statistics
-    const stats = await getSubmissionStats(startDate, endDate, { teamId, departmentId, managerId })
+    const stats = await getSubmissionStats(startDate, endDate, scopeFilters)
 
     // Get today's missing submissions
     const missingToday = isWorkday(today)
-      ? await getMissingSubmissions(today, { teamId, departmentId, managerId })
+      ? await getMissingSubmissions(today, scopeFilters)
       : []
 
     // Get total employees
-    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId, managerId })
+    const employeeIds = await getEmployeeIdsForScope(scopeFilters)
     const totalEmployees = employeeIds.length
 
     // Calculate today's stats

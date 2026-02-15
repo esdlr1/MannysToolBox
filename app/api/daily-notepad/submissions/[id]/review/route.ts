@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,13 +42,8 @@ export async function POST(
           { status: 404 }
         )
       }
-      const assignment = await prisma.managerAssignment.findFirst({
-        where: {
-          managerId: session.user.id,
-          employeeId: submission.userId,
-        },
-      })
-      if (!assignment) {
+      const allowedIds = await getEmployeeIdsForScope({ managerId: session.user.id })
+      if (!allowedIds.includes(submission.userId)) {
         return NextResponse.json(
           { error: 'Forbidden' },
           { status: 403 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,12 +30,8 @@ export async function GET(request: NextRequest) {
       // Employees can only see their own certifications
       where.employeeId = session.user.id
     } else if (user?.role === 'Manager') {
-      // Managers can see certifications for their assigned employees
-      const assignments = await prisma.managerAssignment.findMany({
-        where: { managerId: session.user.id },
-        select: { employeeId: true },
-      })
-      const employeeIds = assignments.map(a => a.employeeId)
+      // Managers can see certifications for everyone in their subtree (direct + indirect reports)
+      const employeeIds = await getEmployeeIdsForScope({ managerId: session.user.id })
       where.employeeId = { in: employeeIds }
     }
     // Owners/Admins can see all
@@ -125,17 +122,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if manager can create certification for this employee
+    // Check if manager can create certification for this employee (must be in manager's subtree)
     if (user.role === 'Manager') {
-      const assignment = await prisma.managerAssignment.findFirst({
-        where: {
-          managerId: session.user.id,
-          employeeId,
-        },
-      })
-      if (!assignment) {
+      const allowedIds = await getEmployeeIdsForScope({ managerId: session.user.id })
+      if (!allowedIds.includes(employeeId)) {
         return NextResponse.json(
-          { error: 'You can only create certifications for your assigned employees' },
+          { error: 'You can only create certifications for employees in your team' },
           { status: 403 }
         )
       }

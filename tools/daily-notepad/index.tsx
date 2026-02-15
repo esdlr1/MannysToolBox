@@ -100,6 +100,12 @@ export default function DailyNotepadTool() {
   const [filterDepartment, setFilterDepartment] = useState<string>('all')
   const [filterTeam, setFilterTeam] = useState<string>('all')
   const [filterManager, setFilterManager] = useState<string>('all')
+  const [filterLocation, setFilterLocation] = useState<string>('all')
+  const [filterBranch, setFilterBranch] = useState<string>('all')
+  const [filterBusiness, setFilterBusiness] = useState<string>('all')
+  const [locationOptions, setLocationOptions] = useState<string[]>([])
+  const [branchOptions, setBranchOptions] = useState<string[]>([])
+  const [businessOptions, setBusinessOptions] = useState<string[]>([])
   const [managers, setManagers] = useState<Array<{
     id: string
     name: string | null
@@ -197,18 +203,19 @@ export default function DailyNotepadTool() {
       loadEmployees()
       loadDepartments()
       loadTeams()
+      loadTagOptions()
       // Only Owners can see all managers
       if (effectiveRole === 'Owner' || effectiveRole === 'Super Admin') {
         loadManagers()
       }
     }
-  }, [view, session, filterDateRange, filterEmployee, filterTeam, filterDepartment, filterManager, effectiveRole])
+  }, [view, session, filterDateRange, filterEmployee, filterTeam, filterDepartment, filterManager, filterLocation, filterBranch, filterBusiness, effectiveRole])
 
   useEffect(() => {
     if (filterEmployee !== 'all') {
       setFilterEmployee('all')
     }
-  }, [filterTeam, filterDepartment, filterManager])
+  }, [filterTeam, filterDepartment, filterManager, filterLocation, filterBranch, filterBusiness])
 
   const loadTodaySubmission = async () => {
     try {
@@ -266,6 +273,8 @@ export default function DailyNotepadTool() {
       if (filterManager !== 'all' && (effectiveRole === 'Owner' || effectiveRole === 'Super Admin')) {
         params.set('managerId', filterManager)
       }
+      const tags = getTagsParam()
+      if (tags) params.set('tags', tags)
       const response = await fetch(`/api/daily-notepad/stats?${params.toString()}`)
       if (response.ok) {
         const data = await response.json()
@@ -304,7 +313,8 @@ export default function DailyNotepadTool() {
       if (filterManager !== 'all' && (effectiveRole === 'Owner' || effectiveRole === 'Super Admin')) {
         url += `&managerId=${filterManager}`
       }
-      
+      const tags = getTagsParam()
+      if (tags) url += `&tags=${encodeURIComponent(tags)}`
       const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
@@ -323,6 +333,8 @@ export default function DailyNotepadTool() {
       if (filterManager !== 'all' && (effectiveRole === 'Owner' || effectiveRole === 'Super Admin')) {
         params.set('managerId', filterManager)
       }
+      const tags = getTagsParam()
+      if (tags) params.set('tags', tags)
       const response = await fetch(`/api/daily-notepad/employees?${params.toString()}`)
       if (response.ok) {
         const data = await response.json()
@@ -355,6 +367,38 @@ export default function DailyNotepadTool() {
     } catch (error) {
       console.error('Error loading teams:', error)
     }
+  }
+
+  const loadTagOptions = async () => {
+    try {
+      const [locRes, branchRes, businessRes] = await Promise.all([
+        fetch('/api/admin/users/tag-options?key=location'),
+        fetch('/api/admin/users/tag-options?key=branch'),
+        fetch('/api/admin/users/tag-options?key=business'),
+      ])
+      if (locRes.ok) {
+        const data = await locRes.json()
+        setLocationOptions(data.values || [])
+      }
+      if (branchRes.ok) {
+        const data = await branchRes.json()
+        setBranchOptions(data.values || [])
+      }
+      if (businessRes.ok) {
+        const data = await businessRes.json()
+        setBusinessOptions(data.values || [])
+      }
+    } catch (error) {
+      console.error('Error loading tag options:', error)
+    }
+  }
+
+  const getTagsParam = (): string => {
+    const pairs: string[] = []
+    if (filterLocation !== 'all') pairs.push(`location:${filterLocation}`)
+    if (filterBranch !== 'all') pairs.push(`branch:${filterBranch}`)
+    if (filterBusiness !== 'all') pairs.push(`business:${filterBusiness}`)
+    return pairs.join(',')
   }
 
   const loadManagers = async () => {
@@ -639,6 +683,11 @@ export default function DailyNotepadTool() {
     const params = new URLSearchParams({ format: formatType })
     if (filterTeam !== 'all') params.set('teamId', filterTeam)
     if (filterDepartment !== 'all') params.set('departmentId', filterDepartment)
+    if (filterManager !== 'all' && (effectiveRole === 'Owner' || effectiveRole === 'Super Admin')) {
+      params.set('managerId', filterManager)
+    }
+    const tags = getTagsParam()
+    if (tags) params.set('tags', tags)
     return `/api/daily-notepad/reports?${params.toString()}`
   }
 
@@ -1393,6 +1442,56 @@ export default function DailyNotepadTool() {
                         </option>
                       ))}
                     </select>
+                    <select
+                      value={filterLocation}
+                      onChange={(e) => setFilterLocation(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    >
+                      <option value="all">All Locations</option>
+                      {locationOptions.map((val) => (
+                        <option key={val} value={val}>
+                          {val}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={filterBranch}
+                      onChange={(e) => setFilterBranch(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    >
+                      <option value="all">All Branches</option>
+                      {branchOptions.map((val) => (
+                        <option key={val} value={val}>
+                          {val}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={filterBusiness}
+                      onChange={(e) => setFilterBusiness(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                    >
+                      <option value="all">All Business</option>
+                      {businessOptions.map((val) => (
+                        <option key={val} value={val}>
+                          {val}
+                        </option>
+                      ))}
+                    </select>
+                    {(effectiveRole === 'Owner' || effectiveRole === 'Super Admin') && (
+                      <select
+                        value={filterManager}
+                        onChange={(e) => setFilterManager(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                      >
+                        <option value="all">All Managers</option>
+                        {managers.map((mgr) => (
+                          <option key={mgr.id} value={mgr.id}>
+                            {mgr.name || mgr.email} ({mgr.assignedEmployeesCount ?? 0})
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </div>
                 </div>
               </>
@@ -1442,6 +1541,56 @@ export default function DailyNotepadTool() {
                     </option>
                   ))}
                 </select>
+                <select
+                  value={filterLocation}
+                  onChange={(e) => setFilterLocation(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Locations</option>
+                  {locationOptions.map((val) => (
+                    <option key={val} value={val}>
+                      {val}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={filterBranch}
+                  onChange={(e) => setFilterBranch(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Branches</option>
+                  {branchOptions.map((val) => (
+                    <option key={val} value={val}>
+                      {val}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={filterBusiness}
+                  onChange={(e) => setFilterBusiness(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                >
+                  <option value="all">All Business</option>
+                  {businessOptions.map((val) => (
+                    <option key={val} value={val}>
+                      {val}
+                    </option>
+                  ))}
+                </select>
+                {(effectiveRole === 'Owner' || effectiveRole === 'Super Admin') && (
+                  <select
+                    value={filterManager}
+                    onChange={(e) => setFilterManager(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+                  >
+                    <option value="all">All Managers</option>
+                    {managers.map((mgr) => (
+                      <option key={mgr.id} value={mgr.id}>
+                        {mgr.name || mgr.email} ({mgr.assignedEmployeesCount ?? 0})
+                      </option>
+                    ))}
+                  </select>
+                )}
                 <select
                   value={filterEmployee}
                   onChange={(e) => setFilterEmployee(e.target.value)}

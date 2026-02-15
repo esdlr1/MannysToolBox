@@ -54,9 +54,23 @@ model User {
   contentsInvSubmissions          ContentsInvSubmission[]
   contentsInvAccessGrants         ContentsInvAccess[]         @relation("ContentsInvAccessGrantedBy")
   contentsInvAccess               ContentsInvAccess[]          @relation("ContentsInvAccessUser")
+  tags                            UserTag[]
 
   @@index([departmentId])
   @@map("users")
+}
+
+model UserTag {
+  id     String @id @default(cuid())
+  userId String
+  key    String // e.g. "branch", "location", "position"
+  value  String // e.g. "North", "NYC", "Estimator"
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([userId])
+  @@index([key, value])
+  @@map("user_tags")
 }
 
 model Account {
@@ -588,12 +602,17 @@ model SupplementTracker {
 
 // Contents INV - Invoice form with configurable items (numbers only)
 model ContentsInvFormItem {
-  id        String   @id @default(cuid())
-  label     String   @db.Text   // Question/item text shown next to the input
-  sortOrder Int      @default(0)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String    @id @default(cuid())
+  label            String    @db.Text   // Question/item text shown next to the input
+  xactimateCode    String?   // Legacy single code; prefer xactimateCat + xactimateSel
+  xactimateCat     String?   // Xactimate category (CAT)
+  xactimateSel     String?   // Xactimate selector (SEL)
+  unit             String?   // Optional unit (e.g. hrs, ea, LF, CF) for reports
+  customUnitPrice  Decimal?  // Optional unit price; if null, report assumes Xactimate pricing
+  sortOrder        Int       @default(0)
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@index([sortOrder])
   @@index([isActive])

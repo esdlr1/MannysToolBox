@@ -13,7 +13,7 @@ async function canViewMasterList(userId: string, role: string | null | undefined
   return !!access
 }
 
-// GET - List all submissions (only for Manager, Owner, Super Admin, or users granted access)
+// GET - List submissions: Employees see only their own; Managers, Owner, Super Admin, and granted Access see all
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
@@ -21,15 +21,13 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const canView = await canViewMasterList(
+    const canViewAll = await canViewMasterList(
       session.user.id,
       session.user.role
     )
-    if (!canView) {
-      return NextResponse.json({ error: 'Forbidden - no access to master list' }, { status: 403 })
-    }
 
     const submissions = await prisma.contentsInvSubmission.findMany({
+      where: canViewAll ? undefined : { userId: session.user.id },
       orderBy: { createdAt: 'desc' },
       include: {
         user: {
@@ -38,7 +36,10 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json({ submissions })
+    return NextResponse.json({
+      submissions,
+      scope: canViewAll ? 'all' : 'own',
+    })
   } catch (error) {
     console.error('[Contents INV] GET submissions error:', error)
     return NextResponse.json({ error: 'Failed to fetch submissions' }, { status: 500 })

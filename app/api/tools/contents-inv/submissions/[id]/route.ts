@@ -13,7 +13,7 @@ async function canViewMasterList(userId: string, role: string | null | undefined
   return !!access
 }
 
-// GET - Get one submission by id (only for users who can view master list)
+// GET - Get one submission by id (master list users: any; others: own only)
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -22,14 +22,6 @@ export async function GET(
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const canView = await canViewMasterList(
-      session.user.id,
-      session.user.role
-    )
-    if (!canView) {
-      return NextResponse.json({ error: 'Forbidden - no access to master list' }, { status: 403 })
     }
 
     const submission = await prisma.contentsInvSubmission.findUnique({
@@ -43,6 +35,14 @@ export async function GET(
 
     if (!submission) {
       return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
+    }
+
+    const canViewAll = await canViewMasterList(
+      session.user.id,
+      session.user.role
+    )
+    if (!canViewAll && submission.userId !== session.user.id) {
+      return NextResponse.json({ error: 'Forbidden - you can only view your own submissions' }, { status: 403 })
     }
 
     return NextResponse.json({ submission })

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
+import { getEmployeeIdsForScope, parseTagsFromQuery } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,13 +32,14 @@ export async function GET(request: NextRequest) {
     const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
     const managerFilterId = searchParams.get('managerId') || undefined
+    const tags = parseTagsFromQuery(searchParams)
     // Managers can only see their own employees
     // Owners can filter by any manager or see all
-    const managerId = user.role === 'Manager' 
-      ? session.user.id 
+    const managerId = user.role === 'Manager'
+      ? session.user.id
       : (managerFilterId || undefined)
 
-    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId, managerId })
+    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId, managerId, tags: tags.length ? tags : undefined })
 
     const employees = await prisma.user.findMany({
       where: {

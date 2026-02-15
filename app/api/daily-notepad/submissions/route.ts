@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getSubmissions, getSubmissionById } from '@/lib/daily-notepad'
+import { getSubmissions, getSubmissionById, parseTagsFromQuery } from '@/lib/daily-notepad'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
       filters.departmentId = departmentIdParam
     }
     const managerFilterId = searchParams.get('managerId')
+    const tags = parseTagsFromQuery(searchParams)
     // Managers can only see their own employees
     // Owners can filter by any manager or see all
     if (user.role === 'Manager') {
@@ -66,6 +67,7 @@ export async function GET(request: NextRequest) {
     } else if (managerFilterId) {
       filters.managerId = managerFilterId
     }
+    if (tags.length) filters.tags = tags
 
     const submissions = await getSubmissions(filters)
 

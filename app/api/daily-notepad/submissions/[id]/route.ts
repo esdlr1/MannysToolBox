@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getSubmissionById } from '@/lib/daily-notepad'
+import { getSubmissionById, getEmployeeIdsForScope } from '@/lib/daily-notepad'
 import { prisma } from '@/lib/prisma'
 import path from 'path'
 
@@ -47,13 +47,8 @@ export async function GET(
     }
 
     if (!isOwner && user?.role === 'Manager' && !isOwnerOrAdmin) {
-      const assignment = await prisma.managerAssignment.findFirst({
-        where: {
-          managerId: session.user.id,
-          employeeId: submission.userId,
-        },
-      })
-      if (!assignment) {
+      const allowedIds = await getEmployeeIdsForScope({ managerId: session.user.id })
+      if (!allowedIds.includes(submission.userId)) {
         return NextResponse.json(
           { error: 'Forbidden' },
           { status: 403 }

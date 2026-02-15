@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendFollowUpEmail } from '@/lib/email'
 import { createNotification } from '@/lib/notifications'
+import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -52,13 +53,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (user.role === 'Manager') {
-      const assignment = await prisma.managerAssignment.findFirst({
-        where: {
-          managerId: session.user.id,
-          employeeId: employee.id,
-        },
-      })
-      if (!assignment) {
+      const allowedIds = await getEmployeeIdsForScope({ managerId: session.user.id })
+      if (!allowedIds.includes(employee.id)) {
         return NextResponse.json(
           { error: 'Forbidden' },
           { status: 403 }

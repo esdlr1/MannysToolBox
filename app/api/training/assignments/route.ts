@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,12 +31,8 @@ export async function GET(request: NextRequest) {
       // Employees can only see their own assignments
       where.employeeId = session.user.id
     } else if (user?.role === 'Manager') {
-      // Managers can see assignments for their assigned employees
-      const assignments = await prisma.managerAssignment.findMany({
-        where: { managerId: session.user.id },
-        select: { employeeId: true },
-      })
-      const employeeIds = assignments.map(a => a.employeeId)
+      // Managers can see assignments for everyone in their subtree (direct + indirect reports)
+      const employeeIds = await getEmployeeIdsForScope({ managerId: session.user.id })
       where.employeeId = { in: employeeIds }
     }
     // Owners/Admins can see all
@@ -138,18 +135,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if manager can assign to these employees
+    // Check if manager can assign to these employees (must all be in manager's subtree)
     if (user.role === 'Manager') {
-      const assignments = await prisma.managerAssignment.findMany({
-        where: { managerId: session.user.id },
-        select: { employeeId: true },
-      })
-      const allowedEmployeeIds = new Set(assignments.map(a => a.employeeId))
-      
-      const invalidIds = employeeIds.filter((id: string) => !allowedEmployeeIds.has(id))
+      const allowedIds = await getEmployeeIdsForScope({ managerId: session.user.id })
+      const allowedSet = new Set(allowedIds)
+      const invalidIds = employeeIds.filter((id: string) => !allowedSet.has(id))
       if (invalidIds.length > 0) {
         return NextResponse.json(
-          { error: 'You can only assign training to your assigned employees' },
+          { error: 'You can only assign training to employees in your team' },
           { status: 403 }
         )
       }

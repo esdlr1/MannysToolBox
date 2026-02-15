@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,11 +30,7 @@ export async function GET() {
 
     let departments
     if (user.role === 'Manager') {
-      const assignments = await prisma.managerAssignment.findMany({
-        where: { managerId: session.user.id },
-        select: { employeeId: true },
-      })
-      const employeeIds = assignments.map((a) => a.employeeId)
+      const employeeIds = await getEmployeeIdsForScope({ managerId: session.user.id })
       departments = await prisma.department.findMany({
         where: {
           users: {

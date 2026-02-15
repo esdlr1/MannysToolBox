@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getMissingSubmissions, getTodayDate, isWorkday } from '@/lib/daily-notepad'
+import { getMissingSubmissions, getTodayDate, isWorkday, parseTagsFromQuery } from '@/lib/daily-notepad'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
     const dateParam = searchParams.get('date')
     const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
-    const managerId = user.role === 'Manager' ? session.user.id : undefined
+    const tags = parseTagsFromQuery(searchParams)
+    const managerId = user.role === 'Manager' ? session.user.id : (searchParams.get('managerId') || undefined)
 
     const targetDate = dateParam ? new Date(dateParam) : getTodayDate()
 
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const missing = await getMissingSubmissions(targetDate, { teamId, departmentId, managerId })
+    const missing = await getMissingSubmissions(targetDate, { teamId, departmentId, managerId, tags: tags.length ? tags : undefined })
 
     return NextResponse.json({
       success: true,

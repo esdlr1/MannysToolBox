@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,12 +26,8 @@ export async function GET(request: NextRequest) {
       // Employees can only see their own contact
       where.userId = session.user.id
     } else if (user?.role === 'Manager') {
-      // Managers can see contacts for their assigned employees
-      const assignments = await prisma.managerAssignment.findMany({
-        where: { managerId: session.user.id },
-        select: { employeeId: true },
-      })
-      const employeeIds = assignments.map(a => a.employeeId)
+      // Managers can see contacts for everyone in their subtree (direct + indirect reports)
+      const employeeIds = await getEmployeeIdsForScope({ managerId: session.user.id })
       where.userId = { in: employeeIds }
     }
     // Owners/Admins can see all
@@ -106,17 +103,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if manager can create contact for this employee
+    // Check if manager can create contact for this employee (must be in manager's subtree)
     if (user.role === 'Manager') {
-      const assignment = await prisma.managerAssignment.findFirst({
-        where: {
-          managerId: session.user.id,
-          employeeId: userId,
-        },
-      })
-      if (!assignment) {
+      const allowedIds = await getEmployeeIdsForScope({ managerId: session.user.id })
+      if (!allowedIds.includes(userId)) {
         return NextResponse.json(
-          { error: 'You can only create contacts for your assigned employees' },
+          { error: 'You can only create contacts for employees in your team' },
           { status: 403 }
         )
       }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,6 +46,16 @@ export async function PUT(
         { error: 'Forbidden - You can only update your own assignments' },
         { status: 403 }
       )
+    }
+    // Managers can only update assignments for employees in their subtree
+    if (user?.role === 'Manager') {
+      const allowedIds = await getEmployeeIdsForScope({ managerId: session.user.id })
+      if (!allowedIds.includes(assignment.employeeId)) {
+        return NextResponse.json(
+          { error: 'Forbidden - You can only update assignments for employees in your team' },
+          { status: 403 }
+        )
+      }
     }
 
     const updateData: any = {}

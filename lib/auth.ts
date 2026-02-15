@@ -4,6 +4,13 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
+/**
+ * Auth principle: one sign-in is all the auth a user needs.
+ * The session (JWT) is the single source of truth for the whole app.
+ * We do not re-prompt for password, use step-up auth, or require extra
+ * verification for tools or pages — the moment they sign in, they're in.
+ */
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [

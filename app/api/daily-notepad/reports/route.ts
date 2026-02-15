@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getEmployeeIdsForScope, isWorkday } from '@/lib/daily-notepad'
+import { getEmployeeIdsForScope, isWorkday, parseTagsFromQuery } from '@/lib/daily-notepad'
 import { format, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns'
 import PDFDocument from 'pdfkit'
 
@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
     const formatParam = (searchParams.get('format') || 'csv').toLowerCase()
     const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
-    const managerId = user.role === 'Manager' ? session.user.id : undefined
+    const managerFilterId = searchParams.get('managerId') || undefined
+    const tags = parseTagsFromQuery(searchParams)
+    const managerId = user.role === 'Manager' ? session.user.id : managerFilterId
 
     const today = new Date()
     const startDate = startOfWeek(today)
@@ -43,7 +45,7 @@ export async function GET(request: NextRequest) {
     const workdays = eachDayOfInterval({ start: startDate, end: endDate }).filter(isWorkday)
     const totalWorkdays = workdays.length
 
-    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId, managerId })
+    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId, managerId, tags: tags.length ? tags : undefined })
     const employees = await prisma.user.findMany({
       where: { id: { in: employeeIds } },
       select: { id: true, name: true, email: true },

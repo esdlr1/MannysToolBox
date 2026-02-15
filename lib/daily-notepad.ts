@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { format, subDays, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns'
+import { getEmployeeIdsUnderManager } from '@/lib/org-hierarchy'
 
 /**
  * Check if a date is a weekday (Monday-Friday)
@@ -39,8 +40,29 @@ function getPreviousWorkday(date: Date): Date {
   return cursor
 }
 
-async function getEmployeesForScope(filters?: { teamId?: string; departmentId?: string; managerId?: string }) {
-  const { teamId, departmentId, managerId } = filters || {}
+export type EmployeeScopeFilters = {
+  teamId?: string
+  departmentId?: string
+  managerId?: string
+  /** Tag filters (AND): only users that have all of these tags. */
+  tags?: { key: string; value: string }[]
+}
+
+/** Parse tags from query string: tags=location:NYC,branch:North */
+export function parseTagsFromQuery(searchParams: URLSearchParams): { key: string; value: string }[] {
+  const raw = searchParams.get('tags')
+  if (!raw || !raw.trim()) return []
+  return raw
+    .split(',')
+    .map((pair) => {
+      const [key, value] = pair.trim().split(':')
+      return { key: (key || '').trim(), value: (value || '').trim() }
+    })
+    .filter((t) => t.key && t.value)
+}
+
+async function getEmployeesForScope(filters?: EmployeeScopeFilters) {
+  const { teamId, departmentId, managerId, tags } = filters || {}
   const baseEmployees = await prisma.user.findMany({
     where: {
       role: 'Employee',
@@ -55,13 +77,31 @@ async function getEmployeesForScope(filters?: { teamId?: string; departmentId?: 
 
   let scopedEmployees = baseEmployees
 
-  if (managerId) {
-    const assignments = await prisma.managerAssignment.findMany({
-      where: { managerId },
-      select: { employeeId: true },
+  if (tags && tags.length > 0) {
+    const tagSets = await Promise.all(
+      tags.map((t) =>
+        prisma.userTag.findMany({
+          where: { key: t.key, value: t.value },
+          select: { userId: true },
+        })
+      )
+    )
+    const userIdsByTag = tagSets.map((rows) => new Set(rows.map((r) => r.userId)))
+    const intersection = userIdsByTag.reduce((acc, set) => {
+      const next = new Set<string>()
+      acc.forEach((id) => {
+        if (set.has(id)) next.add(id)
+      })
+      return next
     })
-    const assignedIds = new Set(assignments.map((a) => a.employeeId))
-    scopedEmployees = scopedEmployees.filter((emp) => assignedIds.has(emp.id))
+    if (userIdsByTag.length > 0) {
+      scopedEmployees = scopedEmployees.filter((emp) => intersection.has(emp.id))
+    }
+  }
+
+  if (managerId) {
+    const subtreeIds = await getEmployeeIdsUnderManager(managerId)
+    scopedEmployees = scopedEmployees.filter((emp) => subtreeIds.has(emp.id))
   }
 
   if (teamId) {
@@ -76,7 +116,7 @@ async function getEmployeesForScope(filters?: { teamId?: string; departmentId?: 
   return scopedEmployees
 }
 
-export async function getEmployeeIdsForScope(filters?: { teamId?: string; departmentId?: string; managerId?: string }) {
+export async function getEmployeeIdsForScope(filters?: EmployeeScopeFilters) {
   const employees = await getEmployeesForScope(filters)
   return employees.map((emp) => emp.id)
 }
@@ -112,15 +152,16 @@ export async function getTodaysSubmissions(userId: string, date?: Date) {
  */
 export async function getMissingSubmissions(
   date: Date,
-  filters?: { teamId?: string; departmentId?: string; managerId?: string }
+  filters?: EmployeeScopeFilters
 ) {
   const employees = await getEmployeesForScope(filters)
 
+  const hasScope = filters && (filters.teamId || filters.departmentId || filters.managerId || (filters.tags && filters.tags.length > 0))
   // Get all submissions for that date
   const submissions = await prisma.dailyNotepadSubmission.findMany({
     where: {
       date,
-      ...(filters?.teamId || filters?.departmentId || filters?.managerId
+      ...(hasScope
         ? {
             userId: {
               in: employees.map((emp) => emp.id),
@@ -147,12 +188,13 @@ export async function getMissingSubmissions(
 export async function getSubmissionStats(
   startDate: Date,
   endDate: Date,
-  filters?: { teamId?: string; departmentId?: string; managerId?: string }
+  filters?: EmployeeScopeFilters
 ) {
   const scopedEmployees = await getEmployeesForScope(filters)
   const employeeIds = scopedEmployees.map((emp) => emp.id)
   const employees = scopedEmployees.length
 
+  const hasScope = filters && (filters.teamId || filters.departmentId || filters.managerId || (filters.tags && filters.tags.length > 0))
   const submissions = await prisma.dailyNotepadSubmission.groupBy({
     by: ['date'],
     where: {
@@ -160,7 +202,7 @@ export async function getSubmissionStats(
         gte: startDate,
         lte: endDate,
       },
-      ...(filters?.teamId || filters?.departmentId || filters?.managerId
+      ...(hasScope
         ? {
             userId: {
               in: employeeIds,
@@ -197,8 +239,9 @@ export async function getSubmissions(filters: {
   endDate?: Date
   departmentId?: string
   managerId?: string
+  tags?: { key: string; value: string }[]
 }) {
-  const where: any = {}
+  const where: Record<string, unknown> = {}
 
   if (filters.date) {
     where.date = filters.date
@@ -215,12 +258,12 @@ export async function getSubmissions(filters: {
     where.userId = filters.userId
   }
 
-  if (filters.teamId || filters.departmentId || filters.managerId) {
-    // Get user IDs for this team
+  if (filters.teamId || filters.departmentId || filters.managerId || (filters.tags && filters.tags.length > 0)) {
     const employees = await getEmployeesForScope({
       teamId: filters.teamId,
       departmentId: filters.departmentId,
       managerId: filters.managerId,
+      tags: filters.tags,
     })
     where.userId = { in: employees.map((e) => e.id) }
   }
