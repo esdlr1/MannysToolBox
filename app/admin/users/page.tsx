@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Users, Shield, UserCheck, Tag, UserPlus, Building2, Loader2, UsersRound } from 'lucide-react'
@@ -23,7 +23,7 @@ const TABS: { id: TabId; label: string; icon: typeof Shield; superAdminOnly?: bo
   { id: 'create', label: 'Create user', icon: UserPlus, superAdminOnly: true },
 ]
 
-export default function AdminUsersPage() {
+function AdminUsersPageContent() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -129,5 +129,19 @@ export default function AdminUsersPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function AdminUsersPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <AdminUsersPageContent />
+    </Suspense>
   )
 }
