@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
       ? `Supplement_Tracker_${format(new Date(weekStartParam), 'yyyy-MM-dd')}.pdf`
       : `Supplement_Tracker_${format(new Date(), 'yyyy-MM-dd')}.pdf`
 
-    return new NextResponse(pdfBytes, {
+    return new NextResponse(Buffer.from(pdfBytes), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
