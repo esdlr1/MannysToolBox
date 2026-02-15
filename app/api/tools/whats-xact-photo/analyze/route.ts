@@ -211,10 +211,11 @@ Your response will be validated against the 13k+ Xactimate database. The system 
     })
 
     if (aiResponse.error) {
+      console.error('[Whats Xact Photo Analyze] OpenAI error:', aiResponse.error)
       if (isOpenAIAuthError(aiResponse.error)) {
         return NextResponse.json(
           { error: 'OpenAI API key is missing or invalid. Set OPENAI_API_KEY and restart the server.' },
-          { status: 401 }
+          { status: 503 }
         )
       }
       throw new Error(aiResponse.error)
@@ -552,11 +553,11 @@ Your response will be validated against the 13k+ Xactimate database. The system 
 
     return NextResponse.json(result)
   } catch (error: any) {
-    console.error('[Whats Xact Photo] Error:', error)
+    console.error('[Whats Xact Photo] Error:', error?.message ?? error)
     if (isOpenAIAuthError(error)) {
       return NextResponse.json(
         { error: 'OpenAI API key is missing or invalid. Set OPENAI_API_KEY and restart the server.' },
-        { status: 401 }
+        { status: 503 }
       )
     }
     return NextResponse.json(

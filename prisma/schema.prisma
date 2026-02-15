@@ -51,6 +51,9 @@ model User {
   createdContractors              Contractor[]                 @relation("ContractorCreator")
   logicRules                      LogicRule[]
   supplementTrackerEntries        SupplementTracker[]
+  contentsInvSubmissions          ContentsInvSubmission[]
+  contentsInvAccessGrants         ContentsInvAccess[]         @relation("ContentsInvAccessGrantedBy")
+  contentsInvAccess               ContentsInvAccess[]          @relation("ContentsInvAccessUser")
 
   @@index([departmentId])
   @@map("users")
@@ -581,4 +584,52 @@ model SupplementTracker {
   @@index([userId, weekStartDate])
   @@index([createdAt])
   @@map("supplement_tracker")
+}
+
+// Contents INV - Invoice form with configurable items (numbers only)
+model ContentsInvFormItem {
+  id        String   @id @default(cuid())
+  label     String   @db.Text   // Question/item text shown next to the input
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@index([isActive])
+  @@map("contents_inv_form_items")
+}
+
+model ContentsInvSubmission {
+  id                String   @id @default(cuid())
+  userId            String
+  clientName        String
+  address           String   @db.Text
+  customerJobCode   String
+  answers           Json     // { formItemId: number, ... } - numbers only
+  notes             String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([clientName])
+  @@map("contents_inv_submissions")
+}
+
+// Super Admin can grant specific users access to view the master list
+model ContentsInvAccess {
+  id          String   @id @default(cuid())
+  userId      String   // User who can view master list
+  grantedById String   // Super Admin who granted access
+  createdAt   DateTime @default(now())
+
+  user      User @relation("ContentsInvAccessUser", fields: [userId], references: [id], onDelete: Cascade)
+  grantedBy User @relation("ContentsInvAccessGrantedBy", fields: [grantedById], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@index([userId])
+  @@map("contents_inv_access")
 }

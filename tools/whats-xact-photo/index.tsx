@@ -45,6 +45,12 @@ export default function WhatsXactPhotoTool() {
   const [searching, setSearching] = useState(false)
   const [showSearchResults, setShowSearchResults] = useState(false)
 
+  // AI describe-what-you-need search (optional photo)
+  const [describeQuery, setDescribeQuery] = useState('')
+  const [smartResults, setSmartResults] = useState<SearchResult[]>([])
+  const [smartSearching, setSmartSearching] = useState(false)
+  const [showSmartResults, setShowSmartResults] = useState(false)
+
   const handleUpload = (uploadedFile: { id: string; filename: string; originalName: string; url: string }) => {
     setFile(uploadedFile)
     setError('')
@@ -112,6 +118,38 @@ export default function WhatsXactPhotoTool() {
     }
   }
 
+  const handleSmartSearch = async () => {
+    const q = describeQuery.trim()
+    if (!q) {
+      setError('Please describe what you\'re looking for or what it\'s used for.')
+      return
+    }
+    setSmartSearching(true)
+    setError('')
+    setShowSmartResults(true)
+    try {
+      const response = await fetch('/api/tools/whats-xact-photo/smart-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: q,
+          fileId: file?.id || undefined,
+        }),
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Search failed')
+      }
+      const data = await response.json()
+      setSmartResults(data.results || [])
+    } catch (err: any) {
+      setSmartResults([])
+      setError(err.message || 'AI search failed')
+    } finally {
+      setSmartSearching(false)
+    }
+  }
+
   const handleAnalyze = async () => {
     if (!file || !session?.user?.id) {
       setError('Please upload a photo first.')
@@ -166,13 +204,163 @@ export default function WhatsXactPhotoTool() {
                 Whats Xact - Photo
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
-                Upload a photo of construction or damage. AI will identify all visible line items with Xactimate codes, descriptions, and quantities.
+                Describe what you need or upload a photo. AI will suggest Xactimate line items—adding a photo is optional but helps.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Xactimate Line Item Search */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+            <p className="text-sm text-red-800 dark:text-red-200 font-medium">{error}</p>
+          </div>
+        )}
+
+        {/* Describe what you're looking for — AI + optional photo */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-8 mb-8">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="w-5 h-5 text-red-600 dark:text-red-400" />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Describe what you&apos;re looking for
+            </h2>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Tell us what you need or what it&apos;s used for—AI will suggest the right Xactimate line items. Adding a photo below is optional but helps AI give better results.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+              <input
+                type="text"
+                value={describeQuery}
+                onChange={(e) => { setDescribeQuery(e.target.value); setError('') }}
+                onKeyDown={(e) => e.key === 'Enter' && handleSmartSearch()}
+                placeholder="e.g. fix drywall hole in bedroom, paint living room, plumbing under sink..."
+                className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500 dark:focus:ring-red-600"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleSmartSearch}
+              disabled={smartSearching || !describeQuery.trim()}
+              className="py-3 px-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shrink-0"
+            >
+              {smartSearching ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Finding...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Find line items
+                </>
+              )}
+            </button>
+          </div>
+
+          {showSmartResults && (
+            <div className="mt-4">
+              {smartSearching ? null : smartResults.length > 0 ? (
+                <div className="max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <div className="p-2 text-xs font-semibold text-gray-600 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-red-500" />
+                    AI suggested {smartResults.length} item{smartResults.length !== 1 ? 's' : ''}
+                  </div>
+                  <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {smartResults.map((item, idx) => (
+                      <div
+                        key={`${item.code}-${idx}`}
+                        className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setDescribeQuery(`${item.code} - ${item.description}`)
+                        }}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="text-xs font-mono font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded">
+                                {item.code}
+                              </span>
+                              {item.category && (
+                                <span className="text-xs text-gray-500 dark:text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">
+                                  {item.category}
+                                </span>
+                              )}
+                              {item.unit && (
+                                <span className="text-xs text-gray-500 dark:text-gray-500">
+                                  {item.unit}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-900 dark:text-white">
+                              {item.description}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 rounded-lg">
+                  No matching items found. Try a different description or add a photo.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Optional photo upload — helps AI, not required */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-8 mb-8">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+            Add a photo (optional)
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Adding a photo can help AI give better results. Not required.
+          </p>
+          <FileUpload
+            toolId="whats-xact-photo"
+            onUploadComplete={handleUpload}
+            accept={{ 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] }}
+            maxSize={10 * 1024 * 1024}
+          />
+          {file && (
+            <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+              Uploaded: <span className="font-medium">{file.originalName}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Analyze Photo — when user has a photo and wants full image analysis */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-8 mb-8">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            Analyze photo for line items
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Upload a photo above, then click below to have AI identify all visible line items in the image.
+          </p>
+          <button
+            onClick={handleAnalyze}
+            disabled={!file || processing}
+            className="w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30"
+          >
+            {processing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Analyzing Photo...
+              </>
+            ) : (
+              <>
+                <ImageIcon className="w-5 h-5" />
+                Analyze Photo
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Xactimate Line Item Search — keyword search */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-8 mb-8">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="w-5 h-5 text-red-600 dark:text-red-400" />
@@ -249,46 +437,6 @@ export default function WhatsXactPhotoTool() {
               No matching items found. Try a different search term.
             </div>
           )}
-        </div>
-
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-xl p-8 mb-8">
-          <FileUpload
-            toolId="whats-xact-photo"
-            onUploadComplete={handleUpload}
-            accept={{ 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] }}
-            maxSize={10 * 1024 * 1024} // 10MB
-          />
-
-          {file && (
-            <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-              Uploaded: <span className="font-medium">{file.originalName}</span>
-            </div>
-          )}
-
-          {error && (
-            <div className="mt-6 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-              <p className="text-sm text-red-800 dark:text-red-200 font-medium">{error}</p>
-            </div>
-          )}
-
-          <button
-            onClick={handleAnalyze}
-            disabled={!file || processing}
-            className="mt-6 w-full py-3 px-6 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-red-500/25 hover:shadow-xl hover:shadow-red-500/30"
-          >
-            {processing ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Analyzing Photo...
-              </>
-            ) : (
-              <>
-                <ImageIcon className="w-5 h-5" />
-                Analyze Photo
-              </>
-            )}
-          </button>
         </div>
 
         {result && (

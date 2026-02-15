@@ -9,4 +9,6 @@ export interface Tool {
   usesAI?: boolean
   supportsFileUpload?: boolean
   icon?: string
+  /** When false, tool is hidden from pickers and direct access returns 404. Default true. */
+  enabled?: boolean
 }

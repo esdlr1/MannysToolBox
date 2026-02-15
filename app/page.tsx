@@ -4,6 +4,7 @@ import { getTools } from '@/lib/tools'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ToolDropdown } from '@/components/ui/tool-dropdown'
+import { ToolShortcuts } from '@/components/ToolShortcuts'
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { Pin, AlertCircle, Info, AlertTriangle, X } from 'lucide-react'
@@ -328,6 +329,9 @@ export default function Home() {
               />
             </div>
           </div>
+
+          {/* User tool shortcuts (when logged in) */}
+          {session?.user && <ToolShortcuts />}
 
           {/* Beautiful Animated Dropdown */}
           <ToolDropdown tools={getTools()} placeholder="Pick your tool" />

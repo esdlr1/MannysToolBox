@@ -82,6 +82,18 @@ const SupplementTrackerTool = dynamic(
   }
 )
 
+const ContentsInvTool = dynamic(
+  () => import('@/tools/contents-inv'),
+  { 
+    loading: () => (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      </div>
+    ),
+    ssr: false 
+  }
+)
+
 // Tool component registry
 const toolComponents: Record<string, React.ComponentType> = {
   'estimate-comparison': EstimateComparisonTool,
@@ -90,6 +102,7 @@ const toolComponents: Record<string, React.ComponentType> = {
   'whats-xact-photo': WhatsXactPhotoTool,
   'photoxact': PhotoXactTool,
   'supplement-tracker': SupplementTrackerTool,
+  'contents-inv': ContentsInvTool,
 }
 
 export function ToolRenderer({ toolId }: ToolRendererProps) {

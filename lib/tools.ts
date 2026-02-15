@@ -13,6 +13,7 @@ const tools: Tool[] = [
     requiresAuth: true,
     usesAI: true,
     supportsFileUpload: true,
+    enabled: false, // Hidden for now
   },
   {
     id: 'estimate-comparison',
@@ -57,6 +58,7 @@ const tools: Tool[] = [
     requiresAuth: true,
     usesAI: true,
     supportsFileUpload: true,
+    enabled: false, // Hidden for now
   },
   {
     id: 'supplement-tracker',
@@ -65,6 +67,17 @@ const tools: Tool[] = [
     category: 'Productivity',
     subdomain: 'supplement-tracker',
     component: 'tools/supplement-tracker/index',
+    requiresAuth: true,
+    usesAI: false,
+    supportsFileUpload: false,
+  },
+  {
+    id: 'contents-inv',
+    name: 'Contents INV',
+    description: 'Create invoices with client name, address, job code, and numeric answers. Submit to save; managers and authorized users can view all submissions.',
+    category: 'Productivity',
+    subdomain: 'contents-inv',
+    component: 'tools/contents-inv/index',
     requiresAuth: true,
     usesAI: false,
     supportsFileUpload: false,
@@ -93,33 +106,39 @@ export function registerTool(tool: Tool): void {
   }
 }
 
+function isEnabled(tool: Tool): boolean {
+  return tool.enabled !== false
+}
+
 export function getTools(): Tool[] {
-  return tools
+  return tools.filter(isEnabled)
 }
 
 export function getToolsByCategory(): Record<string, Tool[]> {
   const categorized: Record<string, Tool[]> = {}
-  
-  tools.forEach(tool => {
+  tools.filter(isEnabled).forEach(tool => {
     const category = tool.category || 'Uncategorized'
     if (!categorized[category]) {
       categorized[category] = []
     }
     categorized[category].push(tool)
   })
-  
   return categorized
 }
 
 export function getCategories(): string[] {
-  const categories = new Set(tools.map(tool => tool.category || 'Uncategorized'))
+  const categories = new Set(
+    tools.filter(isEnabled).map(tool => tool.category || 'Uncategorized')
+  )
   return Array.from(categories).sort()
 }
 
 export function getToolById(id: string): Tool | undefined {
-  return tools.find(tool => tool.id === id)
+  const tool = tools.find(t => t.id === id)
+  return tool && isEnabled(tool) ? tool : undefined
 }
 
 export function getToolBySubdomain(subdomain: string): Tool | undefined {
-  return tools.find(tool => tool.subdomain === subdomain)
+  const tool = tools.find(t => t.subdomain === subdomain)
+  return tool && isEnabled(tool) ? tool : undefined
 }
