@@ -5,6 +5,27 @@ import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
+// Default form items if DB is empty (e.g. first deploy or new environment)
+const DEFAULT_FORM_ITEMS = [
+  'Inventory Hours',
+  'Supervisor on site hours',
+  'content pack-out labor',
+  'PPE',
+  'Floor Protection',
+  'Small box',
+  'Medium box',
+  'Wardrobe Box',
+  'TV/Picture box',
+  'Mattress Bag Furniture Blankets',
+  "Stretch Wrap (20'x1000')",
+  "Hand Wrap (5\"1000')",
+  'Packing Paper (LF Used)',
+  'Bubble Wrap (LF) Used)',
+  'Storage Vault Sanitation (Number of vaults)',
+  'Offsite Storage (Per CF)',
+  'Moving Trucks',
+]
+
 // GET - List form items (questions) for the Contents INV form, ordered by sortOrder
 export async function GET() {
   try {
@@ -13,11 +34,27 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const items = await prisma.contentsInvFormItem.findMany({
+    let items = await prisma.contentsInvFormItem.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
       select: { id: true, label: true, sortOrder: true },
     })
+
+    // If no items (e.g. first deploy on Railway), seed defaults so the form works without running the script
+    if (items.length === 0) {
+      await prisma.$transaction(
+        DEFAULT_FORM_ITEMS.map((label, sortOrder) =>
+          prisma.contentsInvFormItem.create({
+            data: { label, sortOrder, isActive: true },
+          })
+        )
+      )
+      items = await prisma.contentsInvFormItem.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: 'asc' },
+        select: { id: true, label: true, sortOrder: true },
+      })
+    }
 
     return NextResponse.json({ items })
   } catch (error) {
