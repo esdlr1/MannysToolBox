@@ -434,7 +434,7 @@ export default function ContractorsPage() {
         {/* Scope filters (Manager / Owner / Super Admin) */}
         <div className="mb-4">
           <ScopeFilters
-            effectiveRole={effectiveRole}
+            effectiveRole={effectiveRole ?? ''}
             values={scopeFilters}
             onChange={setScopeFilters}
           />
