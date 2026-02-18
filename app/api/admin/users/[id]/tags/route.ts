@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
 import { getUserTags, setUserTags, type TagRecord } from '@/lib/user-tags'
+import { requireSuperAdmin } from '@/lib/admin-auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,17 +10,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
-    if (user?.role !== 'Super Admin') {
-      return NextResponse.json({ error: 'Forbidden - Super Admin only' }, { status: 403 })
-    }
+    const auth = await requireSuperAdmin()
+    if ('error' in auth) return auth.error
     const { id: userId } = await params
     const tags = await getUserTags(userId)
     return NextResponse.json({ tags })
@@ -38,17 +27,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
-    if (user?.role !== 'Super Admin') {
-      return NextResponse.json({ error: 'Forbidden - Super Admin only' }, { status: 403 })
-    }
+    const auth = await requireSuperAdmin()
+    if ('error' in auth) return auth.error
     const { id: userId } = await params
     const body = await request.json()
     const raw = Array.isArray(body.tags) ? body.tags : []

@@ -2,18 +2,11 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { canViewAllContentsInvSubmissions } from '@/lib/contents-inv-access'
 
 export const dynamic = 'force-dynamic'
 
-async function canViewMasterList(userId: string, role: string | null | undefined): Promise<boolean> {
-  if (role === 'Super Admin' || role === 'Owner' || role === 'Manager') return true
-  const access = await prisma.contentsInvAccess.findUnique({
-    where: { userId },
-  })
-  return !!access
-}
-
-// GET - List submissions: Employees see only their own; Managers, Owner, Super Admin, and granted Access see all
+// GET - List submissions: Employees see only their own; Estimating managers, Owner, Super Admin, and granted Access see all
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
@@ -21,16 +14,24 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const canViewAll = await canViewMasterList(
+    const canViewAll = await canViewAllContentsInvSubmissions(
       session.user.id,
       session.user.role
     )
 
+    // Employees (or non-Estimating managers) see own submissions + submissions assigned to them
+    const where = canViewAll
+      ? undefined
+      : { OR: [{ userId: session.user.id }, { assignedToId: session.user.id }] }
+
     const submissions = await prisma.contentsInvSubmission.findMany({
-      where: canViewAll ? undefined : { userId: session.user.id },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         user: {
+          select: { id: true, name: true, email: true },
+        },
+        assignedTo: {
           select: { id: true, name: true, email: true },
         },
       },

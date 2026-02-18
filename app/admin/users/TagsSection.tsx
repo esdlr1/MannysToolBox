@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Loader2, User, Plus, X } from 'lucide-react'
+import { Loader2, Plus, X, UserCheck } from 'lucide-react'
 
 type TagRecord = { key: string; value: string }
 
@@ -16,27 +16,65 @@ interface UserWithTags {
   tags: TagRecord[]
 }
 
+interface Assignment {
+  managerId: string
+  employeeId: string
+}
+
+interface Manager {
+  id: string
+  name: string | null
+  email: string
+}
+
 export default function TagsSection() {
   const [users, setUsers] = useState<UserWithTags[]>([])
+  const [assignments, setAssignments] = useState<Assignment[]>([])
+  const [managers, setManagers] = useState<Manager[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTags, setEditTags] = useState<TagRecord[]>([])
   const [saving, setSaving] = useState(false)
 
+  const employeeToManagerName = useMemo(() => {
+    const map = new Map<string, string>()
+    const managerById = new Map(managers.map((m) => [m.id, m.name || m.email]))
+    for (const a of assignments) {
+      const name = managerById.get(a.managerId) ?? 'Unknown'
+      map.set(a.employeeId, name)
+    }
+    return map
+  }, [assignments, managers])
+
+  const sortedUsers = useMemo(() => {
+    const employees = users.filter((u) => u.role === 'Employee')
+    const others = users.filter((u) => u.role !== 'Employee')
+    return [...employees, ...others]
+  }, [users])
+
   useEffect(() => {
-    fetchUsers()
+    fetchData()
   }, [])
 
-  const fetchUsers = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await fetch('/api/admin/users')
-      if (!res.ok) throw new Error('Failed to load users')
-      const data = await res.json()
-      setUsers(data.users || [])
+      setError('')
+      const [usersRes, assignmentsRes] = await Promise.all([
+        fetch('/api/admin/users'),
+        fetch('/api/admin/manager-assignments'),
+      ])
+      if (!usersRes.ok) throw new Error('Failed to load users')
+      const usersData = await usersRes.json()
+      setUsers(usersData.users || [])
+      if (assignmentsRes.ok) {
+        const assignData = await assignmentsRes.json()
+        setAssignments(assignData.assignments || [])
+        setManagers(assignData.managers || [])
+      }
     } catch (e: any) {
-      setError(e?.message || 'Failed to load users')
+      setError(e?.message || 'Failed to load data')
     } finally {
       setLoading(false)
     }
@@ -106,7 +144,7 @@ export default function TagsSection() {
     <div className="space-y-4">
       <p className="text-muted-foreground text-sm">
         Assign tags (branch, location, position, etc.) to control what each user can see across tools.
-        You don’t create tags separately—when you click Edit tags, add any key-value pair (e.g. branch=North, location=NYC).
+        Employees are listed first with their manager. Click Edit tags to add key-value pairs (e.g. branch=North, location=NYC).
       </p>
       {error && (
         <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-md text-sm">
@@ -116,23 +154,30 @@ export default function TagsSection() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
-            <User className="w-4 h-4" />
-            Users & tags
+            <UserCheck className="w-4 h-4" />
+            Employees & users with tags
           </CardTitle>
           <CardDescription>
-            Click Edit tags to set branch, location, position, or any key-value.
+            All employees are listed with their manager. Other roles follow. Click Edit tags to set branch, location, position, or any key-value.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {users.map((u) => (
+            {sortedUsers.map((u) => (
               <div
                 key={u.id}
                 className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-lg border bg-card"
               >
                 <div className="min-w-0">
                   <p className="font-medium truncate text-sm">{u.name || u.email}</p>
-                  <p className="text-xs text-muted-foreground truncate">{u.email} · {u.role ?? '—'}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {u.email} · {u.role ?? '—'}
+                    {u.role === 'Employee' && (
+                      <span className="ml-1">
+                        · Manager: {employeeToManagerName.get(u.id) ?? '—'}
+                      </span>
+                    )}
+                  </p>
                   {u.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {u.tags.map((t) => (

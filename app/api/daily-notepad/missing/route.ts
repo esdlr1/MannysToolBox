@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const dateParam = searchParams.get('date')
-    const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
     const tags = parseTagsFromQuery(searchParams)
     const managerId = user.role === 'Manager' ? session.user.id : (searchParams.get('managerId') || undefined)
@@ -47,7 +46,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    const missing = await getMissingSubmissions(targetDate, { teamId, departmentId, managerId, tags: tags.length ? tags : undefined })
+    const missing = await getMissingSubmissions(targetDate, { departmentId, managerId, tags: tags.length ? tags : undefined })
 
     return NextResponse.json({
       success: true,

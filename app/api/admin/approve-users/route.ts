@@ -1,33 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { requireSuperAdmin } from '@/lib/admin-auth'
 
-// Mark as dynamic route since it uses getServerSession
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    // Check if user is Super Admin
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id }
-    })
-
-    if (user?.role !== 'Super Admin') {
-      return NextResponse.json(
-        { error: 'Forbidden - Super Admin access required' },
-        { status: 403 }
-      )
-    }
+    const auth = await requireSuperAdmin()
+    if ('error' in auth) return auth.error
 
     // Get pending approval users (Owner and Manager roles)
     const pendingUsers = await prisma.user.findMany({
@@ -61,26 +41,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    // Check if user is Super Admin
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id }
-    })
-
-    if (user?.role !== 'Super Admin') {
-      return NextResponse.json(
-        { error: 'Forbidden - Super Admin access required' },
-        { status: 403 }
-      )
-    }
+    const auth = await requireSuperAdmin()
+    if ('error' in auth) return auth.error
 
     const { userId, approved } = await request.json()
 

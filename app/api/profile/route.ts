@@ -18,7 +18,7 @@ export async function GET() {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      include: { profile: true }
+      select: { name: true, email: true, role: true, createdAt: true, profile: { select: { bio: true } } },
     })
 
     if (!user) {
@@ -31,6 +31,7 @@ export async function GET() {
     return NextResponse.json({
       name: user.name,
       email: user.email,
+      role: user.role,
       bio: user.profile?.bio || null,
       createdAt: user.createdAt,
     })

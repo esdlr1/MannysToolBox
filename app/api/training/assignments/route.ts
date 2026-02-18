@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
+import { getEmployeeIdsForScope, parseTagsFromQuery } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,24 +18,37 @@ export async function GET(request: NextRequest) {
     const employeeId = searchParams.get('employeeId')
     const courseId = searchParams.get('courseId')
     const status = searchParams.get('status')
+    const departmentId = searchParams.get('departmentId') || undefined
+    const managerIdParam = searchParams.get('managerId') || undefined
+    const tags = parseTagsFromQuery(searchParams)
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { role: true },
     })
 
-    // Build where clause based on role
-    const where: any = {}
-    
+    const where: Record<string, unknown> = {}
+
     if (user?.role === 'Employee') {
-      // Employees can only see their own assignments
       where.employeeId = session.user.id
     } else if (user?.role === 'Manager') {
-      // Managers can see assignments for everyone in their subtree (direct + indirect reports)
-      const employeeIds = await getEmployeeIdsForScope({ managerId: session.user.id })
+      const employeeIds = await getEmployeeIdsForScope({
+        managerId: session.user.id,
+        departmentId,
+        tags: tags.length ? tags : undefined,
+      })
       where.employeeId = { in: employeeIds }
+    } else if (user?.role === 'Owner' || user?.role === 'Super Admin') {
+      const hasScope = departmentId || managerIdParam || (tags.length > 0)
+      if (hasScope) {
+        const employeeIds = await getEmployeeIdsForScope({
+          departmentId,
+          managerId: managerIdParam,
+          tags: tags.length ? tags : undefined,
+        })
+        where.employeeId = { in: employeeIds }
+      }
     }
-    // Owners/Admins can see all
 
     if (employeeId) {
       where.employeeId = employeeId

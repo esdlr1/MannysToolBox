@@ -1,0 +1,42 @@
+# Product decisions: scoping, settings, and roles
+
+## 1. Estimate / reconstruction tools
+
+- **Reuse the same scoping** when adding "who can see this estimate" or "assign to location/branch."
+- Use the existing model: tags (location, branch, business) + manager subtree + team/department via `getEmployeeIdsForScope` and `EmployeeScopeFilters` in `lib/daily-notepad.ts` (and `lib/org-hierarchy.ts` for manager subtree).
+- No separate permission/visibility model for estimates; align with the rest of the platform.
+
+## 2. Location and Branch (first-class later)
+
+- Right now: location and branch are **free-form tags** (UserTag key/value). Filtering uses tag-options and tag-based scoping.
+- **Later:** Add first-class **Location** and **Branch** as admin-managed lists when management provides the official list.
+- **Where to manage:** Super Admin should add and manage these in **Settings**. Plan for a Settings area where Super Admin can:
+  - Add/edit/remove **Locations** (and optionally **Branches**).
+  - These can drive dropdowns and optionally sync to or replace tag-based filtering when implemented.
+
+## 3. Filtering in other tools
+
+- **Daily Notepad** already has the full filter bar: Department, Team, Location, Branch, Business, Manager.
+- **Training, Contacts, Contractors,** and similar tools should eventually get the **same or a subset** of these filters so that **Managers, Owners, and Super Admin** can slice by location, branch, and manager there too.
+- Implementation: use `getEmployeeIdsForScope` with `departmentId`, `teamId`, `managerId`, and `tags` (location, branch, business) in those tools’ APIs and UIs, consistent with Daily Notepad.
+
+## 4. Tenancy
+
+- **Current:** One big company with several businesses under it (single DB, single app; tags/teams/departments separate divisions).
+- No multi-tenant (separate orgs/databases) required for now.
+
+## 5. Roles and visibility
+
+- **Current roles:** Super Admin, Owner, Manager, Employee (and "view as" for testing).
+- **Future roles:** There may be additional roles later. When needed:
+  - **Option A:** Super Admin can add/manage roles in **Settings** (e.g. custom role list or labels).
+  - **Option B:** Visibility can be determined by **tags** assigned to the employee (tag-based access) instead of or in addition to role.
+- Keep flexibility for either role-based or tag-based visibility as requirements clarify.
+
+## 6. Super Admin and Settings
+
+- Super Admin should be able to **customize everything** and add things like:
+  - Locations (and Branches) when first-class lists are added.
+  - Roles (if we support custom roles).
+  - Other org-wide options as needed.
+- Implement a **Settings** area (e.g. `/admin/settings` or under Admin) restricted to Super Admin for these options.

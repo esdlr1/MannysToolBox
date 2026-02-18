@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRoleView } from '@/contexts/RoleViewContext'
 import { Building2, Phone, Mail, MapPin, Wrench, Plus, Edit, Search, Trash2, Loader2 } from 'lucide-react'
+import { ScopeFilters, buildScopeQueryParams, defaultScopeFiltersValues, type ScopeFiltersValues } from '@/components/ScopeFilters'
 import { format } from 'date-fns'
 
 const US_STATES = [
@@ -81,6 +83,7 @@ interface Contractor {
 
 export default function ContractorsPage() {
   const { data: session } = useSession()
+  const { effectiveRole } = useRoleView()
   const [contractors, setContractors] = useState<Contractor[]>([])
   const [loading, setLoading] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -99,17 +102,14 @@ export default function ContractorsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterSpecialty, setFilterSpecialty] = useState<string>('all')
   const [error, setError] = useState('')
+  const [scopeFilters, setScopeFilters] = useState<ScopeFiltersValues>(defaultScopeFiltersValues)
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      loadContractors()
-    }
-  }, [session])
-
-  const loadContractors = async () => {
+  const loadContractors = useCallback(async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/contractors')
+      const query = buildScopeQueryParams(scopeFilters)
+      const url = query ? `/api/contractors?${query}` : '/api/contractors'
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
         setContractors(data.contractors || [])
@@ -119,7 +119,13 @@ export default function ContractorsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [scopeFilters])
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      loadContractors()
+    }
+  }, [session, loadContractors])
 
   const handleSaveContractor = async () => {
     if (!contractorForm.name.trim()) {
@@ -424,6 +430,15 @@ export default function ContractorsPage() {
             </div>
           </div>
         )}
+
+        {/* Scope filters (Manager / Owner / Super Admin) */}
+        <div className="mb-4">
+          <ScopeFilters
+            effectiveRole={effectiveRole}
+            values={scopeFilters}
+            onChange={setScopeFilters}
+          />
+        </div>
 
         {/* Filters */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">

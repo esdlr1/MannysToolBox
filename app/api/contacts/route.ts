@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getEmployeeIdsForScope } from '@/lib/daily-notepad'
+import { getEmployeeIdsForScope, parseTagsFromQuery } from '@/lib/daily-notepad'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,18 +19,33 @@ export async function GET(request: NextRequest) {
       select: { role: true },
     })
 
-    // Build where clause based on role
-    let where: any = {}
-    
+    const { searchParams } = new URL(request.url)
+    const departmentId = searchParams.get('departmentId') || undefined
+    const managerIdParam = searchParams.get('managerId') || undefined
+    const tags = parseTagsFromQuery(searchParams)
+
+    let where: Record<string, unknown> = {}
+
     if (user?.role === 'Employee') {
-      // Employees can only see their own contact
       where.userId = session.user.id
     } else if (user?.role === 'Manager') {
-      // Managers can see contacts for everyone in their subtree (direct + indirect reports)
-      const employeeIds = await getEmployeeIdsForScope({ managerId: session.user.id })
+      const employeeIds = await getEmployeeIdsForScope({
+        managerId: session.user.id,
+        departmentId,
+        tags: tags.length ? tags : undefined,
+      })
       where.userId = { in: employeeIds }
+    } else if (user?.role === 'Owner' || user?.role === 'Super Admin') {
+      const hasScope = departmentId || managerIdParam || (tags.length > 0)
+      if (hasScope) {
+        const employeeIds = await getEmployeeIdsForScope({
+          departmentId,
+          managerId: managerIdParam,
+          tags: tags.length ? tags : undefined,
+        })
+        where.userId = { in: employeeIds }
+      }
     }
-    // Owners/Admins can see all
 
     const contacts = await prisma.employeeContact.findMany({
       where,

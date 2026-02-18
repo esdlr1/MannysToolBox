@@ -30,6 +30,25 @@ export async function GET(request: NextRequest) {
     const key = searchParams.get('key')?.trim()
 
     if (key) {
+      // Use managed Location/Branch lists from Settings when available
+      if (key === 'location') {
+        const locations = await prisma.location.findMany({
+          orderBy: [{ state: { name: 'asc' } }, { name: 'asc' }],
+          select: { name: true, state: { select: { name: true } } },
+        })
+        return NextResponse.json({
+          values: locations.map((r) => `${r.state.name} – ${r.name}`),
+        })
+      }
+      if (key === 'branch') {
+        const branches = await prisma.branch.findMany({
+          orderBy: [{ state: { name: 'asc' } }, { name: 'asc' }],
+          select: { name: true, state: { select: { name: true } } },
+        })
+        return NextResponse.json({
+          values: branches.map((r) => (r.state ? `${r.state.name} – ${r.name}` : r.name)),
+        })
+      }
       const rows = await prisma.userTag.findMany({
         where: { key },
         select: { value: true },

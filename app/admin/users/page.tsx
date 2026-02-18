@@ -3,35 +3,44 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Users, Shield, UserCheck, Tag, UserPlus, Building2, Loader2, UsersRound } from 'lucide-react'
+import { Users, Shield, UserCheck, Tag, UserPlus, Building2, Loader2, UserCog } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import ApprovalsSection from './ApprovalsSection'
 import ManagerAssignmentsSection from './ManagerAssignmentsSection'
 import TagsSection from './TagsSection'
 import CreateUserSection from './CreateUserSection'
 import DepartmentsSection from './DepartmentsSection'
-import TeamsSection from './TeamsSection'
+import AssignUserSection from './AssignUserSection'
 
-type TabId = 'approvals' | 'managers' | 'tags' | 'departments' | 'teams' | 'create'
+type TabId = 'assign' | 'approvals' | 'managers' | 'tags' | 'departments' | 'create'
 
 const TABS: { id: TabId; label: string; icon: typeof Shield; superAdminOnly?: boolean; ownerOrSuperAdmin?: boolean }[] = [
+  { id: 'assign', label: 'Assign user', icon: UserCog, superAdminOnly: true },
   { id: 'approvals', label: 'User Approvals', icon: Shield, superAdminOnly: true },
   { id: 'managers', label: 'Manager Assignments', icon: UserCheck, ownerOrSuperAdmin: true },
-  { id: 'tags', label: 'Employee Tags', icon: Tag, superAdminOnly: true },
+  { id: 'tags', label: 'Tags', icon: Tag, superAdminOnly: true },
   { id: 'departments', label: 'Departments', icon: Building2, superAdminOnly: true },
-  { id: 'teams', label: 'Teams', icon: UsersRound, ownerOrSuperAdmin: true },
   { id: 'create', label: 'Create user', icon: UserPlus, superAdminOnly: true },
 ]
+
+function normalizeRole(role: string | null | undefined): string | null {
+  const r = (role ?? '').trim()
+  return r === '' ? null : r
+}
 
 function AdminUsersPageContent() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [tab, setTab] = useState<TabId>('approvals')
+  const [fetchedRole, setFetchedRole] = useState<string | null | undefined>(undefined)
 
-  const isSuperAdmin = session?.user?.role === 'Super Admin'
-  const isOwner = session?.user?.role === 'Owner'
+  const sessionRole = normalizeRole(session?.user?.role as string | null | undefined)
+  const effectiveRole = sessionRole ?? (fetchedRole !== undefined ? fetchedRole : null)
+  const isSuperAdmin = effectiveRole === 'Super Admin' || effectiveRole === 'SuperAdmin'
+  const isOwner = effectiveRole === 'Owner'
   const canAccess = isSuperAdmin || isOwner
+  const roleKnown = sessionRole != null || fetchedRole !== undefined
 
   useEffect(() => {
     if (status === 'loading') return
@@ -39,16 +48,23 @@ function AdminUsersPageContent() {
       router.push('/auth/signin')
       return
     }
-    if (!canAccess) {
-      router.push('/')
-      return
+    if (sessionRole == null && session.user?.id && fetchedRole === undefined) {
+      fetch('/api/profile', { credentials: 'include' })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => setFetchedRole(data?.role != null ? normalizeRole(data.role) : null))
+        .catch(() => setFetchedRole(null))
     }
-  }, [session, status, canAccess, router])
+  }, [session, status, sessionRole, fetchedRole])
+
+  useEffect(() => {
+    if (status === 'loading' || !session) return
+    if (roleKnown && !canAccess) router.push('/')
+  }, [session, status, canAccess, roleKnown, router])
 
   useEffect(() => {
     const t = searchParams.get('tab') as TabId | null
-    if (t && ['approvals', 'managers', 'tags', 'departments', 'teams', 'create'].includes(t)) {
-      if ((t === 'tags' || t === 'approvals' || t === 'departments' || t === 'create') && !isSuperAdmin) return
+    if (t && ['assign', 'approvals', 'managers', 'tags', 'departments', 'create'].includes(t)) {
+      if ((t === 'assign' || t === 'tags' || t === 'approvals' || t === 'departments' || t === 'create') && !isSuperAdmin) return
       setTab(t)
     }
   }, [searchParams, isSuperAdmin])
@@ -120,11 +136,11 @@ function AdminUsersPageContent() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {tab === 'assign' && isSuperAdmin && <AssignUserSection />}
           {tab === 'approvals' && <ApprovalsSection />}
           {tab === 'managers' && <ManagerAssignmentsSection />}
           {tab === 'tags' && isSuperAdmin && <TagsSection />}
           {tab === 'departments' && isSuperAdmin && <DepartmentsSection />}
-          {tab === 'teams' && <TeamsSection />}
           {tab === 'create' && isSuperAdmin && <CreateUserSection />}
         </CardContent>
       </Card>

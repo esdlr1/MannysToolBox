@@ -32,7 +32,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const dateParam = searchParams.get('date')
     const userIdParam = searchParams.get('userId')
-    const teamIdParam = searchParams.get('teamId')
     const departmentIdParam = searchParams.get('departmentId')
     const startDateParam = searchParams.get('startDate')
     const endDateParam = searchParams.get('endDate')
@@ -50,10 +49,6 @@ export async function GET(request: NextRequest) {
     
     if (userIdParam) {
       filters.userId = userIdParam
-    }
-    
-    if (teamIdParam) {
-      filters.teamId = teamIdParam
     }
     if (departmentIdParam) {
       filters.departmentId = departmentIdParam

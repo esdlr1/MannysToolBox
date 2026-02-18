@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRoleView } from '@/contexts/RoleViewContext'
-import { FileText, List, Loader2, AlertCircle, CheckCircle2, MapPin, Hash, MessageSquare, Settings2, Save } from 'lucide-react'
+import { FileText, List, Loader2, AlertCircle, CheckCircle2, MapPin, Hash, MessageSquare, Settings2, Save, DollarSign } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface FormItem {
@@ -24,6 +24,11 @@ interface Submission {
   customerJobCode: string
   answers: Record<string, number>
   notes: string | null
+  status: string
+  assignedToId: string | null
+  assignedTo?: { id: string; name: string | null; email: string } | null
+  completedAt: string | null
+  totalAmount: number | string | null
   createdAt: string
   user: {
     id: string
@@ -32,15 +37,30 @@ interface Submission {
   }
 }
 
+interface EstimatingTeamMember {
+  id: string
+  name: string | null
+  email: string
+}
+
 export default function ContentsInvTool() {
   const { data: session } = useSession()
   const { effectiveRole } = useRoleView()
   const [formItems, setFormItems] = useState<FormItem[]>([])
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [submissionsScope, setSubmissionsScope] = useState<'all' | 'own'>('all')
-  const [view, setView] = useState<'form' | 'list' | 'codes'>('form')
+  const [view, setView] = useState<'form' | 'list' | 'codes' | 'totals'>('form')
+  const [listStatusTab, setListStatusTab] = useState<'pending_estimate' | 'in_progress' | 'completed'>('pending_estimate')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
+  const [estimatingTeam, setEstimatingTeam] = useState<EstimatingTeamMember[]>([])
+  const [assigningToId, setAssigningToId] = useState<string | null>(null)
+  const [completeTotalAmount, setCompleteTotalAmount] = useState('')
+  const [completing, setCompleting] = useState(false)
+  const [totalsPeriod, setTotalsPeriod] = useState<'day' | 'week' | 'month'>('day')
+  const [totalsDate, setTotalsDate] = useState(() => format(new Date(), 'yyyy-MM-dd'))
+  const [totalsData, setTotalsData] = useState<{ total: number; byEmployee?: { id: string; name: string; total: number }[] } | null>(null)
+  const [totalsLoading, setTotalsLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadingSubmissions, setLoadingSubmissions] = useState(false)
   const [error, setError] = useState('')
@@ -158,6 +178,8 @@ export default function ContentsInvTool() {
       setView('form')
     }
   }, [effectiveRole, view])
+
+  const filteredSubmissions = submissions.filter((s) => s.status === listStatusTab)
 
   const handleSeedDefaults = async () => {
     if (!session?.user?.id || session.user.role !== 'Super Admin') return
@@ -385,15 +407,108 @@ export default function ContentsInvTool() {
   const openDetail = async (id: string) => {
     setSelectedId(id)
     setSelectedSubmission(null)
+    setCompleteTotalAmount('')
+    setAssigningToId(null)
+    setEstimatingTeam([])
     try {
-      const res = await fetch(`/api/tools/contents-inv/submissions/${id}`, { credentials: 'include' })
-      if (!res.ok) throw new Error('Failed to load')
-      const data = await res.json()
+      const [subRes, teamRes] = await Promise.all([
+        fetch(`/api/tools/contents-inv/submissions/${id}`, { credentials: 'include' }),
+        fetch('/api/tools/contents-inv/estimating-team', { credentials: 'include' }),
+      ])
+      if (!subRes.ok) throw new Error('Failed to load')
+      const data = await subRes.json()
       setSelectedSubmission(data.submission)
+      if (teamRes.ok) {
+        const teamData = await teamRes.json()
+        setEstimatingTeam(teamData.team || [])
+      }
     } catch {
       setSelectedId(null)
     }
   }
+
+  const handleAssign = async (assigneeId: string | null) => {
+    if (!selectedId || assigningToId !== null) return
+    setAssigningToId(assigneeId)
+    setError('')
+    try {
+      const res = await fetch(`/api/tools/contents-inv/submissions/${selectedId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ assignedToId: assigneeId }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to assign')
+      }
+      const data = await res.json()
+      setSelectedSubmission(data.submission)
+      loadSubmissions()
+      setSuccess(assigneeId ? 'Assigned.' : 'Unassigned.')
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to assign')
+    } finally {
+      setAssigningToId(null)
+    }
+  }
+
+  const handleMarkComplete = async () => {
+    if (!selectedId || !selectedSubmission || selectedSubmission.status === 'completed') return
+    const amount = completeTotalAmount.trim()
+    const num = amount === '' ? NaN : parseFloat(amount)
+    if (!Number.isFinite(num) || num <= 0) {
+      setError('Enter a valid total amount (number greater than 0).')
+      return
+    }
+    setCompleting(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/tools/contents-inv/submissions/${selectedId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: 'completed', totalAmount: num }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Failed to complete')
+      }
+      const data = await res.json()
+      setSelectedSubmission(data.submission)
+      setCompleteTotalAmount('')
+      loadSubmissions()
+      setSuccess('Marked complete.')
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to complete')
+    } finally {
+      setCompleting(false)
+    }
+  }
+
+  const loadTotals = useCallback(async () => {
+    if (!session?.user?.id) return
+    setTotalsLoading(true)
+    try {
+      const url = new URL('/api/tools/contents-inv/totals', window.location.origin)
+      url.searchParams.set('period', totalsPeriod)
+      url.searchParams.set('date', totalsDate)
+      const res = await fetch(url.toString(), { credentials: 'include' })
+      if (!res.ok) throw new Error('Failed to load totals')
+      const data = await res.json()
+      setTotalsData({ total: data.total, byEmployee: data.byEmployee })
+    } catch {
+      setTotalsData(null)
+    } finally {
+      setTotalsLoading(false)
+    }
+  }, [session?.user?.id, totalsPeriod, totalsDate])
+
+  useEffect(() => {
+    if (view === 'totals' && session?.user?.id) loadTotals()
+  }, [view, session?.user?.id, loadTotals])
 
   if (!session) {
     return (
@@ -430,7 +545,7 @@ export default function ContentsInvTool() {
           </div>
         </div>
 
-        <div className={`grid gap-2 sm:flex sm:gap-2 mb-4 sm:mb-6 ${effectiveRole === 'Super Admin' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        <div className={`grid gap-2 sm:flex sm:flex-wrap sm:gap-2 mb-4 sm:mb-6 ${effectiveRole === 'Super Admin' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
           <button
             type="button"
             onClick={() => setView('form')}
@@ -445,8 +560,16 @@ export default function ContentsInvTool() {
             className={`min-h-[44px] sm:min-h-0 px-4 py-3 sm:py-2 rounded-xl font-medium flex items-center justify-center gap-2 touch-manipulation ${view === 'list' ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
           >
             <List className="w-4 h-4 flex-shrink-0" />
-            <span className="truncate hidden sm:inline">{effectiveRole === 'Employee' ? 'My submissions' : 'View all submissions'}</span>
+            <span className="truncate hidden sm:inline">{submissionsScope === 'own' ? 'My submissions' : 'Submissions'}</span>
             <span className="truncate sm:hidden">Submissions</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('totals')}
+            className={`min-h-[44px] sm:min-h-0 px-4 py-3 sm:py-2 rounded-xl font-medium flex items-center justify-center gap-2 touch-manipulation ${view === 'totals' ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+          >
+            <DollarSign className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate">Totals</span>
           </button>
           {effectiveRole === 'Super Admin' && (
             <button
@@ -585,23 +708,34 @@ export default function ContentsInvTool() {
         {view === 'list' && (
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
             <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3">
                 {submissionsScope === 'own' ? 'My submissions' : 'All submissions'}
               </h2>
+              <div className="flex gap-2">
+                {(['pending_estimate', 'in_progress', 'completed'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setListStatusTab(tab)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium ${listStatusTab === tab ? 'bg-red-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                  >
+                    {tab === 'pending_estimate' ? 'Pending' : tab === 'in_progress' ? 'In progress' : 'Completed'}
+                  </button>
+                ))}
+              </div>
             </div>
             {loadingSubmissions ? (
               <div className="p-8 sm:p-12 flex justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-red-500" />
               </div>
-            ) : submissions.length === 0 ? (
+            ) : filteredSubmissions.length === 0 ? (
               <div className="p-8 sm:p-12 text-center text-gray-500 dark:text-gray-400 text-sm sm:text-base">
-                No submissions yet.
+                No {listStatusTab === 'pending_estimate' ? 'pending' : listStatusTab === 'in_progress' ? 'in progress' : 'completed'} submissions.
               </div>
             ) : (
               <>
-                {/* Mobile: card list */}
                 <div className="md:hidden divide-y divide-gray-200 dark:divide-gray-800">
-                  {submissions.map((s) => (
+                  {filteredSubmissions.map((s) => (
                     <button
                       key={s.id}
                       type="button"
@@ -610,11 +744,12 @@ export default function ContentsInvTool() {
                     >
                       <span className="font-medium text-red-600 dark:text-red-400 truncate">{s.clientName}</span>
                       <span className="text-sm text-gray-600 dark:text-gray-400 truncate">{s.customerJobCode}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-500">{format(new Date(s.createdAt), 'MMM d, yyyy')}</span>
+                      {s.assignedTo && <span className="text-xs text-gray-500">Assigned to: {s.assignedTo.name || s.assignedTo.email}</span>}
+                      {s.status === 'completed' && s.totalAmount != null && <span className="text-xs font-medium text-green-600 dark:text-green-400">${Number(s.totalAmount).toFixed(2)}</span>}
+                      <span className="text-xs text-gray-500">{format(new Date(s.createdAt), 'MMM d, yyyy')}</span>
                     </button>
                   ))}
                 </div>
-                {/* Desktop: table */}
                 <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
@@ -622,11 +757,12 @@ export default function ContentsInvTool() {
                         <th className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Client</th>
                         <th className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Job code</th>
                         <th className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Submitted by</th>
+                        <th className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Assigned / Total</th>
                         <th className="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">Date</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {submissions.map((s) => (
+                      {filteredSubmissions.map((s) => (
                         <tr
                           key={s.id}
                           onClick={() => openDetail(s.id)}
@@ -635,6 +771,13 @@ export default function ContentsInvTool() {
                           <td className="px-4 py-3 font-medium text-red-600 dark:text-red-400">{s.clientName}</td>
                           <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{s.customerJobCode}</td>
                           <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{s.user?.name || s.user?.email}</td>
+                          <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-sm">
+                            {s.status === 'completed' && s.totalAmount != null
+                              ? `$${Number(s.totalAmount).toFixed(2)}`
+                              : s.assignedTo
+                                ? (s.assignedTo.name || s.assignedTo.email)
+                                : '—'}
+                          </td>
                           <td className="px-4 py-3 text-gray-600 dark:text-gray-400 text-sm">{format(new Date(s.createdAt), 'MMM d, yyyy HH:mm')}</td>
                         </tr>
                       ))}
@@ -643,6 +786,79 @@ export default function ContentsInvTool() {
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {view === 'totals' && (
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">Completed totals</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sum of completed estimate amounts by period.</p>
+            </div>
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  value={totalsPeriod}
+                  onChange={(e) => setTotalsPeriod(e.target.value as 'day' | 'week' | 'month')}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                >
+                  <option value="day">Day</option>
+                  <option value="week">Week</option>
+                  <option value="month">Month</option>
+                </select>
+                <input
+                  type="date"
+                  value={totalsDate}
+                  onChange={(e) => setTotalsDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => loadTotals()}
+                  disabled={totalsLoading}
+                  className="min-h-[40px] px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-medium rounded-lg text-sm flex items-center gap-2"
+                >
+                  {totalsLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  Update
+                </button>
+              </div>
+              {totalsLoading ? (
+                <div className="py-8 flex justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-red-500" />
+                </div>
+              ) : totalsData ? (
+                <div className="space-y-4">
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Total: <span className="text-red-600 dark:text-red-400">${totalsData.total.toFixed(2)}</span>
+                  </p>
+                  {totalsData.byEmployee && totalsData.byEmployee.length > 0 && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">By employee</p>
+                      <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
+                              <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Employee</th>
+                              <th className="text-right py-3 px-4 font-semibold text-gray-700 dark:text-gray-300">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100 dark:divide-gray-700/80">
+                            {totalsData.byEmployee.map((row) => (
+                              <tr key={row.id}>
+                                <td className="py-2.5 px-4 text-gray-800 dark:text-gray-200">{row.name}</td>
+                                <td className="py-2.5 px-4 text-right tabular-nums font-medium">${row.total.toFixed(2)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400 text-sm">No completed totals for this period.</p>
+              )}
+            </div>
           </div>
         )}
 
@@ -825,6 +1041,80 @@ export default function ContentsInvTool() {
                           {format(new Date(selectedSubmission.createdAt), 'MMM d, yyyy · h:mm a')} · {selectedSubmission.user?.name || selectedSubmission.user?.email}
                         </span>
                       </div>
+                      <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                          Status: {selectedSubmission.status === 'pending_estimate' ? 'Pending' : selectedSubmission.status === 'in_progress' ? 'In progress' : 'Completed'}
+                        </span>
+                        {selectedSubmission.assignedTo && (
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Assigned to: {selectedSubmission.assignedTo.name || selectedSubmission.assignedTo.email}
+                          </span>
+                        )}
+                        {selectedSubmission.completedAt && (
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Completed: {format(new Date(selectedSubmission.completedAt), 'MMM d, yyyy')}
+                          </span>
+                        )}
+                        {selectedSubmission.status === 'completed' && selectedSubmission.totalAmount != null && (
+                          <span className="font-semibold text-green-600 dark:text-green-400">
+                            Total: ${Number(selectedSubmission.totalAmount).toFixed(2)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Assign / Mark complete (Estimating manager or assignee) */}
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-gray-50/50 dark:bg-gray-800/30 space-y-4">
+                      {estimatingTeam.length > 0 && selectedSubmission.status !== 'completed' && (
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Assign to</label>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <select
+                              value={selectedSubmission.assignedToId ?? ''}
+                              onChange={(e) => {
+                                const v = e.target.value
+                                if (v === (selectedSubmission.assignedToId ?? '')) return
+                                handleAssign(v === '' ? null : v)
+                              }}
+                              disabled={assigningToId !== null}
+                              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm min-w-[12rem]"
+                            >
+                              <option value="">— Unassigned —</option>
+                              {estimatingTeam.map((m) => (
+                                <option key={m.id} value={m.id}>{m.name || m.email}</option>
+                              ))}
+                            </select>
+                            {assigningToId !== null && <Loader2 className="w-4 h-4 animate-spin text-red-500" />}
+                          </div>
+                        </div>
+                      )}
+                      {selectedSubmission.status === 'in_progress' &&
+                        (selectedSubmission.assignedToId === session?.user?.id || estimatingTeam.length > 0) && (
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Mark complete</label>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-gray-600 dark:text-gray-400 text-sm">Total amount ($)</span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={completeTotalAmount}
+                              onChange={(e) => setCompleteTotalAmount(e.target.value)}
+                              placeholder="0.00"
+                              className="w-28 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm tabular-nums"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleMarkComplete}
+                              disabled={completing || !completeTotalAmount.trim()}
+                              className="min-h-[40px] px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white font-medium rounded-lg text-sm flex items-center gap-2"
+                            >
+                              {completing ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                              Mark complete
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Line items table with Xactimate */}

@@ -268,6 +268,15 @@ export default function Navigation() {
                           >
                             Users
                           </Link>
+                          {session.user?.role === 'Super Admin' && (
+                            <Link
+                              href="/admin/settings"
+                              className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-red-50 dark:hover:bg-gray-700 transition-colors"
+                              onClick={() => setIsUserMenuOpen(false)}
+                            >
+                              Settings
+                            </Link>
+                          )}
                           <hr className="my-1 border-gray-300 dark:border-gray-700" />
                           <div className="relative" ref={roleMenuRef}>
                             <button
@@ -490,6 +499,9 @@ export default function Navigation() {
                     <Link href="/teach-logic" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Teach the logic</Link>
                     {(session.user?.role === 'Super Admin' || session.user?.role === 'Owner') && (
                       <Link href="/admin/users" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Users</Link>
+                    )}
+                    {session.user?.role === 'Super Admin' && (
+                      <Link href="/admin/settings" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Settings</Link>
                     )}
                     <Link href="/announcements" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">Announcements</Link>
                     <Link href="/history" className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200">History</Link>

@@ -1,25 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { requireSuperAdmin } from '@/lib/admin-auth'
 
 export const dynamic = 'force-dynamic'
 
 // POST - Create user (Super Admin only).
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const me = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
-    if (me?.role !== 'Super Admin') {
-      return NextResponse.json({ error: 'Forbidden - Super Admin only' }, { status: 403 })
-    }
+    const auth = await requireSuperAdmin()
+    if ('error' in auth) return auth.error
 
     const { email, name, password, role, departmentId } = await request.json()
     if (!email || !password) {
@@ -83,17 +73,8 @@ export async function POST(request: NextRequest) {
 // GET - List all users with tags (Super Admin only). For employee tag management.
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-    const me = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
-    if (me?.role !== 'Super Admin') {
-      return NextResponse.json({ error: 'Forbidden - Super Admin only' }, { status: 403 })
-    }
+    const auth = await requireSuperAdmin()
+    if ('error' in auth) return auth.error
     let list: Array<{ id: string; email: string; name: string | null; role: string | null; departmentId: string | null; tags: Array<{ key: string; value: string }> }>
     try {
       const users = await prisma.user.findMany({

@@ -15,7 +15,8 @@
     "db:studio": "prisma studio",
     "init:admin": "tsx scripts/init-super-admin.ts",
     "check:admin": "tsx scripts/check-super-admin.ts",
-    "create:admin": "tsx scripts/create-super-admin.ts"
+    "create:admin": "tsx scripts/create-super-admin.ts",
+    "seed:states": "tsx scripts/seed-us-states.ts"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",

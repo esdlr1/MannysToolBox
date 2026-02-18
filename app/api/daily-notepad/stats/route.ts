@@ -32,11 +32,10 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const period = searchParams.get('period') || 'today' // today, week, month
-    const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
     const managerFilterId = searchParams.get('managerId') || undefined
     const tags = parseTagsFromQuery(searchParams)
-    const scopeFilters = { teamId, departmentId, managerId: user.role === 'Manager' ? session.user.id : (managerFilterId || undefined), tags: tags.length ? tags : undefined }
+    const scopeFilters = { departmentId, managerId: user.role === 'Manager' ? session.user.id : (managerFilterId || undefined), tags: tags.length ? tags : undefined }
     // Managers can only see their own employees
     // Owners can filter by any manager or see all
     const managerId = scopeFilters.managerId

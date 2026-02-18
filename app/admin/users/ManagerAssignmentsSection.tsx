@@ -17,6 +17,7 @@ interface Employee {
   id: string
   name: string | null
   email: string
+  role?: string | null
 }
 
 interface PotentialManager {
@@ -165,11 +166,12 @@ export default function ManagerAssignmentsSection() {
                   {managers.map((manager) => (
                     <button
                       key={manager.id}
+                      type="button"
                       onClick={() => setActiveManagerId(manager.id)}
-                      className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
+                      className={`w-full text-left px-3 py-2 rounded-lg border transition-colors cursor-pointer ${
                         activeManagerId === manager.id
-                          ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800'
-                          : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
+                          ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200'
+                          : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
                       }`}
                     >
                       <div className="font-medium text-sm">{manager.name || manager.email}</div>
@@ -215,38 +217,57 @@ export default function ManagerAssignmentsSection() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
-                Employees {activeManagerId ? '(Assigned)' : ''}
+                Employees {activeManagerId ? `assigned to ${managers.find((m) => m.id === activeManagerId)?.name || 'this manager'}` : ''}
               </CardTitle>
+              {activeManagerId && (
+                <p className="text-sm text-muted-foreground font-normal mt-1">
+                  All users are listed. Assign or unassign to set who reports to this manager—you can change anyone&apos;s position here.
+                </p>
+              )}
             </CardHeader>
             <CardContent className="space-y-3">
-              {employees.length === 0 && (
-                <p className="text-sm text-muted-foreground">No employees found.</p>
-              )}
-              {employees.map((employee) => {
-                const assigned = assignedEmployeeIds.has(employee.id)
-                return (
-                  <div
-                    key={employee.id}
-                    className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
-                  >
-                    <div className="min-w-0">
-                      <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                        {employee.name || employee.email}
-                      </div>
-                      <div className="text-xs text-gray-500 truncate">{employee.email}</div>
-                    </div>
-                    <Button
-                      onClick={() => updateAssignment(employee.id, !assigned)}
-                      disabled={!activeManagerId || saving === employee.id}
-                      className={assigned ? 'bg-red-600 hover:bg-red-700' : ''}
-                      variant={assigned ? 'default' : 'outline'}
-                      size="sm"
+              {!activeManagerId ? (
+                <p className="text-sm text-muted-foreground py-6 text-center">
+                  Select a manager from the list on the left to view and assign employees to them.
+                </p>
+              ) : employees.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-6">
+                  No other users in the system. Create a user (Create user tab) to assign them to this manager or change their position.
+                </p>
+              ) : (
+                employees.map((employee) => {
+                  const assigned = assignedEmployeeIds.has(employee.id)
+                  const isSelectedManager = employee.id === activeManagerId
+                  return (
+                    <div
+                      key={employee.id}
+                      className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
                     >
-                      {saving === employee.id ? 'Saving...' : assigned ? 'Unassign' : 'Assign'}
-                    </Button>
-                  </div>
-                )
-              })}
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                          {employee.name || employee.email}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate flex items-center gap-2">
+                          {employee.email}
+                          {employee.role && (
+                            <span className="text-muted-foreground">· {employee.role}</span>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => updateAssignment(employee.id, !assigned)}
+                        disabled={saving === employee.id || isSelectedManager}
+                        className={assigned ? 'bg-red-600 hover:bg-red-700' : ''}
+                        variant={assigned ? 'default' : 'outline'}
+                        size="sm"
+                        title={isSelectedManager ? 'Cannot assign a manager to themselves' : undefined}
+                      >
+                        {saving === employee.id ? 'Saving...' : assigned ? 'Unassign' : 'Assign'}
+                      </Button>
+                    </div>
+                  )
+                })
+              )}
             </CardContent>
           </Card>
         </div>

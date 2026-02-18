@@ -29,7 +29,6 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const teamId = searchParams.get('teamId') || undefined
     const departmentId = searchParams.get('departmentId') || undefined
     const managerFilterId = searchParams.get('managerId') || undefined
     const tags = parseTagsFromQuery(searchParams)
@@ -39,7 +38,7 @@ export async function GET(request: NextRequest) {
       ? session.user.id
       : (managerFilterId || undefined)
 
-    const employeeIds = await getEmployeeIdsForScope({ teamId, departmentId, managerId, tags: tags.length ? tags : undefined })
+    const employeeIds = await getEmployeeIdsForScope({ departmentId, managerId, tags: tags.length ? tags : undefined })
 
     const employees = await prisma.user.findMany({
       where: {

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRoleView } from '@/contexts/RoleViewContext'
 import { Users, Phone, Mail, MapPin, Briefcase, Plus, Edit, Search, Loader2 } from 'lucide-react'
+import { ScopeFilters, buildScopeQueryParams, defaultScopeFiltersValues, type ScopeFiltersValues } from '@/components/ScopeFilters'
 
 interface Contact {
   id: string
@@ -42,22 +43,16 @@ export default function ContactsPage() {
   })
   const [searchTerm, setSearchTerm] = useState('')
   const [error, setError] = useState('')
+  const [scopeFilters, setScopeFilters] = useState<ScopeFiltersValues>(defaultScopeFiltersValues)
 
   const canManage = effectiveRole === 'Owner' || effectiveRole === 'Super Admin' || effectiveRole === 'Manager'
 
-  useEffect(() => {
-    if (session?.user?.id) {
-      loadContacts()
-      if (canManage) {
-        loadEmployees()
-      }
-    }
-  }, [session, canManage])
-
-  const loadContacts = async () => {
+  const loadContacts = useCallback(async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/contacts')
+      const query = buildScopeQueryParams(scopeFilters)
+      const url = query ? `/api/contacts?${query}` : '/api/contacts'
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
         setContacts(data.contacts || [])
@@ -67,7 +62,19 @@ export default function ContactsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [scopeFilters])
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      loadContacts()
+    }
+  }, [session, loadContacts])
+
+  useEffect(() => {
+    if (session?.user?.id && canManage) {
+      loadEmployees()
+    }
+  }, [session, canManage])
 
   const loadEmployees = async () => {
     try {
@@ -277,6 +284,15 @@ export default function ContactsPage() {
             </div>
           </div>
         )}
+
+        {/* Scope filters (Manager / Owner / Super Admin) */}
+        <div className="mb-4">
+          <ScopeFilters
+            effectiveRole={effectiveRole}
+            values={scopeFilters}
+            onChange={setScopeFilters}
+          />
+        </div>
 
         {/* Search */}
         <div className="mb-6">

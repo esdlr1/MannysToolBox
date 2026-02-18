@@ -52,6 +52,7 @@ model User {
   logicRules                      LogicRule[]
   supplementTrackerEntries        SupplementTracker[]
   contentsInvSubmissions          ContentsInvSubmission[]
+  assignedContentsInvSubmissions  ContentsInvSubmission[]      @relation("ContentsInvAssignedTo")
   contentsInvAccessGrants         ContentsInvAccess[]         @relation("ContentsInvAccessGrantedBy")
   contentsInvAccess               ContentsInvAccess[]          @relation("ContentsInvAccessUser")
   tags                            UserTag[]
@@ -297,6 +298,49 @@ model Department {
   calendarEvents CalendarEvent[]
 
   @@map("departments")
+}
+
+model State {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  locations Location[]
+  branches  Branch[]
+
+  @@map("states")
+}
+
+model Location {
+  id          String   @id @default(cuid())
+  stateId     String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  state State @relation(fields: [stateId], references: [id], onDelete: Cascade)
+
+  @@unique([stateId, name])
+  @@index([stateId])
+  @@map("locations")
+}
+
+model Branch {
+  id          String   @id @default(cuid())
+  stateId     String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  state State @relation(fields: [stateId], references: [id], onDelete: Cascade)
+
+  @@unique([stateId, name])
+  @@index([stateId])
+  @@map("branches")
 }
 
 model Announcement {
@@ -620,21 +664,29 @@ model ContentsInvFormItem {
 }
 
 model ContentsInvSubmission {
-  id                String   @id @default(cuid())
+  id                String    @id @default(cuid())
   userId            String
   clientName        String
-  address           String   @db.Text
+  address           String    @db.Text
   customerJobCode   String
-  answers           Json     // { formItemId: number, ... } - numbers only
-  notes             String?  @db.Text
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  answers           Json      // { formItemId: number, ... } - numbers only
+  notes             String?   @db.Text
+  status            String    @default("pending_estimate") // pending_estimate | in_progress | completed
+  assignedToId      String?
+  completedAt       DateTime?
+  totalAmount       Decimal?  @db.Decimal(12, 2)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo User? @relation("ContentsInvAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
 
   @@index([userId])
   @@index([createdAt])
   @@index([clientName])
+  @@index([status])
+  @@index([assignedToId])
+  @@index([completedAt])
   @@map("contents_inv_submissions")
 }
 

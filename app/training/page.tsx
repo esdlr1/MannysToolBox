@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRoleView } from '@/contexts/RoleViewContext'
 import { BookOpen, Plus, Upload, Users, Clock, CheckCircle2, X, FileText, Video, Link as LinkIcon, Search, Filter, Loader2, Edit, Trash2, ExternalLink, ChevronRight } from 'lucide-react'
+import { ScopeFilters, buildScopeQueryParams, defaultScopeFiltersValues, type ScopeFiltersValues } from '@/components/ScopeFilters'
 import RichTextEditor from '@/components/training/RichTextEditor'
 import TrainingContentViewer from '@/components/training/TrainingContentViewer'
 import { format } from 'date-fns'
@@ -75,16 +76,39 @@ export default function TrainingPage() {
   const [showEditContentModal, setShowEditContentModal] = useState(false)
   const [editingCourseContent, setEditingCourseContent] = useState<string>('')
   const [editingCourseId, setEditingCourseId] = useState<string | null>(null)
+  const [scopeFilters, setScopeFilters] = useState<ScopeFiltersValues>(defaultScopeFiltersValues)
 
   const canManage = effectiveRole === 'Owner' || effectiveRole === 'Super Admin' || effectiveRole === 'Manager'
+
+  const loadAssignments = useCallback(async () => {
+    try {
+      const query = buildScopeQueryParams(scopeFilters)
+      const url = query ? `/api/training/assignments?${query}` : '/api/training/assignments'
+      const response = await fetch(url)
+      if (response.ok) {
+        const data = await response.json()
+        setAssignments(data.assignments || [])
+      }
+    } catch (error) {
+      console.error('Error loading assignments:', error)
+    }
+  }, [scopeFilters])
 
   useEffect(() => {
     if (session?.user?.id) {
       loadCourses()
+    }
+  }, [session])
+
+  useEffect(() => {
+    if (session?.user?.id) {
       loadAssignments()
-      if (canManage) {
-        loadEmployees()
-      }
+    }
+  }, [session, loadAssignments])
+
+  useEffect(() => {
+    if (session?.user?.id && canManage) {
+      loadEmployees()
     }
   }, [session, canManage])
 
@@ -100,18 +124,6 @@ export default function TrainingPage() {
       console.error('Error loading courses:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const loadAssignments = async () => {
-    try {
-      const response = await fetch('/api/training/assignments')
-      if (response.ok) {
-        const data = await response.json()
-        setAssignments(data.assignments || [])
-      }
-    } catch (error) {
-      console.error('Error loading assignments:', error)
     }
   }
 
@@ -636,6 +648,15 @@ export default function TrainingPage() {
             </div>
           </div>
         )}
+
+        {/* Scope filters (Manager / Owner / Super Admin) */}
+        <div className="mb-4">
+          <ScopeFilters
+            effectiveRole={effectiveRole}
+            values={scopeFilters}
+            onChange={setScopeFilters}
+          />
+        </div>
 
         {/* Filters */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">

@@ -1,25 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { requireOwnerOrSuperAdmin } from '@/lib/admin-auth'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
-
-    if (!user || !['Owner', 'Super Admin'].includes(user.role || '')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const auth = await requireOwnerOrSuperAdmin()
+    if ('error' in auth) return auth.error
 
     const managers = await prisma.user.findMany({
       where: { role: 'Manager', isApproved: true },
@@ -36,9 +24,9 @@ export async function GET() {
       orderBy: { name: 'asc' },
     })
 
+    // All users show in the list so you can change anyone's position (who they report to)
     const employees = await prisma.user.findMany({
-      where: { role: 'Employee' },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, role: true },
       orderBy: { name: 'asc' },
     })
 
@@ -64,19 +52,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
-
-    if (!user || !['Owner', 'Super Admin'].includes(user.role || '')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const auth = await requireOwnerOrSuperAdmin()
+    if ('error' in auth) return auth.error
 
     const body = await request.json()
     const { managerId, employeeId, assigned } = body
@@ -89,6 +66,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (assigned) {
+      if (managerId === employeeId) {
+        return NextResponse.json(
+          { error: 'A person cannot report to themselves' },
+          { status: 400 }
+        )
+      }
       await prisma.managerAssignment.upsert({
         where: {
           managerId_employeeId: { managerId, employeeId },
@@ -114,19 +97,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
-    })
-
-    if (!user || !['Owner', 'Super Admin'].includes(user.role || '')) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+    const auth = await requireOwnerOrSuperAdmin()
+    if ('error' in auth) return auth.error
 
     const body = await request.json()
     const { userId, action } = body
