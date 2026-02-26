@@ -92,6 +92,7 @@ const tools: Tool[] = [
     requiresAuth: true,
     usesAI: false,
     supportsFileUpload: false,
+    enabled: true,
   },
 ]
 

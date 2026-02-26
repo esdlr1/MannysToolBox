@@ -117,7 +117,7 @@ export default function Dashboard({ role: propRole }: DashboardProps) {
                 Quick Tools
               </h2>
               <div className="space-y-2">
-                {tools.slice(0, 5).map((tool) => (
+                {tools.map((tool) => (
                   <Link
                     key={tool.id}
                     href={`/tools/${tool.id}`}
@@ -131,13 +131,6 @@ export default function Dashboard({ role: propRole }: DashboardProps) {
                     </div>
                   </Link>
                 ))}
-                {tools.length > 5 && (
-                  <div className="text-center pt-2">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {tools.length - 5} more tools available
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
 
