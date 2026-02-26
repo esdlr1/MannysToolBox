@@ -71,8 +71,8 @@ export default function EstimateDiaryTool() {
     if (!session?.user?.id) return
 
     const amount = parseFloat(totalAmountInput.replace(/[,$]/g, ''))
-    if (!clientName.trim() || !jobNumber.trim() || isNaN(amount) || amount < 0) {
-      setError('Please fill in client name, job number, and a valid total amount ($).')
+    if (!clientName.trim() || isNaN(amount) || amount < 0) {
+      setError('Please fill in client name and a valid total amount ($).')
       return
     }
 
@@ -90,7 +90,7 @@ export default function EstimateDiaryTool() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           clientName: clientName.trim(),
-          jobNumber: jobNumber.trim(),
+          jobNumber: jobNumber.trim() || '',
           totalAmount: amount,
           weekStartDate: weekStart,
         }),
@@ -144,6 +144,22 @@ export default function EstimateDiaryTool() {
         </div>
       </div>
 
+      {/* Totals box - always visible */}
+      <div className="p-5 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl">
+        <div className="flex items-center gap-2 mb-1">
+          <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          <span className="text-sm font-medium text-emerald-800 dark:text-emerald-200">Total amount this week</span>
+        </div>
+        <p className="text-2xl font-bold text-emerald-900 dark:text-white tabular-nums">
+          ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </p>
+        {!loading && selectedWeek && (
+          <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
+            {format(startOfWeek(selectedWeek, { weekStartsOn: 1 }), 'MMM d')} – {format(endOfWeek(selectedWeek, { weekStartsOn: 1 }), 'MMM d, yyyy')}
+          </p>
+        )}
+      </div>
+
       {/* Week selector */}
       <div className="flex flex-wrap items-center gap-4 p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
         <Calendar className="w-5 h-5 text-gray-500" />
@@ -193,7 +209,7 @@ export default function EstimateDiaryTool() {
           </div>
           <div>
             <label htmlFor="jobNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Job number
+              Job number <span className="text-gray-400 font-normal">(optional)</span>
             </label>
             <div className="relative">
               <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -276,7 +292,7 @@ export default function EstimateDiaryTool() {
                   {entries.map((entry) => (
                     <tr key={entry.id} className="border-b border-gray-100 dark:border-gray-700/50">
                       <td className="py-2 text-gray-900 dark:text-white">{entry.clientName}</td>
-                      <td className="py-2 text-gray-700 dark:text-gray-300">{entry.jobNumber}</td>
+                      <td className="py-2 text-gray-700 dark:text-gray-300">{entry.jobNumber || '—'}</td>
                       <td className="py-2 text-right font-medium text-gray-900 dark:text-white">
                         ${entry.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
@@ -286,8 +302,8 @@ export default function EstimateDiaryTool() {
               </table>
             </div>
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 flex justify-end">
-              <span className="text-base font-semibold text-gray-900 dark:text-white">
-                Week total: ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Sum of amounts above: ${totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           </>

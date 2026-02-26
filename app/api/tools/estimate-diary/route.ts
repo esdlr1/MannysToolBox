@@ -63,9 +63,7 @@ export async function POST(request: NextRequest) {
     if (!clientName || typeof clientName !== 'string' || !clientName.trim()) {
       return NextResponse.json({ error: 'Client name is required' }, { status: 400 })
     }
-    if (!jobNumber || typeof jobNumber !== 'string' || !jobNumber.trim()) {
-      return NextResponse.json({ error: 'Job number is required' }, { status: 400 })
-    }
+    const jobNumberValue = typeof jobNumber === 'string' ? jobNumber.trim() : ''
 
     const totalAmount = typeof totalAmountInput === 'number'
       ? totalAmountInput
@@ -85,7 +83,7 @@ export async function POST(request: NextRequest) {
       data: {
         userId: session.user.id,
         clientName: clientName.trim(),
-        jobNumber: jobNumber.trim(),
+        jobNumber: jobNumberValue,
         totalAmount,
         weekStartDate: weekStart,
       },
