@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { Plus, DollarSign, Calendar, Loader2, FileText, Hash, Building2 } from 'lucide-react'
+import { Plus, DollarSign, Calendar, Loader2, FileText, Hash, Building2, Edit2, Trash2 } from 'lucide-react'
 import { format, startOfWeek, endOfWeek, eachWeekOfInterval, subWeeks } from 'date-fns'
 
 interface EstimateDiaryEntry {
@@ -27,10 +27,12 @@ export default function EstimateDiaryTool() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [clientName, setClientName] = useState('')
   const [jobNumber, setJobNumber] = useState('')
   const [totalAmountInput, setTotalAmountInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const [selectedWeek, setSelectedWeek] = useState<Date | null>(() => startOfWeek(new Date(), { weekStartsOn: 1 }))
 
@@ -64,6 +66,36 @@ export default function EstimateDiaryTool() {
     setClientName('')
     setJobNumber('')
     setTotalAmountInput('')
+    setEditingId(null)
+  }
+
+  const handleEdit = (entry: EstimateDiaryEntry) => {
+    setClientName(entry.clientName)
+    setJobNumber(entry.jobNumber || '')
+    setTotalAmountInput(entry.totalAmount.toString())
+    setEditingId(entry.id)
+    setError('')
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this entry? This cannot be undone.')) return
+    setDeletingId(id)
+    setError('')
+    try {
+      const res = await fetch(`/api/tools/estimate-diary/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete')
+      }
+      if (editingId === id) resetForm()
+      setSuccess('Entry deleted.')
+      await loadEntries()
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to delete entry')
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,23 +117,39 @@ export default function EstimateDiaryTool() {
         ? format(startOfWeek(selectedWeek, { weekStartsOn: 1 }), 'yyyy-MM-dd')
         : format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
 
-      const res = await fetch('/api/tools/estimate-diary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientName: clientName.trim(),
-          jobNumber: jobNumber.trim() || '',
-          totalAmount: amount,
-          weekStartDate: weekStart,
-        }),
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Failed to save entry')
+      if (editingId) {
+        const res = await fetch(`/api/tools/estimate-diary/${editingId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientName: clientName.trim(),
+            jobNumber: jobNumber.trim() || '',
+            totalAmount: amount,
+            weekStartDate: weekStart,
+          }),
+        })
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || 'Failed to update entry')
+        }
+        setSuccess('Entry updated successfully.')
+      } else {
+        const res = await fetch('/api/tools/estimate-diary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            clientName: clientName.trim(),
+            jobNumber: jobNumber.trim() || '',
+            totalAmount: amount,
+            weekStartDate: weekStart,
+          }),
+        })
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error || 'Failed to save entry')
+        }
+        setSuccess('Entry added successfully.')
       }
-
-      setSuccess('Entry added successfully.')
       resetForm()
       await loadEntries()
       setTimeout(() => setSuccess(''), 3000)
@@ -187,8 +235,8 @@ export default function EstimateDiaryTool() {
       {/* Form */}
       <form onSubmit={handleSubmit} className="p-6 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 space-y-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <Plus className="w-5 h-5" />
-          Add estimate
+          {editingId ? <Edit2 className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+          {editingId ? 'Edit estimate' : 'Add estimate'}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
@@ -247,9 +295,18 @@ export default function EstimateDiaryTool() {
             disabled={submitting}
             className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium disabled:opacity-50"
           >
-            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-            Add entry
+            {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : editingId ? <Edit2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {editingId ? 'Update entry' : 'Add entry'}
           </button>
+          {editingId && (
+            <button
+              type="button"
+              onClick={() => resetForm()}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       </form>
 
@@ -286,6 +343,7 @@ export default function EstimateDiaryTool() {
                     <th className="pb-2 font-medium">Client</th>
                     <th className="pb-2 font-medium">Job #</th>
                     <th className="pb-2 font-medium text-right">Amount</th>
+                    <th className="pb-2 font-medium w-24 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -295,6 +353,27 @@ export default function EstimateDiaryTool() {
                       <td className="py-2 text-gray-700 dark:text-gray-300">{entry.jobNumber || '—'}</td>
                       <td className="py-2 text-right font-medium text-gray-900 dark:text-white">
                         ${entry.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-2 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleEdit(entry)}
+                            className="p-1.5 rounded text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-emerald-600 dark:hover:text-emerald-400"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(entry.id)}
+                            disabled={deletingId === entry.id}
+                            className="p-1.5 rounded text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-50"
+                            title="Delete"
+                          >
+                            {deletingId === entry.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
