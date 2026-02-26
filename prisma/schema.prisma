@@ -51,7 +51,8 @@ model User {
   createdContractors              Contractor[]                 @relation("ContractorCreator")
   logicRules                      LogicRule[]
   supplementTrackerEntries        SupplementTracker[]
-  contentsInvSubmissions          ContentsInvSubmission[]
+  estimateDiaryEntries           EstimateDiaryEntry[]
+  contentsInvSubmissions         ContentsInvSubmission[]
   assignedContentsInvSubmissions  ContentsInvSubmission[]      @relation("ContentsInvAssignedTo")
   contentsInvAccessGrants         ContentsInvAccess[]         @relation("ContentsInvAccessGrantedBy")
   contentsInvAccess               ContentsInvAccess[]          @relation("ContentsInvAccessUser")
@@ -642,6 +643,25 @@ model SupplementTracker {
   @@index([userId, weekStartDate])
   @@index([createdAt])
   @@map("supplement_tracker")
+}
+
+// Estimate Diary - Weekly estimate totals: client name, job number, total amount
+model EstimateDiaryEntry {
+  id             String   @id @default(cuid())
+  userId         String
+  clientName     String
+  jobNumber      String
+  totalAmount    Float    // Total estimate amount in $
+  weekStartDate  DateTime @db.Date // Start of week (Monday) for weekly turn-in
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([weekStartDate])
+  @@index([userId, weekStartDate])
+  @@map("estimate_diary_entries")
 }
 
 // Contents INV - Invoice form with configurable items (numbers only)

@@ -82,6 +82,17 @@ const tools: Tool[] = [
     usesAI: false,
     supportsFileUpload: false,
   },
+  {
+    id: 'estimate-diary',
+    name: 'Estimate Diary',
+    description: 'Track estimates written weekly. Enter client name, job number, and total amount ($). Turn in your weekly estimate totals in one place.',
+    category: 'Productivity',
+    subdomain: 'estimate-diary',
+    component: 'tools/estimate-diary/index',
+    requiresAuth: true,
+    usesAI: false,
+    supportsFileUpload: false,
+  },
 ]
 
 // Helper function to ensure tool properties
