@@ -16,6 +16,18 @@ const tools: Tool[] = [
     enabled: false, // Hidden for now
   },
   {
+    id: 'scope-check',
+    name: 'Scope Check',
+    description: 'Pre-flight your estimate before it goes out: upload the PDF and see which commonly-required companion items are missing, with quantities suggested from the sketch. No typing required.',
+    category: 'Construction',
+    subdomain: 'scope-check',
+    component: 'tools/scope-check/index',
+    requiresAuth: true,
+    usesAI: false,
+    supportsFileUpload: true,
+    enabled: true,
+  },
+  {
     id: 'estimate-comparison',
     name: 'Estimate Comparison Tool',
     description: 'Compare construction estimates from insurance adjusters and contractors. Identify missing items, discrepancies, and cost differences using AI.',

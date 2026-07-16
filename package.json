@@ -18,7 +18,8 @@
     "create:admin": "tsx scripts/create-super-admin.ts",
     "seed:states": "tsx scripts/seed-us-states.ts",
     "parse:estimate": "tsx scripts/parse-estimate.ts",
-    "test:goldens": "tsx scripts/test-estimate-goldens.ts"
+    "test:goldens": "tsx scripts/test-estimate-goldens.ts",
+    "seed:scope-rules": "tsx scripts/seed-scope-rules.ts"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
