@@ -152,7 +152,7 @@ function normalized(text: string): string {
   return text.toLowerCase()
 }
 
-function itemMatchesTrigger(item: ParsedLineItem, trigger: RuleTrigger): boolean {
+export function itemMatchesTrigger(item: ParsedLineItem, trigger: RuleTrigger): boolean {
   const description = normalized(item.description)
   if (trigger.excludeKeywords?.some((k) => description.includes(k))) return false
   if (trigger.codes?.some((code) => item.catalog?.code === code)) return true
@@ -160,7 +160,7 @@ function itemMatchesTrigger(item: ParsedLineItem, trigger: RuleTrigger): boolean
   return trigger.keywords?.some((k) => description.includes(k)) ?? false
 }
 
-function companionPresent(items: ParsedLineItem[], companion: RuleCompanion): boolean {
+export function companionPresent(items: ParsedLineItem[], companion: RuleCompanion): boolean {
   return items.some((item) => {
     if (companion.codes?.some((code) => item.catalog?.code === code)) return true
     const description = normalized(item.description)

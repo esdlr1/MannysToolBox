@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { FileUpload } from '@/components/FileUpload'
 import {
@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ClipboardCheck,
   FileText,
+  ListChecks,
   Loader2,
   ShieldCheck,
   ShieldX,
@@ -44,12 +45,56 @@ interface PreflightReport {
   recommendations: PreflightRecommendation[]
 }
 
+interface StudioRule {
+  id: string
+  name: string
+  priority: string
+  source: string
+  status: string
+  reason: string
+  evidence: {
+    roomsWithTrigger?: number
+    supportPct?: number | null
+    docsScanned?: number
+  } | null
+}
+
 export default function ScopeCheckTool() {
   const { data: session } = useSession()
+  const [view, setView] = useState<'preflight' | 'rules'>('preflight')
   const [checking, setChecking] = useState(false)
   const [fileName, setFileName] = useState<string | null>(null)
   const [report, setReport] = useState<PreflightReport | null>(null)
   const [error, setError] = useState('')
+  const [rules, setRules] = useState<StudioRule[] | null>(null)
+  const [rulesError, setRulesError] = useState('')
+
+  useEffect(() => {
+    if (view !== 'rules' || rules !== null || !session?.user?.id) return
+    fetch('/api/tools/scope-check/rules')
+      .then(async (response) => {
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'Could not load rules')
+        setRules(data.rules)
+      })
+      .catch((err) => setRulesError(err instanceof Error ? err.message : 'Could not load rules'))
+  }, [view, rules, session?.user?.id])
+
+  const setRuleStatus = async (id: string, status: string) => {
+    const previous = rules
+    setRules((current) => current?.map((r) => (r.id === id ? { ...r, status } : r)) ?? null)
+    try {
+      const response = await fetch(`/api/tools/scope-check/rules/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (!response.ok) throw new Error()
+    } catch {
+      setRules(previous)
+      setRulesError('Update failed — status reverted')
+    }
+  }
 
   const runPreflight = async (file: { id: string; originalName: string }) => {
     if (!session?.user?.id) {
@@ -102,6 +147,100 @@ export default function ScopeCheckTool() {
           </div>
         </div>
 
+        <div className="mb-6 flex gap-2">
+          <button
+            onClick={() => setView('preflight')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${
+              view === 'preflight'
+                ? 'bg-red-600 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            <ClipboardCheck className="w-4 h-4" />
+            Pre-flight
+          </button>
+          <button
+            onClick={() => setView('rules')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${
+              view === 'rules'
+                ? 'bg-red-600 text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+            }`}
+          >
+            <ListChecks className="w-4 h-4" />
+            Rules
+          </button>
+        </div>
+
+        {view === 'rules' && (
+          <div className="space-y-3">
+            {rulesError && (
+              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-900 dark:text-red-300">
+                {rulesError}
+              </div>
+            )}
+            {rules === null && !rulesError && (
+              <div className="p-10 text-center">
+                <Loader2 className="w-8 h-8 text-red-600 animate-spin mx-auto" />
+              </div>
+            )}
+            {rules?.map((rule) => (
+              <div
+                key={rule.id}
+                className="bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200/50 dark:border-gray-700/50 p-4"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {rule.name.replace(/-/g, ' ')}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                    {rule.source}
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-semibold uppercase ${
+                      rule.priority === 'critical'
+                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                        : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                    }`}
+                  >
+                    {rule.priority}
+                  </span>
+                  <div className="ml-auto flex gap-1">
+                    {(['approved', 'proposed', 'muted'] as const).map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => setRuleStatus(rule.id, status)}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize ${
+                          rule.status === status
+                            ? status === 'approved'
+                              ? 'bg-green-600 text-white'
+                              : status === 'muted'
+                                ? 'bg-gray-500 text-white'
+                                : 'bg-amber-500 text-white'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{rule.reason}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  {rule.evidence?.roomsWithTrigger !== undefined
+                    ? `Evidence: triggered in ${rule.evidence.roomsWithTrigger} rooms across ${rule.evidence.docsScanned} estimates` +
+                      (rule.evidence.supportPct !== null && rule.evidence.supportPct !== undefined
+                        ? ` — ${rule.evidence.supportPct}% companion support`
+                        : '')
+                    : 'No mined evidence yet — run npm run mine:scope-rules'}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {view === 'preflight' && (
+        <>
         <div className="bg-white dark:bg-gray-800/50 rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 p-6 mb-6">
           <FileUpload
             toolId="scope-check"
@@ -234,6 +373,8 @@ export default function ScopeCheckTool() {
               ))
             )}
           </div>
+        )}
+        </>
         )}
       </div>
     </div>
