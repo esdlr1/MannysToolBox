@@ -218,10 +218,19 @@ function scanDims(dims: RoomDimensions, text: string): boolean {
   return found
 }
 
-/** Wrapped description / note text: words, no money, no feet-inch marks. */
+/**
+ * Wrapped description / note text: words, no money, no feet-inch marks, no
+ * page footers or dates. Single capitalized words are rejected — they're
+ * group headers ("Cabinets", "Misc") that would pollute descriptions
+ * (observed in production: "...Detach & reset MARI_BRAND 7/16/2026 Page: 5").
+ */
 function isContinuation(text: string): boolean {
   if (/\d\s*['"]/.test(text)) return false
+  if (/Page:?\s*\d+/i.test(text)) return false
+  if (/\d{1,2}\/\d{1,2}\/\d{2,4}/.test(text)) return false
   if (text.split(/\s+/).some((t) => MONEY_RE.test(t))) return false
+  const words = text.split(/\s+/)
+  if (words.length === 1 && /^[A-Z]/.test(text)) return false
   return /[a-z]/.test(text)
 }
 

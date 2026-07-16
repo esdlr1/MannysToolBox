@@ -50,6 +50,26 @@ export function baseDescription(item: ParsedLineItem): string {
 }
 
 /**
+ * Action compatibility class. R&R (remove AND replace) is different work —
+ * and different money — from a remove-only or a detach & reset line, so
+ * description-based matching must never pair across classes. Plain items,
+ * installs, and replacements share one class (a bare Xactimate item implies
+ * install/replace).
+ */
+export function actionGroup(item: ParsedLineItem): string {
+  switch (splitAction(item.description).action) {
+    case 'remove':
+      return 'remove'
+    case 'remove_replace':
+      return 'rr'
+    case 'detach_reset':
+      return 'dr'
+    default:
+      return 'install'
+  }
+}
+
+/**
  * Canonicalizer over user-confirmed description synonyms (learned from the
  * review queue): descriptions confirmed to mean the same item map to one
  * canonical string, so past confirmations auto-match in future comparisons.
@@ -87,8 +107,11 @@ export function matchDocuments(
       key: (item) => (item.catalog ? `${item.catalog.code}::${normalizeRoom(item.room)}` : null),
     },
     { tier: 'code', key: (item) => item.catalog?.code ?? null },
-    { tier: 'description-room', key: (item) => `${desc(item)}::${normalizeRoom(item.room)}` },
-    { tier: 'description', key: (item) => desc(item) },
+    {
+      tier: 'description-room',
+      key: (item) => `${actionGroup(item)}::${desc(item)}::${normalizeRoom(item.room)}`,
+    },
+    { tier: 'description', key: (item) => `${actionGroup(item)}::${desc(item)}` },
   ]
 
   const pairs: MatchedPair[] = []
