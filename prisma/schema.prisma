@@ -793,3 +793,38 @@ model ScopeRule {
   @@index([status])
   @@map("scope_rules")
 }
+
+model EstimateComparison {
+  id                String   @id @default(cuid())
+  userId            String
+  mineDocumentId    String
+  carrierDocumentId String
+  clientName        String?
+  claimNumber       String?
+  mineRcvCents      Int
+  carrierRcvCents   Int
+  deltaRcvCents     Int // mine - carrier; positive = carrier is light
+  matchedCount      Int
+  mineOnlyCount     Int
+  carrierOnlyCount  Int
+  createdAt         DateTime @default(now())
+
+  matches EstimateLineMatch[]
+
+  @@index([userId])
+  @@map("estimate_comparisons")
+}
+
+model EstimateLineMatch {
+  id            String             @id @default(cuid())
+  comparisonId  String
+  comparison    EstimateComparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+  mineLineId    String?
+  carrierLineId String?
+  tier          String // code-room | code | description-room | description | mine-only | carrier-only
+  rcvDeltaCents Int
+  qtyDelta      Float
+
+  @@index([comparisonId])
+  @@map("estimate_line_matches")
+}
