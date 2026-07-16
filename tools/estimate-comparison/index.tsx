@@ -4,7 +4,7 @@
 // Design: docs/estimate-comparison-redesign.md. Upload both PDFs → the
 // engine parses (trust gate), matches in tiers, and computes every delta in
 // code. Client/claim info is read from the PDFs — nothing is typed.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { FileUpload } from '@/components/FileUpload'
 import { logUsage } from '@/lib/utils'
@@ -78,6 +78,17 @@ interface UploadedFile {
   url: string
 }
 
+interface HistoryEntry {
+  id: string
+  clientName: string | null
+  claimNumber: string | null
+  deltaRcvCents: number
+  matchedCount: number
+  mineOnlyCount: number
+  carrierOnlyCount: number
+  createdAt: string
+}
+
 const fmt = (cents: number): string =>
   `${cents < 0 ? '-' : ''}$${(Math.abs(cents) / 100).toLocaleString('en-US', {
     minimumFractionDigits: 2,
@@ -100,6 +111,32 @@ export default function EstimateComparisonTool() {
   const [bucket, setBucket] = useState<Bucket>('differences')
   const [search, setSearch] = useState('')
   const [saved, setSaved] = useState(false)
+  const [history, setHistory] = useState<HistoryEntry[] | null>(null)
+
+  useEffect(() => {
+    if (report !== null || history !== null || !session?.user?.id) return
+    fetch('/api/tools/estimate-comparison/history')
+      .then(async (response) => {
+        const data = await response.json()
+        if (response.ok) setHistory(data.comparisons ?? [])
+      })
+      .catch(() => setHistory([]))
+  }, [report, history, session?.user?.id])
+
+  const openHistory = async (id: string) => {
+    setProcessing(true)
+    setError('')
+    try {
+      const response = await fetch(`/api/tools/estimate-comparison/history/${id}`)
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Could not load comparison')
+      setReport(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load comparison')
+    } finally {
+      setProcessing(false)
+    }
+  }
 
   const runComparison = async () => {
     if (!mineFile || !carrierFile || !session?.user?.id) {
@@ -309,6 +346,41 @@ export default function EstimateComparisonTool() {
             <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
               Client and claim info are read from the PDFs — nothing to type.
             </p>
+
+            {history && history.length > 0 && (
+              <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-5">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Recent comparisons
+                </h3>
+                <ul className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                  {history.slice(0, 10).map((entry) => (
+                    <li key={entry.id}>
+                      <button
+                        onClick={() => openHistory(entry.id)}
+                        className="w-full text-left py-2.5 flex flex-wrap items-baseline gap-x-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg px-2"
+                      >
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {entry.clientName ?? 'Comparison'}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {entry.claimNumber ? `Claim ${entry.claimNumber} · ` : ''}
+                          {new Date(entry.createdAt).toLocaleDateString('en-US')}
+                        </span>
+                        <span
+                          className={`ml-auto tabular-nums text-sm font-semibold ${
+                            entry.deltaRcvCents >= 0
+                              ? 'text-green-700 dark:text-green-400'
+                              : 'text-red-700 dark:text-red-400'
+                          }`}
+                        >
+                          {fmt(entry.deltaRcvCents)}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
