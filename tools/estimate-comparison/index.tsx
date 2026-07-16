@@ -12,6 +12,8 @@ import {
   AlertCircle,
   ArrowLeftRight,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   ClipboardCheck,
   Download,
   FileText,
@@ -102,6 +104,22 @@ const fmt = (cents: number): string =>
     minimumFractionDigits: 2,
   })}`
 
+// Delta convention (Manny, 2026-07-16): deltas read from OUR side — the
+// carrier should pay our amount or more. Engine stores mine − carrier;
+// display carrier − mine, so carrier short = negative = red.
+const shortfallCents = (mineMinusCarrierCents: number): number => -mineMinusCarrierCents
+
+const deltaClass = (carrierMinusMine: number): string =>
+  carrierMinusMine < 0
+    ? 'text-red-700 dark:text-red-400'
+    : carrierMinusMine > 0
+      ? 'text-green-700 dark:text-green-400'
+      : 'text-gray-400'
+
+/** Room identity for grouping (mirror of the server's normalizeRoom). */
+const roomKey = (room: string): string =>
+  room.toLowerCase().replace(/\s*\(#\d+\)$/, '').replace(/\s+/g, ' ').trim()
+
 const TIER_LABELS: Record<string, string> = {
   'code-room': 'exact',
   code: 'code (room moved)',
@@ -121,6 +139,47 @@ export default function EstimateComparisonTool() {
   const [search, setSearch] = useState('')
   const [saved, setSaved] = useState(false)
   const [history, setHistory] = useState<HistoryEntry[] | null>(null)
+  const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set())
+
+  // Per-room breakdown for the By-room drop-downs: what's in one estimate
+  // and not the other, and what differs, for that room only.
+  const roomDetails = useMemo(() => {
+    const details = new Map<
+      string,
+      { missing: LineItem[]; carrierOnly: LineItem[]; differs: Pair[]; equal: number }
+    >()
+    if (!report) return details
+    const bucket = (key: string) => {
+      let d = details.get(key)
+      if (!d) {
+        d = { missing: [], carrierOnly: [], differs: [], equal: 0 }
+        details.set(key, d)
+      }
+      return d
+    }
+    for (const item of report.mineOnly) bucket(roomKey(item.room)).missing.push(item)
+    for (const item of report.carrierOnly) bucket(roomKey(item.room)).carrierOnly.push(item)
+    for (const pair of report.pairs) {
+      const d = bucket(roomKey(pair.mine.room))
+      if (pair.rcvDeltaCents !== 0 || pair.qtyDelta !== 0) d.differs.push(pair)
+      else d.equal += 1
+    }
+    for (const d of details.values()) {
+      d.missing.sort((a, b) => b.rcvCents - a.rcvCents)
+      d.carrierOnly.sort((a, b) => b.rcvCents - a.rcvCents)
+      d.differs.sort((a, b) => Math.abs(b.rcvDeltaCents) - Math.abs(a.rcvDeltaCents))
+    }
+    return details
+  }, [report])
+
+  const toggleRoom = (key: string) => {
+    setExpandedRooms((current) => {
+      const next = new Set(current)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   useEffect(() => {
     if (report !== null || history !== null || !session?.user?.id) return
@@ -429,13 +488,9 @@ export default function EstimateComparisonTool() {
                           {new Date(entry.createdAt).toLocaleDateString('en-US')}
                         </span>
                         <span
-                          className={`ml-auto tabular-nums text-sm font-semibold ${
-                            entry.deltaRcvCents >= 0
-                              ? 'text-green-700 dark:text-green-400'
-                              : 'text-red-700 dark:text-red-400'
-                          }`}
+                          className={`ml-auto tabular-nums text-sm font-semibold ${deltaClass(shortfallCents(entry.deltaRcvCents))}`}
                         >
-                          {fmt(entry.deltaRcvCents)}
+                          {fmt(shortfallCents(entry.deltaRcvCents))}
                         </span>
                       </button>
                     </li>
@@ -499,9 +554,14 @@ export default function EstimateComparisonTool() {
                 <SummaryTile label="My estimate" value={report.summary.mineTotal} />
                 <SummaryTile label="Carrier's estimate" value={report.summary.carrierTotal} />
                 <SummaryTile
-                  label={report.summary.deltaRcvCents >= 0 ? 'Difference (my favor)' : 'Difference'}
-                  value={report.summary.delta}
-                  tone={report.summary.deltaRcvCents >= 0 ? 'good' : 'bad'}
+                  label="Carrier vs. my estimate"
+                  value={fmt(shortfallCents(report.summary.deltaRcvCents))}
+                  sub={
+                    shortfallCents(report.summary.deltaRcvCents) < 0
+                      ? 'carrier is short — recovery target'
+                      : 'carrier meets or exceeds my estimate'
+                  }
+                  tone={shortfallCents(report.summary.deltaRcvCents) < 0 ? 'bad' : 'good'}
                 />
                 <SummaryTile
                   label="Matched items"
@@ -611,24 +671,24 @@ export default function EstimateComparisonTool() {
                     </tr>
                   </thead>
                   <tbody>
-                    {report.rollups.map((r) => (
-                      <tr key={r.room} className="border-t border-gray-100 dark:border-gray-700/50">
-                        <td className="px-5 py-2 text-gray-900 dark:text-white">{r.room}</td>
-                        <td className="px-5 py-2 text-right tabular-nums">{fmt(r.mineRcvCents)}</td>
-                        <td className="px-5 py-2 text-right tabular-nums">{fmt(r.carrierRcvCents)}</td>
-                        <td
-                          className={`px-5 py-2 text-right tabular-nums font-semibold ${
-                            r.deltaRcvCents > 0
-                              ? 'text-green-700 dark:text-green-400'
-                              : r.deltaRcvCents < 0
-                                ? 'text-red-700 dark:text-red-400'
-                                : 'text-gray-400'
-                          }`}
-                        >
-                          {fmt(r.deltaRcvCents)}
-                        </td>
-                      </tr>
-                    ))}
+                    {report.rollups.map((r) => {
+                      const key = roomKey(r.room)
+                      const detail = roomDetails.get(key)
+                      const expanded = expandedRooms.has(key)
+                      const delta = shortfallCents(r.deltaRcvCents)
+                      return (
+                        <RoomRow
+                          key={r.room}
+                          room={r.room}
+                          mine={r.mineRcvCents}
+                          carrier={r.carrierRcvCents}
+                          delta={delta}
+                          expanded={expanded}
+                          detail={detail}
+                          onToggle={() => toggleRoom(key)}
+                        />
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -682,15 +742,9 @@ export default function EstimateComparisonTool() {
                           {pair.mine.room} · {TIER_LABELS[pair.tier] ?? pair.tier}
                         </span>
                         <span
-                          className={`ml-auto tabular-nums font-semibold ${
-                            pair.rcvDeltaCents > 0
-                              ? 'text-green-700 dark:text-green-400'
-                              : pair.rcvDeltaCents < 0
-                                ? 'text-red-700 dark:text-red-400'
-                                : 'text-gray-400'
-                          }`}
+                          className={`ml-auto tabular-nums font-semibold ${deltaClass(shortfallCents(pair.rcvDeltaCents))}`}
                         >
-                          {fmt(pair.rcvDeltaCents)}
+                          {fmt(shortfallCents(pair.rcvDeltaCents))}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 tabular-nums">
@@ -728,6 +782,127 @@ export default function EstimateComparisonTool() {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+interface RoomDetail {
+  missing: LineItem[]
+  carrierOnly: LineItem[]
+  differs: Pair[]
+  equal: number
+}
+
+interface RoomRowProps {
+  room: string
+  mine: number
+  carrier: number
+  /** carrier − mine: negative = carrier is short (red). */
+  delta: number
+  expanded: boolean
+  detail: RoomDetail | undefined
+  onToggle: () => void
+}
+
+function RoomRow({ room, mine, carrier, delta, expanded, detail, onToggle }: RoomRowProps) {
+  const hasDetail =
+    !!detail && (detail.missing.length > 0 || detail.carrierOnly.length > 0 || detail.differs.length > 0)
+  return (
+    <>
+      <tr
+        className={`border-t border-gray-100 dark:border-gray-700/50 ${hasDetail ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50' : ''}`}
+        onClick={hasDetail ? onToggle : undefined}
+      >
+        <td className="px-5 py-2 text-gray-900 dark:text-white">
+          <span className="inline-flex items-center gap-1.5">
+            {hasDetail ? (
+              expanded ? (
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              )
+            ) : (
+              <span className="w-4" />
+            )}
+            {room}
+          </span>
+        </td>
+        <td className="px-5 py-2 text-right tabular-nums">{fmt(mine)}</td>
+        <td className="px-5 py-2 text-right tabular-nums">{fmt(carrier)}</td>
+        <td className={`px-5 py-2 text-right tabular-nums font-semibold ${deltaClass(delta)}`}>
+          {fmt(delta)}
+        </td>
+      </tr>
+      {expanded && detail && (
+        <tr className="border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/60 dark:bg-gray-900/40">
+          <td colSpan={4} className="px-5 py-3">
+            <div className="space-y-3">
+              <RoomDetailSection
+                title={`In mine, not in carrier's (${detail.missing.length})`}
+                items={detail.missing.map((item) => ({
+                  key: `m-${item.lineNumber}`,
+                  code: item.catalog?.code ?? null,
+                  text: item.description,
+                  qty: `${item.quantity} ${item.unit}`,
+                  amount: -item.rcvCents,
+                }))}
+              />
+              <RoomDetailSection
+                title={`In carrier's, not in mine (${detail.carrierOnly.length})`}
+                items={detail.carrierOnly.map((item) => ({
+                  key: `c-${item.lineNumber}`,
+                  code: item.catalog?.code ?? null,
+                  text: item.description,
+                  qty: `${item.quantity} ${item.unit}`,
+                  amount: item.rcvCents,
+                }))}
+              />
+              <RoomDetailSection
+                title={`Same item, different numbers (${detail.differs.length})`}
+                items={detail.differs.map((pair, i) => ({
+                  key: `d-${i}`,
+                  code: pair.mine.catalog?.code ?? null,
+                  text: `${pair.mine.description} — mine ${pair.mine.quantity} ${pair.mine.unit} ${fmt(pair.mine.rcvCents)} vs carrier ${pair.carrier.quantity} ${pair.carrier.unit} ${fmt(pair.carrier.rcvCents)}`,
+                  qty: '',
+                  amount: shortfallCents(pair.rcvDeltaCents),
+                }))}
+              />
+              {detail.equal > 0 && (
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  {detail.equal} matched item{detail.equal === 1 ? '' : 's'} with no differences
+                </p>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  )
+}
+
+function RoomDetailSection({
+  title,
+  items,
+}: {
+  title: string
+  items: { key: string; code: string | null; text: string; qty: string; amount: number }[]
+}) {
+  if (items.length === 0) return null
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-1">{title}</p>
+      <ul className="space-y-1">
+        {items.map((item) => (
+          <li key={item.key} className="flex items-baseline gap-2 text-sm">
+            <span className="text-xs font-mono text-red-600 flex-shrink-0">{item.code ?? '—'}</span>
+            <span className="text-gray-800 dark:text-gray-200 min-w-0">{item.text}</span>
+            {item.qty && <span className="text-xs text-gray-400 flex-shrink-0">{item.qty}</span>}
+            <span className={`ml-auto tabular-nums text-sm font-medium flex-shrink-0 ${deltaClass(item.amount)}`}>
+              {fmt(item.amount)}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
