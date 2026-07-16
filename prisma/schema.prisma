@@ -841,3 +841,14 @@ model ScopeRuleDismissal {
   @@unique([userId, ruleName, triggerKey, companionLabel])
   @@map("scope_rule_dismissals")
 }
+
+model DescriptionSynonym {
+  id        String   @id @default(cuid())
+  // Normalized action-stripped descriptions confirmed to mean the same item
+  a         String
+  b         String
+  createdAt DateTime @default(now())
+
+  @@unique([a, b])
+  @@map("description_synonyms")
+}

@@ -11,7 +11,9 @@ import { existsSync } from 'fs'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { formatCents, parseEstimateFile, ParseOutcome } from '@/lib/estimate-engine'
-import { matchDocuments, roomRollups } from '@/lib/estimate-engine/match'
+import { buildSynonymCanon, matchDocuments, roomRollups } from '@/lib/estimate-engine/match'
+import { aiExtractDocument } from '@/lib/estimate-engine/ai-extract'
+import { suggestPairings } from '@/lib/estimate-engine/suggest'
 import { persistEstimateDocument } from '@/lib/estimate-db'
 import { evaluateScopeRules } from '@/lib/scope-check/rules'
 import { loadDismissals, loadScopeRules } from '@/lib/scope-check/rule-store'
@@ -41,8 +43,25 @@ export async function POST(request: NextRequest) {
 
     const mineDoc = mineOutcome.document!
     const carrierDoc = carrierOutcome.document!
-    const result = matchDocuments(mineDoc, carrierDoc)
+    const result = matchDocuments(mineDoc, carrierDoc, {
+      synonymCanon: await loadSynonymCanon(),
+    })
     const rollups = roomRollups(mineDoc, carrierDoc)
+
+    // AI proposes pairings for the leftovers; the user confirms in the UI.
+    let suggestions: { mine: unknown; carrier: unknown; reason: string }[] = []
+    try {
+      const proposed = await suggestPairings(result.mineOnly, result.carrierOnly)
+      const mineByNumber = new Map(result.mineOnly.map((item) => [item.lineNumber, item]))
+      const carrierByNumber = new Map(result.carrierOnly.map((item) => [item.lineNumber, item]))
+      suggestions = proposed.map((s) => ({
+        mine: mineByNumber.get(s.mineLineNumber),
+        carrier: carrierByNumber.get(s.carrierLineNumber),
+        reason: s.reason,
+      }))
+    } catch (suggestError) {
+      console.error('[Compare v2] Pairing suggestions unavailable:', suggestError)
+    }
     const recommendations = evaluateScopeRules(
       mineDoc,
       await loadScopeRules(),
@@ -50,6 +69,7 @@ export async function POST(request: NextRequest) {
     )
 
     let persisted = false
+    let comparisonId: string | null = null
     try {
       const [mine, carrier] = [
         await persistEstimateDocument(mineOutcome, {
@@ -63,7 +83,7 @@ export async function POST(request: NextRequest) {
           side: 'carrier',
         }),
       ]
-      await prisma.estimateComparison.create({
+      const created = await prisma.estimateComparison.create({
         data: {
           userId: session.user.id,
           mineDocumentId: mine.documentId,
@@ -102,11 +122,14 @@ export async function POST(request: NextRequest) {
         },
       })
       persisted = true
+      comparisonId = created.id
     } catch (persistError) {
       console.error('[Compare v2] Persistence failed:', persistError)
     }
 
     return NextResponse.json({
+      comparisonId,
+      suggestions,
       summary: {
         clientName: mineOutcome.metadata?.clientName ?? carrierOutcome.metadata?.clientName ?? null,
         claimNumber:
@@ -140,6 +163,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/** Canonicalizer over user-confirmed synonyms (empty mapping on DB issues). */
+async function loadSynonymCanon(): Promise<(desc: string) => string> {
+  try {
+    const pairs = await prisma.descriptionSynonym.findMany({ select: { a: true, b: true } })
+    return buildSynonymCanon(pairs)
+  } catch (error) {
+    console.error('[Compare v2] Synonym load failed:', error)
+    return (desc) => desc
+  }
+}
+
 /** Load, verify, and parse one side; returns the outcome or an error response. */
 async function parseSide(
   userId: string,
@@ -159,7 +193,7 @@ async function parseSide(
       ),
     ]
   }
-  const outcome = await parseEstimateFile(file.path)
+  const outcome = await parseEstimateFile(file.path, { aiFallback: aiExtractDocument })
   if (!outcome.document || !outcome.reconciliation) {
     return [
       null,

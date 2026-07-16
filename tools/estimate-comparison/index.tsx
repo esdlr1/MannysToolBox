@@ -51,7 +51,15 @@ interface Recommendation {
   suggestedUnit: string | null
 }
 
+interface Suggestion {
+  mine: LineItem
+  carrier: LineItem
+  reason: string
+}
+
 interface CompareReport {
+  comparisonId?: string | null
+  suggestions?: Suggestion[]
   summary: {
     clientName: string | null
     claimNumber: string | null
@@ -99,6 +107,7 @@ const TIER_LABELS: Record<string, string> = {
   code: 'code (room moved)',
   'description-room': 'description',
   description: 'description (room moved)',
+  'ai-confirmed': 'confirmed by you',
 }
 
 export default function EstimateComparisonTool() {
@@ -235,6 +244,59 @@ export default function EstimateComparisonTool() {
     a.download = `comparison_${report.summary.claimNumber ?? 'estimate'}.csv`
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  // Review queue: confirming folds the AI-suggested pair into the report and
+  // teaches the matcher the synonym; rejecting just drops the suggestion.
+  const resolveSuggestion = async (suggestion: Suggestion, confirmed: boolean) => {
+    setReport((current) => {
+      if (!current) return current
+      const suggestions = (current.suggestions ?? []).filter((s) => s !== suggestion)
+      if (!confirmed) return { ...current, suggestions }
+      return {
+        ...current,
+        suggestions,
+        pairs: [
+          ...current.pairs,
+          {
+            mine: suggestion.mine,
+            carrier: suggestion.carrier,
+            tier: 'ai-confirmed',
+            qtyDelta: Math.round((suggestion.mine.quantity - suggestion.carrier.quantity) * 100) / 100,
+            rcvDeltaCents: suggestion.mine.rcvCents - suggestion.carrier.rcvCents,
+            unitPriceDeltaCents: suggestion.mine.unitPriceCents - suggestion.carrier.unitPriceCents,
+          },
+        ],
+        mineOnly: current.mineOnly.filter((i) => i.lineNumber !== suggestion.mine.lineNumber),
+        carrierOnly: current.carrierOnly.filter(
+          (i) => i.lineNumber !== suggestion.carrier.lineNumber
+        ),
+        summary: {
+          ...current.summary,
+          counts: {
+            ...current.summary.counts,
+            matched: current.summary.counts.matched + 1,
+            mineOnly: current.summary.counts.mineOnly - 1,
+            carrierOnly: current.summary.counts.carrierOnly - 1,
+          },
+        },
+      }
+    })
+    if (confirmed && report?.comparisonId) {
+      try {
+        await fetch('/api/tools/estimate-comparison/confirm-match', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            comparisonId: report.comparisonId,
+            mineLineNumber: suggestion.mine.lineNumber,
+            carrierLineNumber: suggestion.carrier.lineNumber,
+          }),
+        })
+      } catch {
+        setError('Could not save the confirmed match')
+      }
+    }
   }
 
   const exportPdf = async () => {
@@ -424,6 +486,7 @@ export default function EstimateComparisonTool() {
                       setReport(null)
                       setMineFile(null)
                       setCarrierFile(null)
+                      setHistory(null)
                     }}
                     className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                   >
@@ -447,6 +510,62 @@ export default function EstimateComparisonTool() {
                 />
               </div>
             </div>
+
+            {(report.suggestions?.length ?? 0) > 0 && (
+              <div className="bg-white dark:bg-gray-800/50 rounded-2xl border border-amber-200 dark:border-amber-800/50 p-5">
+                <h2 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  Needs your review ({report.suggestions!.length})
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                  AI-suggested pairings for unmatched items — nothing counts until you confirm.
+                  Confirmed pairs are remembered and auto-match next time.
+                </p>
+                <ul className="space-y-3">
+                  {report.suggestions!.map((suggestion, i) => (
+                    <li
+                      key={i}
+                      className="border border-gray-200 dark:border-gray-700 rounded-xl p-4"
+                    >
+                      <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-xs font-semibold uppercase text-gray-400 mb-1">Mine</p>
+                          <p className="text-gray-900 dark:text-white">{suggestion.mine.description}</p>
+                          <p className="text-xs text-gray-500 tabular-nums">
+                            {suggestion.mine.room} · {suggestion.mine.quantity} {suggestion.mine.unit} ·{' '}
+                            {fmt(suggestion.mine.rcvCents)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold uppercase text-gray-400 mb-1">Carrier</p>
+                          <p className="text-gray-900 dark:text-white">{suggestion.carrier.description}</p>
+                          <p className="text-xs text-gray-500 tabular-nums">
+                            {suggestion.carrier.room} · {suggestion.carrier.quantity}{' '}
+                            {suggestion.carrier.unit} · {fmt(suggestion.carrier.rcvCents)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <p className="text-xs text-amber-700 dark:text-amber-400 flex-1 min-w-[200px]">
+                          {suggestion.reason}
+                        </p>
+                        <button
+                          onClick={() => resolveSuggestion(suggestion, true)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-600 text-white"
+                        >
+                          Confirm match
+                        </button>
+                        <button
+                          onClick={() => resolveSuggestion(suggestion, false)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        >
+                          Not a match
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {report.recommendations.length > 0 && (
               <div className="bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 p-5">
