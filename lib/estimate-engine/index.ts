@@ -3,6 +3,7 @@
 import { extractPositionedPages } from './extract-text'
 import { detectFormat } from './detect'
 import { parseXactimate } from './xactimate'
+import { parseSymbility } from './symbility'
 import { reconcile } from './reconcile'
 import { enrichDocument } from './catalog'
 import { EstimateMetadata, extractMetadata } from './metadata'
@@ -12,6 +13,7 @@ export * from './types'
 export { extractPositionedPages } from './extract-text'
 export { detectFormat } from './detect'
 export { parseXactimate } from './xactimate'
+export { parseSymbility } from './symbility'
 export { reconcile, formatCents } from './reconcile'
 export {
   enrichDocument,
@@ -52,29 +54,6 @@ export async function parseEstimateFile(
   const format = detectFormat(pages)
   const metadata = extractMetadata(pages)
 
-  if (format === 'symbility') {
-    // No deterministic Symbility parser yet — AI extraction is the designed
-    // path (still guarded by the reconciliation gate).
-    const aiDocument = opts?.aiFallback ? await tryAiExtraction(opts.aiFallback, pages) : null
-    if (aiDocument) {
-      const reconciliation = reconcile(aiDocument)
-      enrichDocument(aiDocument)
-      return {
-        format,
-        document: aiDocument,
-        reconciliation,
-        metadata,
-        error: reconciliation.ok ? null : 'AI extraction failed the reconciliation gate',
-      }
-    }
-    return {
-      format,
-      document: null,
-      reconciliation: null,
-      metadata,
-      error: 'Could not extract this Symbility estimate — please report this document',
-    }
-  }
   if (format === 'unknown') {
     return {
       format,
@@ -85,7 +64,7 @@ export async function parseEstimateFile(
     }
   }
 
-  let document = parseXactimate(pages)
+  let document = format === 'symbility' ? parseSymbility(pages) : parseXactimate(pages)
   let reconciliation = reconcile(document)
 
   // Deterministic parse failed the gate → one AI retry, same gate (design §3).
