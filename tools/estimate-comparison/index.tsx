@@ -4,7 +4,7 @@
 // Design: docs/estimate-comparison-redesign.md. Upload both PDFs → the
 // engine parses (trust gate), matches in tiers, and computes every delta in
 // code. Client/claim info is read from the PDFs — nothing is typed.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { FileUpload } from '@/components/FileUpload'
 import { logUsage } from '@/lib/utils'
@@ -51,7 +51,15 @@ interface Recommendation {
   suggestedUnit: string | null
 }
 
+interface Suggestion {
+  mine: LineItem
+  carrier: LineItem
+  reason: string
+}
+
 interface CompareReport {
+  comparisonId?: string | null
+  suggestions?: Suggestion[]
   summary: {
     clientName: string | null
     claimNumber: string | null
@@ -78,6 +86,17 @@ interface UploadedFile {
   url: string
 }
 
+interface HistoryEntry {
+  id: string
+  clientName: string | null
+  claimNumber: string | null
+  deltaRcvCents: number
+  matchedCount: number
+  mineOnlyCount: number
+  carrierOnlyCount: number
+  createdAt: string
+}
+
 const fmt = (cents: number): string =>
   `${cents < 0 ? '-' : ''}$${(Math.abs(cents) / 100).toLocaleString('en-US', {
     minimumFractionDigits: 2,
@@ -88,6 +107,7 @@ const TIER_LABELS: Record<string, string> = {
   code: 'code (room moved)',
   'description-room': 'description',
   description: 'description (room moved)',
+  'ai-confirmed': 'confirmed by you',
 }
 
 export default function EstimateComparisonTool() {
@@ -100,6 +120,32 @@ export default function EstimateComparisonTool() {
   const [bucket, setBucket] = useState<Bucket>('differences')
   const [search, setSearch] = useState('')
   const [saved, setSaved] = useState(false)
+  const [history, setHistory] = useState<HistoryEntry[] | null>(null)
+
+  useEffect(() => {
+    if (report !== null || history !== null || !session?.user?.id) return
+    fetch('/api/tools/estimate-comparison/history')
+      .then(async (response) => {
+        const data = await response.json()
+        if (response.ok) setHistory(data.comparisons ?? [])
+      })
+      .catch(() => setHistory([]))
+  }, [report, history, session?.user?.id])
+
+  const openHistory = async (id: string) => {
+    setProcessing(true)
+    setError('')
+    try {
+      const response = await fetch(`/api/tools/estimate-comparison/history/${id}`)
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Could not load comparison')
+      setReport(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load comparison')
+    } finally {
+      setProcessing(false)
+    }
+  }
 
   const runComparison = async () => {
     if (!mineFile || !carrierFile || !session?.user?.id) {
@@ -200,6 +246,80 @@ export default function EstimateComparisonTool() {
     URL.revokeObjectURL(url)
   }
 
+  // Review queue: confirming folds the AI-suggested pair into the report and
+  // teaches the matcher the synonym; rejecting just drops the suggestion.
+  const resolveSuggestion = async (suggestion: Suggestion, confirmed: boolean) => {
+    setReport((current) => {
+      if (!current) return current
+      const suggestions = (current.suggestions ?? []).filter((s) => s !== suggestion)
+      if (!confirmed) return { ...current, suggestions }
+      return {
+        ...current,
+        suggestions,
+        pairs: [
+          ...current.pairs,
+          {
+            mine: suggestion.mine,
+            carrier: suggestion.carrier,
+            tier: 'ai-confirmed',
+            qtyDelta: Math.round((suggestion.mine.quantity - suggestion.carrier.quantity) * 100) / 100,
+            rcvDeltaCents: suggestion.mine.rcvCents - suggestion.carrier.rcvCents,
+            unitPriceDeltaCents: suggestion.mine.unitPriceCents - suggestion.carrier.unitPriceCents,
+          },
+        ],
+        mineOnly: current.mineOnly.filter((i) => i.lineNumber !== suggestion.mine.lineNumber),
+        carrierOnly: current.carrierOnly.filter(
+          (i) => i.lineNumber !== suggestion.carrier.lineNumber
+        ),
+        summary: {
+          ...current.summary,
+          counts: {
+            ...current.summary.counts,
+            matched: current.summary.counts.matched + 1,
+            mineOnly: current.summary.counts.mineOnly - 1,
+            carrierOnly: current.summary.counts.carrierOnly - 1,
+          },
+        },
+      }
+    })
+    if (confirmed && report?.comparisonId) {
+      try {
+        await fetch('/api/tools/estimate-comparison/confirm-match', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            comparisonId: report.comparisonId,
+            mineLineNumber: suggestion.mine.lineNumber,
+            carrierLineNumber: suggestion.carrier.lineNumber,
+          }),
+        })
+      } catch {
+        setError('Could not save the confirmed match')
+      }
+    }
+  }
+
+  const exportPdf = async () => {
+    if (!report) return
+    try {
+      const response = await fetch('/api/tools/estimate-comparison/export-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(report),
+      })
+      if (!response.ok) throw new Error()
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Supplement_${report.summary.claimNumber ?? 'estimate'}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      setError('PDF export failed')
+    }
+  }
+
   const visiblePairs = useMemo(() => {
     if (!report) return []
     const matchesSearch = (text: string): boolean =>
@@ -288,6 +408,41 @@ export default function EstimateComparisonTool() {
             <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
               Client and claim info are read from the PDFs — nothing to type.
             </p>
+
+            {history && history.length > 0 && (
+              <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-5">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Recent comparisons
+                </h3>
+                <ul className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                  {history.slice(0, 10).map((entry) => (
+                    <li key={entry.id}>
+                      <button
+                        onClick={() => openHistory(entry.id)}
+                        className="w-full text-left py-2.5 flex flex-wrap items-baseline gap-x-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg px-2"
+                      >
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {entry.clientName ?? 'Comparison'}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {entry.claimNumber ? `Claim ${entry.claimNumber} · ` : ''}
+                          {new Date(entry.createdAt).toLocaleDateString('en-US')}
+                        </span>
+                        <span
+                          className={`ml-auto tabular-nums text-sm font-semibold ${
+                            entry.deltaRcvCents >= 0
+                              ? 'text-green-700 dark:text-green-400'
+                              : 'text-red-700 dark:text-red-400'
+                          }`}
+                        >
+                          {fmt(entry.deltaRcvCents)}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
@@ -309,6 +464,12 @@ export default function EstimateComparisonTool() {
                 <GateBadge label="Carrier" ok={report.summary.gates.carrier} />
                 <div className="flex gap-2 ml-auto">
                   <button
+                    onClick={exportPdf}
+                    className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center gap-1.5"
+                  >
+                    <Download className="w-4 h-4" /> PDF
+                  </button>
+                  <button
                     onClick={exportCsv}
                     className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center gap-1.5"
                   >
@@ -325,6 +486,7 @@ export default function EstimateComparisonTool() {
                       setReport(null)
                       setMineFile(null)
                       setCarrierFile(null)
+                      setHistory(null)
                     }}
                     className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                   >
@@ -348,6 +510,62 @@ export default function EstimateComparisonTool() {
                 />
               </div>
             </div>
+
+            {(report.suggestions?.length ?? 0) > 0 && (
+              <div className="bg-white dark:bg-gray-800/50 rounded-2xl border border-amber-200 dark:border-amber-800/50 p-5">
+                <h2 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  Needs your review ({report.suggestions!.length})
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                  AI-suggested pairings for unmatched items — nothing counts until you confirm.
+                  Confirmed pairs are remembered and auto-match next time.
+                </p>
+                <ul className="space-y-3">
+                  {report.suggestions!.map((suggestion, i) => (
+                    <li
+                      key={i}
+                      className="border border-gray-200 dark:border-gray-700 rounded-xl p-4"
+                    >
+                      <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <p className="text-xs font-semibold uppercase text-gray-400 mb-1">Mine</p>
+                          <p className="text-gray-900 dark:text-white">{suggestion.mine.description}</p>
+                          <p className="text-xs text-gray-500 tabular-nums">
+                            {suggestion.mine.room} · {suggestion.mine.quantity} {suggestion.mine.unit} ·{' '}
+                            {fmt(suggestion.mine.rcvCents)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold uppercase text-gray-400 mb-1">Carrier</p>
+                          <p className="text-gray-900 dark:text-white">{suggestion.carrier.description}</p>
+                          <p className="text-xs text-gray-500 tabular-nums">
+                            {suggestion.carrier.room} · {suggestion.carrier.quantity}{' '}
+                            {suggestion.carrier.unit} · {fmt(suggestion.carrier.rcvCents)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <p className="text-xs text-amber-700 dark:text-amber-400 flex-1 min-w-[200px]">
+                          {suggestion.reason}
+                        </p>
+                        <button
+                          onClick={() => resolveSuggestion(suggestion, true)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-600 text-white"
+                        >
+                          Confirm match
+                        </button>
+                        <button
+                          onClick={() => resolveSuggestion(suggestion, false)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        >
+                          Not a match
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {report.recommendations.length > 0 && (
               <div className="bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 p-5">

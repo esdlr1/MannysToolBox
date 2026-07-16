@@ -5,7 +5,7 @@
 // STATUS is the user's (Rule Studio approvals/mutes always survive a sync).
 import { Prisma } from '@prisma/client'
 import { prisma } from '../prisma'
-import { SEED_RULES, ScopeRuleDef } from './rules'
+import { SEED_RULES, ScopeRuleDef, dismissalKey } from './rules'
 
 /** Upsert seed definitions, preserving user-managed status. Idempotent. */
 export async function syncSeedRules(): Promise<void> {
@@ -49,5 +49,16 @@ export async function loadScopeRules(): Promise<ScopeRuleDef[]> {
   } catch (error) {
     console.error('[Scope Check] Rule store unavailable, using seed set:', error)
     return SEED_RULES
+  }
+}
+
+/** dismissalKey() strings for the user's "doesn't apply" decisions. */
+export async function loadDismissals(userId: string): Promise<Set<string>> {
+  try {
+    const rows = await prisma.scopeRuleDismissal.findMany({ where: { userId } })
+    return new Set(rows.map((row) => dismissalKey(row.ruleName, row.triggerKey, row.companionLabel)))
+  } catch (error) {
+    console.error('[Scope Check] Dismissal load failed:', error)
+    return new Set()
   }
 }

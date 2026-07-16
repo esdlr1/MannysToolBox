@@ -45,26 +45,57 @@ export function normalizeRoom(room: string): string {
     .trim()
 }
 
-function baseDescription(item: ParsedLineItem): string {
+export function baseDescription(item: ParsedLineItem): string {
   return normalizeDescription(splitAction(item.description).base)
 }
 
-const TIER_KEYS: { tier: MatchTier; key: (item: ParsedLineItem) => string | null }[] = [
-  {
-    tier: 'code-room',
-    key: (item) => (item.catalog ? `${item.catalog.code}::${normalizeRoom(item.room)}` : null),
-  },
-  { tier: 'code', key: (item) => item.catalog?.code ?? null },
-  { tier: 'description-room', key: (item) => `${baseDescription(item)}::${normalizeRoom(item.room)}` },
-  { tier: 'description', key: (item) => baseDescription(item) },
-]
+/**
+ * Canonicalizer over user-confirmed description synonyms (learned from the
+ * review queue): descriptions confirmed to mean the same item map to one
+ * canonical string, so past confirmations auto-match in future comparisons.
+ */
+export function buildSynonymCanon(pairs: { a: string; b: string }[]): (desc: string) => string {
+  const parent = new Map<string, string>()
+  const find = (x: string): string => {
+    let root = x
+    while (parent.has(root) && parent.get(root) !== root) root = parent.get(root) as string
+    return root
+  }
+  for (const { a, b } of pairs) {
+    const ra = find(a)
+    const rb = find(b)
+    if (ra !== rb) parent.set(ra < rb ? rb : ra, ra < rb ? ra : rb)
+  }
+  return (desc) => find(desc)
+}
 
-export function matchDocuments(mine: ParsedDocument, carrier: ParsedDocument): MatchResult {
+export interface MatchOptions {
+  /** Maps a normalized base description to its synonym-group canonical form. */
+  synonymCanon?: (desc: string) => string
+}
+
+export function matchDocuments(
+  mine: ParsedDocument,
+  carrier: ParsedDocument,
+  options: MatchOptions = {}
+): MatchResult {
+  const canon = options.synonymCanon ?? ((desc: string) => desc)
+  const desc = (item: ParsedLineItem): string => canon(baseDescription(item))
+  const tierKeys: { tier: MatchTier; key: (item: ParsedLineItem) => string | null }[] = [
+    {
+      tier: 'code-room',
+      key: (item) => (item.catalog ? `${item.catalog.code}::${normalizeRoom(item.room)}` : null),
+    },
+    { tier: 'code', key: (item) => item.catalog?.code ?? null },
+    { tier: 'description-room', key: (item) => `${desc(item)}::${normalizeRoom(item.room)}` },
+    { tier: 'description', key: (item) => desc(item) },
+  ]
+
   const pairs: MatchedPair[] = []
   let mineLeft = [...mine.lineItems]
   let carrierLeft = [...carrier.lineItems]
 
-  for (const { tier, key } of TIER_KEYS) {
+  for (const { tier, key } of tierKeys) {
     const carrierByKey = new Map<string, ParsedLineItem[]>()
     for (const item of carrierLeft) {
       const k = key(item)

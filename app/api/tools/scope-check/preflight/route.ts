@@ -7,8 +7,9 @@ import { existsSync } from 'fs'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { parseEstimateFile, formatCents } from '@/lib/estimate-engine'
+import { aiExtractDocument } from '@/lib/estimate-engine/ai-extract'
 import { evaluateScopeRules } from '@/lib/scope-check/rules'
-import { loadScopeRules } from '@/lib/scope-check/rule-store'
+import { loadDismissals, loadScopeRules } from '@/lib/scope-check/rule-store'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const outcome = await parseEstimateFile(file.path)
+    const outcome = await parseEstimateFile(file.path, { aiFallback: aiExtractDocument })
     if (!outcome.document || !outcome.reconciliation) {
       return NextResponse.json(
         { error: outcome.error ?? 'Could not parse this estimate', metadata: outcome.metadata },
@@ -90,7 +91,8 @@ export async function POST(request: NextRequest) {
     }
 
     const rules = await loadScopeRules()
-    const recommendations = evaluateScopeRules(document, rules)
+    const dismissed = await loadDismissals(session.user.id)
+    const recommendations = evaluateScopeRules(document, rules, dismissed)
 
     return NextResponse.json({
       metadata,
