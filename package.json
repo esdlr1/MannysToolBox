@@ -21,7 +21,8 @@
     "test:goldens": "tsx scripts/test-estimate-goldens.ts",
     "seed:scope-rules": "tsx scripts/seed-scope-rules.ts",
     "mine:scope-rules": "tsx scripts/mine-scope-rules.ts",
-    "compare:estimates": "tsx scripts/compare-estimates.ts"
+    "compare:estimates": "tsx scripts/compare-estimates.ts",
+    "benchmark:ai": "tsx scripts/benchmark-ai.ts"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",

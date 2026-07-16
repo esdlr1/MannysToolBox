@@ -1,8 +1,9 @@
 // AI pairing suggestions — design §5 tier 4. The model only PROPOSES pairs
 // for items the deterministic tiers left unmatched; every proposal carries a
 // reason and goes to the user's review section. Nothing enters the report as
-// fact without confirmation. Server-side only (needs OPENAI_API_KEY).
-import { callAI } from '../ai'
+// fact without confirmation. Server-side only. Provider-agnostic via
+// lib/ai-providers.ts (AI_SUGGEST_PROVIDER / AI_SUGGEST_MODEL).
+import { AIProvider, completeText, resolveTask } from '../ai-providers'
 import { ParsedLineItem } from './types'
 
 export interface PairingSuggestion {
@@ -15,9 +16,12 @@ const MAX_ITEMS_PER_SIDE = 60
 
 export async function suggestPairings(
   mineOnly: ParsedLineItem[],
-  carrierOnly: ParsedLineItem[]
+  carrierOnly: ParsedLineItem[],
+  override?: { provider: AIProvider; model: string }
 ): Promise<PairingSuggestion[]> {
   if (mineOnly.length === 0 || carrierOnly.length === 0) return []
+  const task = override ?? resolveTask('suggest')
+  if (!task) return []
   const mine = mineOnly.slice(0, MAX_ITEMS_PER_SIDE)
   const carrier = carrierOnly.slice(0, MAX_ITEMS_PER_SIDE)
 
@@ -26,8 +30,10 @@ export async function suggestPairings(
       .map((i) => `#${i.lineNumber} [${i.room}] ${i.description} — ${i.quantity} ${i.unit}`)
       .join('\n')
 
-  const response = await callAI({
-    systemPrompt:
+  const response = await completeText({
+    provider: task.provider,
+    model: task.model,
+    system:
       'You match construction estimate line items that describe the SAME work using different wording ' +
       '(e.g. "R&R laminated comp. shingles" vs "Remove & replace laminated composition shingles"). ' +
       'Only propose pairs you are confident about. Return ONLY valid JSON, no prose.',
@@ -39,9 +45,9 @@ export async function suggestPairings(
     temperature: 0,
     maxTokens: 2000,
   })
-  if (response.error || !response.result) return []
+  if (response.error || !response.text) return []
 
-  return validate(response.result, mine, carrier)
+  return validate(response.text, mine, carrier)
 }
 
 function validate(
