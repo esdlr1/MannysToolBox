@@ -7,6 +7,13 @@ declare module 'pdf-parse' {
     text?: string
     version?: string
   }
-  function pdfParse(dataBuffer: Buffer | Uint8Array): Promise<PDFData>
+  interface PDFParseOptions {
+    /** Custom page renderer; receives the pdf.js page proxy. */
+    pagerender?: (pageData: unknown) => string | Promise<string>
+    /** Max pages to parse (0 = all). */
+    max?: number
+    version?: string
+  }
+  function pdfParse(dataBuffer: Buffer | Uint8Array, options?: PDFParseOptions): Promise<PDFData>
   export default pdfParse
 }

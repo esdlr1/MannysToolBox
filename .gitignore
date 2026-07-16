@@ -35,3 +35,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# estimate parser samples — real claim PII, never commit (see test-data/estimate-samples/README.md)
+test-data/estimate-samples/**/*.pdf
+test-data/estimate-samples/**/*.expected.json
