@@ -94,3 +94,76 @@ Engine swaps in behind the existing tool URL. UI keeps its shell (upload → inf
 | 7 | Two report modes (diff view + supplement export) | Single report | Daily review and negotiation have different audiences and content needs |
 | 8 | OCR out of scope for v1 | Include OCR now | Samples are digital PDFs; OCR adds large surface area for little v1 value |
 | 9 | Keep existing UI shell, swap engine | Full UI rewrite | UI structure is serviceable; trust problem lives in the engine |
+
+---
+
+# Addendum (2026-07-15): Scope Check — the recommendation layer
+
+Designed in a follow-up session. Supersedes the idea of a standalone
+"estimate writer": there is no separate writing tool and no manual dimension
+entry — the line-item library works inside the flows that already exist.
+
+## Understanding Summary
+
+- **Scope Check** is a recommendation engine with two entry points:
+  1. **Pre-flight mode** — upload your estimate PDF alone, before submission,
+     and get a "what's missing / what looks off" report.
+  2. **Comparison mode** — the same recommendations render as a panel inside
+     the comparison report (alongside carrier-missing items).
+- **No new inputs, ever**: rooms, dimensions, client name, claim number, and
+  estimator are parsed from the PDF. Which side is "mine" is auto-detected
+  (estimator/company on page 1), confirmable with one click. The wizard's
+  manual client-info step is removed.
+- **Three recommendation sources, deterministic-first**: catalog dependency
+  rules, geometry checks (quantities vs. parsed sketch surfaces), and — as
+  history accumulates — patterns mined from the user's own estimates.
+- **Action-ready output**: every recommendation carries catalog code, unit,
+  and a quantity computed from the room's geometry; exportable as a scope
+  sheet in the supplement packet.
+- **Non-goals**: standalone estimate writer, manual dimension entry,
+  Xactimate UI automation, ESX generation.
+
+## Where construction knowledge comes from
+
+Rules are **data with provenance**, never hardcoded opinion:
+
+- **ScopeRule** (new table): trigger (catalog code/category), required
+  companions (codes, units, quantity surface), conditions (loss type, room
+  type), priority, `source` (seeded | mined | ai-drafted | manual),
+  `status` (proposed | approved | muted), evidence (occurrence counts,
+  claim refs).
+- **Feeders**: (a) seeder importing ESTIMATE_AUDIT_RULES.md drywall rules +
+  xactimate-dependency-builder patterns; (b) **corpus miner** — deterministic
+  co-occurrence stats over every stored parsed estimate ("tape & mud present
+  in 7/8 estimates containing drywall replacement"); (c) **scope-expert
+  agent** — a custom Claude agent with a restoration-construction brief that
+  drafts per-trade rule candidates with reasons.
+- **The user is the gate**: nothing fires until approved in Rule Studio
+  (a simple proposed/approved/muted list showing each rule's evidence).
+  In production, accept/dismiss clicks tune rule confidence; dismissed rules
+  quiet down. The bot is the memory; the estimator is the expert.
+
+## Build order (revised)
+
+1. **Data model** — Prisma tables (documents, line items, comparisons,
+   matches, scope rules); one schema serves comparison + Scope Check.
+2. **Pre-flight MVP** — single PDF → existing parser + trust gate → rule
+   engine with seeded rules → zero-typing report. Ships before the matching
+   engine (needs none of it); every upload grows the mining corpus.
+3. **Rule Studio + corpus miner** — approve/mute UI; miner runs over stored
+   estimates (the 8 goldens seed it).
+4. **Comparison matching + review queue** (per main design) with the
+   recommendations panel embedded.
+5. **Learned carrier patterns** once comparison history accumulates.
+
+## Decision Log (addendum)
+
+| # | Decision | Alternatives considered | Why |
+|---|----------|------------------------|-----|
+| 10 | No standalone estimate writer; library powers recommendations inside pre-flight + comparison | Dimension-entry scope builder; Xactimate UI automation; ESX generation | User's flow is PDF-based with zero typing; the valuable moment is review, not a new writing surface |
+| 11 | Single-PDF pre-flight mode alongside comparison mode | Comparison-only recommendations | Catch omissions before the carrier ever sees the estimate; technically a subset of the comparison pipeline |
+| 12 | Rules are data with provenance + human approval gate | Hardcoded rules; AI judging live with no gate | Trust and defensibility: every flag can cite its evidence and approval; no silent AI opinions |
+| 13 | Knowledge = corpus mining + AI drafting + user approval | "Self-learning" agent | The scarce ingredient is the estimator's validated judgment, not construction text; mining own estimates grounds rules in actual practice |
+| 14 | Pre-flight ships before the matching engine | Finish comparison first | Standalone value sooner, smaller surface, populates the mining corpus, de-risks the shared data model |
+| 15 | Old estimate-audit tool retires into Scope Check | Keep both | One engine on better data; avoids divergent rule sets |
+| 16 | Auto-extract client/claim/estimator from PDFs; drop manual info step | Keep manual entry step | Ease of use: two files in, zero typing; metadata is printed on page 1 of every estimate |
