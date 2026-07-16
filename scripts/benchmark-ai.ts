@@ -8,6 +8,7 @@
 // Runs against every provider with an API key set (OPENAI_API_KEY,
 // ANTHROPIC_API_KEY, GOOGLE_AI_API_KEY). Set *_MODEL env vars to try
 // specific models.
+import { existsSync, readFileSync } from 'fs'
 import {
   extractPositionedPages,
   parseEstimateFile,
@@ -89,7 +90,19 @@ async function benchmarkSuggestions(
   }
 }
 
+/** Standalone scripts don't get Next's .env loading — read ./.env ourselves. */
+function loadDotEnv(): void {
+  if (!existsSync('.env')) return
+  for (const line of readFileSync('.env', 'utf8').split('\n')) {
+    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/)
+    if (!match || line.trim().startsWith('#')) continue
+    const value = match[2].replace(/^["']|["']$/g, '')
+    if (!process.env[match[1]]) process.env[match[1]] = value
+  }
+}
+
 async function main(): Promise<void> {
+  loadDotEnv()
   const files = process.argv.slice(2).filter((a) => !a.startsWith('--'))
   if (files.length === 0) {
     console.error('Usage: npm run benchmark:ai -- <estimate.pdf> [<carrier.pdf>]')
