@@ -5,6 +5,7 @@
 // lib/ai-providers.ts (AI_SUGGEST_PROVIDER / AI_SUGGEST_MODEL).
 import { AIProvider, completeText, resolveTask } from '../ai-providers'
 import { ParsedLineItem } from './types'
+import { actionGroup, baseDescription, normalizeRoom } from './match'
 
 export interface PairingSuggestion {
   mineLineNumber: number
@@ -36,7 +37,9 @@ export async function suggestPairings(
     system:
       'You match construction estimate line items that describe the SAME work using different wording ' +
       '(e.g. "R&R laminated comp. shingles" vs "Remove & replace laminated composition shingles"). ' +
-      'Only propose pairs you are confident about. Return ONLY valid JSON, no prose.',
+      'HARD RULES: the underlying item must be the same physical thing; the action must be the same class ' +
+      '(R&R only pairs with R&R/remove-and-replace, remove-only with remove-only, detach & reset with detach & reset); ' +
+      'the room must be the same. When in doubt, do NOT propose the pair. Return ONLY valid JSON, no prose.',
     prompt:
       `List A (contractor estimate, unmatched):\n${list(mine)}\n\n` +
       `List B (carrier estimate, unmatched):\n${list(carrier)}\n\n` +
@@ -66,22 +69,17 @@ function validate(
   }
   if (!Array.isArray(raw)) return []
 
-  const mineNumbers = new Set(mine.map((i) => i.lineNumber))
-  const carrierNumbers = new Set(carrier.map((i) => i.lineNumber))
+  const mineByNumber = new Map(mine.map((i) => [i.lineNumber, i]))
+  const carrierByNumber = new Map(carrier.map((i) => [i.lineNumber, i]))
   const usedMine = new Set<number>()
   const usedCarrier = new Set<number>()
   const suggestions: PairingSuggestion[] = []
   for (const entry of raw as { a?: number; b?: number; reason?: string }[]) {
-    if (
-      typeof entry.a !== 'number' ||
-      typeof entry.b !== 'number' ||
-      !mineNumbers.has(entry.a) ||
-      !carrierNumbers.has(entry.b) ||
-      usedMine.has(entry.a) ||
-      usedCarrier.has(entry.b)
-    ) {
-      continue
-    }
+    if (typeof entry.a !== 'number' || typeof entry.b !== 'number') continue
+    const mineItem = mineByNumber.get(entry.a)
+    const carrierItem = carrierByNumber.get(entry.b)
+    if (!mineItem || !carrierItem || usedMine.has(entry.a) || usedCarrier.has(entry.b)) continue
+    if (!plausiblePair(mineItem, carrierItem)) continue
     usedMine.add(entry.a)
     usedCarrier.add(entry.b)
     suggestions.push({
@@ -91,4 +89,35 @@ function validate(
     })
   }
   return suggestions
+}
+
+const STOPWORDS = new Set([
+  'the', 'and', 'for', 'with', 'per', 'from', 'only', 'coat', 'coats',
+  'standard', 'grade', 'misc', 'one', 'two', 'each', 'high', 'item', 'items',
+])
+
+/**
+ * Deterministic sanity filter over AI proposals — the model's opinion is
+ * never enough on its own:
+ *   1. Same action class (R&R ≠ remove-only ≠ detach & reset — taught by
+ *      Manny 2026-07-16 after nonsense pairings in production).
+ *   2. Same room.
+ *   3. The action-stripped descriptions must share at least one meaningful
+ *      word (insulation can never pair with paint).
+ */
+function plausiblePair(mine: ParsedLineItem, carrier: ParsedLineItem): boolean {
+  if (actionGroup(mine) !== actionGroup(carrier)) return false
+  if (normalizeRoom(mine.room) !== normalizeRoom(carrier.room)) return false
+
+  const words = (item: ParsedLineItem): Set<string> =>
+    new Set(
+      baseDescription(item)
+        .split(/[^a-z0-9]+/)
+        .filter((w) => w.length >= 4 && !STOPWORDS.has(w))
+    )
+  const mineWords = words(mine)
+  for (const word of words(carrier)) {
+    if (mineWords.has(word)) return true
+  }
+  return false
 }
