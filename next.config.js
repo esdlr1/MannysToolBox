@@ -25,6 +25,9 @@ const nextConfig = {
   // Increase timeout for chunk loading
   experimental: {
     optimizePackageImports: ['@prisma/client'],
+    // pdfjs-dist must load from node_modules at runtime: bundling it breaks
+    // its Node "fake worker" (Cannot find module './pdf.worker.js').
+    serverComponentsExternalPackages: ['pdfjs-dist', 'pdf-parse'],
   },
 }
 
