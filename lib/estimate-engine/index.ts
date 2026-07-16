@@ -5,6 +5,7 @@ import { detectFormat } from './detect'
 import { parseXactimate } from './xactimate'
 import { reconcile } from './reconcile'
 import { enrichDocument } from './catalog'
+import { EstimateMetadata, extractMetadata } from './metadata'
 import { DocumentFormat, ParsedDocument, ReconciliationResult } from './types'
 
 export * from './types'
@@ -19,11 +20,14 @@ export {
   splitAction,
   surfaceHintFromDescription,
 } from './catalog'
+export { extractMetadata } from './metadata'
+export type { EstimateMetadata } from './metadata'
 
 export interface ParseOutcome {
   format: DocumentFormat
   document: ParsedDocument | null
   reconciliation: ReconciliationResult | null
+  metadata: EstimateMetadata | null
   /** Set when the pipeline cannot produce a trusted document. */
   error: string | null
 }
@@ -36,12 +40,14 @@ export interface ParseOutcome {
 export async function parseEstimateFile(filePath: string): Promise<ParseOutcome> {
   const pages = await extractPositionedPages(filePath)
   const format = detectFormat(pages)
+  const metadata = extractMetadata(pages)
 
   if (format === 'symbility') {
     return {
       format,
       document: null,
       reconciliation: null,
+      metadata,
       error: 'Symbility parsing uses AI extraction (pipeline phase 3) — not wired up yet',
     }
   }
@@ -50,6 +56,7 @@ export async function parseEstimateFile(filePath: string): Promise<ParseOutcome>
       format,
       document: null,
       reconciliation: null,
+      metadata,
       error: 'Unrecognized document — expected an Xactimate or Symbility estimate PDF',
     }
   }
@@ -61,6 +68,7 @@ export async function parseEstimateFile(filePath: string): Promise<ParseOutcome>
     format,
     document,
     reconciliation,
+    metadata,
     error: reconciliation.ok ? null : 'Parse failed the reconciliation gate',
   }
 }

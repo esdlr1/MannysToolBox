@@ -71,6 +71,18 @@ async function main(): Promise<void> {
     `  qty ↔ sketch:    ${withBasis}/${items.length} (${pct(withBasis, items.length)}) quantities attributed to a sketch surface`
   )
 
+  if (args.includes('--preflight')) {
+    const { SEED_RULES, evaluateScopeRules } = await import('../lib/scope-check/rules')
+    const recommendations = evaluateScopeRules(document, SEED_RULES)
+    console.log(`\npre-flight (${SEED_RULES.filter((r) => r.status === 'approved').length} approved seed rules):`)
+    if (recommendations.length === 0) console.log('  no findings')
+    for (const rec of recommendations) {
+      const qty = rec.suggestedQty !== null ? ` — suggest ${rec.suggestedQty} ${rec.suggestedUnit ?? ''}` : ''
+      console.log(`  [${rec.priority}] ${rec.room}: missing "${rec.missing}"${qty}`)
+      console.log(`      triggered by: ${rec.triggeredBy.slice(0, 70)}`)
+    }
+  }
+
   if (args.includes('--unresolved')) {
     const unresolvedDescriptions = new Set(
       items.filter((i) => !i.catalog).map((i) => i.description)

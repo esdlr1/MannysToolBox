@@ -724,3 +724,72 @@ model ContentsInvAccess {
   @@index([userId])
   @@map("contents_inv_access")
 }
+
+// ===== Estimate engine (Scope Check + Comparison rebuild) =====
+// Design: docs/estimate-comparison-redesign.md
+
+model EstimateDocument {
+  id            String   @id @default(cuid())
+  userId        String
+  fileId        String? // Uploaded File record this was parsed from
+  side          String? // mine | carrier | unknown
+  format        String // xactimate | symbility
+  parseMethod   String // deterministic | ai-extraction
+  gatePassed    Boolean // reconciliation trust gate result
+  clientName    String?
+  claimNumber   String?
+  estimatorName String?
+  grandRcvCents Int? // printed grand total, cents
+  roomCount     Int
+  itemCount     Int
+  warnings      Json?
+  createdAt     DateTime @default(now())
+
+  lines EstimateLine[]
+
+  @@index([userId])
+  @@index([claimNumber])
+  @@map("estimate_documents")
+}
+
+model EstimateLine {
+  id                String           @id @default(cuid())
+  documentId        String
+  document          EstimateDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  lineNumber        Int
+  room              String
+  code              String? // resolved canonical Xactimate code
+  category          String? // trade category (RFG, PNT, ...)
+  action            String? // remove_replace | remove | install | ...
+  description       String
+  quantity          Float
+  unit              String
+  unitPriceCents    Int
+  taxCents          Int
+  opCents           Int
+  rcvCents          Int
+  depreciationCents Int
+  acvCents          Int
+  measurementBasis  String? // sketch surface the quantity came from
+
+  @@index([documentId])
+  @@index([code])
+  @@map("estimate_lines")
+}
+
+model ScopeRule {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  trigger    Json // { codes?: string[], categories?: string[], keywords?: string[] }
+  companions Json // [{ label, keywords, codes?, qtyBasis?, unit? }]
+  priority   String // critical | minor
+  source     String // seeded | mined | ai-drafted | manual
+  status     String   @default("proposed") // proposed | approved | muted
+  reason     String
+  evidence   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([status])
+  @@map("scope_rules")
+}
