@@ -19,14 +19,16 @@ import {
 } from './types'
 
 /** Leading action phrases, longest first; they wrap a base catalog item. */
+// Symbility prints actions with a dash ("Replace - Carpet Pad"); Xactimate
+// without ("R&R Baseboard") — the optional "-" covers both.
 const ACTION_PREFIXES: { re: RegExp; action: ItemAction }[] = [
-  { re: /^remove\s*&\s*replace\s+/i, action: 'remove_replace' },
-  { re: /^r&r\s+/i, action: 'remove_replace' },
-  { re: /^detach\s*&\s*reset\s+/i, action: 'detach_reset' },
-  { re: /^material only\s+/i, action: 'material_only' },
-  { re: /^remove\s+/i, action: 'remove' },
-  { re: /^replace\s+/i, action: 'replace' },
-  { re: /^install\s+/i, action: 'install' },
+  { re: /^remove\s*&\s*replace\s*-?\s+/i, action: 'remove_replace' },
+  { re: /^r&r\s*-?\s+/i, action: 'remove_replace' },
+  { re: /^detach\s*&\s*reset\s*-?\s+/i, action: 'detach_reset' },
+  { re: /^material only\s*-?\s+/i, action: 'material_only' },
+  { re: /^remove\s*-?\s+/i, action: 'remove' },
+  { re: /^replace\s*-?\s+/i, action: 'replace' },
+  { re: /^install\s*-?\s+/i, action: 'install' },
 ]
 
 /** "Supplement 2 -" style tags estimators prepend; not part of the item. */

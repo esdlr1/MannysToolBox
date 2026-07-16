@@ -15,6 +15,10 @@ const SYMBILITY_MARKERS = [
   /symbility/i,
   /claims\s*connect/i,
   /corelogic/i,
+  /cotality/i,
+  /Pricing Database:/i,
+  /Total O&P\s+Total Taxes\s+RC\b/i,
+  /-\s*Subtotal\s*\(\d+\s*items?\)/i,
 ]
 
 /**
