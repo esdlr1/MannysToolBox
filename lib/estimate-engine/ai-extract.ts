@@ -5,20 +5,31 @@
 // yet). The model extracts line items into strict JSON; the reconciliation
 // gate remains the authority — an AI extraction that doesn't sum to the
 // PDF's printed totals is rejected just like a bad deterministic parse.
-// Server-side only (needs OPENAI_API_KEY).
-import { callAI } from '../ai'
+// Server-side only. Provider-agnostic: OpenAI / Anthropic / Google via
+// lib/ai-providers.ts (AI_EXTRACT_PROVIDER / AI_EXTRACT_MODEL).
+import { AIProvider, completeText, resolveTask } from '../ai-providers'
 import { ParsedDocument, ParsedLineItem, ParsedRoom, PdfPage } from './types'
 
 const MAX_CHARS = 90_000
 
-export async function aiExtractDocument(pages: PdfPage[]): Promise<ParsedDocument | null> {
+export async function aiExtractDocument(
+  pages: PdfPage[],
+  override?: { provider: AIProvider; model: string }
+): Promise<ParsedDocument | null> {
+  const task = override ?? resolveTask('extract')
+  if (!task) {
+    console.error('[AI extract] no AI provider configured')
+    return null
+  }
   const text = pages
     .map((page) => `--- page ${page.pageNumber} ---\n${page.lines.map((l) => l.text).join('\n')}`)
     .join('\n')
     .slice(0, MAX_CHARS)
 
-  const response = await callAI({
-    systemPrompt:
+  const response = await completeText({
+    provider: task.provider,
+    model: task.model,
+    system:
       'You extract construction estimate line items from raw PDF text. ' +
       'Return ONLY valid JSON, no prose, no code fences. All money values are dollars with 2 decimals exactly as printed. ' +
       'Never invent items or amounts; omit anything you cannot read.',
@@ -32,14 +43,13 @@ export async function aiExtractDocument(pages: PdfPage[]): Promise<ParsedDocumen
       `Use 0 for absent money columns.\n\nESTIMATE TEXT:\n${text}`,
     temperature: 0,
     maxTokens: 16000,
-    model: 'gpt-4o',
   })
-  if (response.error || !response.result) {
-    console.error('[AI extract] call failed:', response.error)
+  if (response.error || !response.text) {
+    console.error(`[AI extract] ${response.provider}/${response.model} failed:`, response.error)
     return null
   }
 
-  const parsed = parseJson(response.result)
+  const parsed = parseJson(response.text)
   if (!parsed) return null
   return toDocument(parsed)
 }
