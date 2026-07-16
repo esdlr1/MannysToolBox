@@ -200,6 +200,27 @@ export default function EstimateComparisonTool() {
     URL.revokeObjectURL(url)
   }
 
+  const exportPdf = async () => {
+    if (!report) return
+    try {
+      const response = await fetch('/api/tools/estimate-comparison/export-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(report),
+      })
+      if (!response.ok) throw new Error()
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Supplement_${report.summary.claimNumber ?? 'estimate'}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      setError('PDF export failed')
+    }
+  }
+
   const visiblePairs = useMemo(() => {
     if (!report) return []
     const matchesSearch = (text: string): boolean =>
@@ -308,6 +329,12 @@ export default function EstimateComparisonTool() {
                 <GateBadge label="Mine" ok={report.summary.gates.mine} />
                 <GateBadge label="Carrier" ok={report.summary.gates.carrier} />
                 <div className="flex gap-2 ml-auto">
+                  <button
+                    onClick={exportPdf}
+                    className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center gap-1.5"
+                  >
+                    <Download className="w-4 h-4" /> PDF
+                  </button>
                   <button
                     onClick={exportCsv}
                     className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center gap-1.5"
