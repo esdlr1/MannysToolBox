@@ -828,3 +828,16 @@ model EstimateLineMatch {
   @@index([comparisonId])
   @@map("estimate_line_matches")
 }
+
+model ScopeRuleDismissal {
+  id             String   @id @default(cuid())
+  userId         String
+  ruleName       String
+  // Catalog code (preferred) or normalized description of the trigger item
+  triggerKey     String
+  companionLabel String
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, ruleName, triggerKey, companionLabel])
+  @@map("scope_rule_dismissals")
+}

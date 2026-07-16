@@ -8,7 +8,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { parseEstimateFile, formatCents } from '@/lib/estimate-engine'
 import { evaluateScopeRules } from '@/lib/scope-check/rules'
-import { loadScopeRules } from '@/lib/scope-check/rule-store'
+import { loadDismissals, loadScopeRules } from '@/lib/scope-check/rule-store'
 
 export const dynamic = 'force-dynamic'
 
@@ -90,7 +90,8 @@ export async function POST(request: NextRequest) {
     }
 
     const rules = await loadScopeRules()
-    const recommendations = evaluateScopeRules(document, rules)
+    const dismissed = await loadDismissals(session.user.id)
+    const recommendations = evaluateScopeRules(document, rules, dismissed)
 
     return NextResponse.json({
       metadata,

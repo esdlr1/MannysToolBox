@@ -29,6 +29,7 @@ interface PreflightRecommendation {
   missing: string
   reason: string
   triggeredBy: string
+  triggerKey: string
   suggestedQty: number | null
   suggestedUnit: string | null
 }
@@ -79,6 +80,39 @@ export default function ScopeCheckTool() {
       })
       .catch((err) => setRulesError(err instanceof Error ? err.message : 'Could not load rules'))
   }, [view, rules, session?.user?.id])
+
+  // "Doesn't apply": permanently mutes this (rule, trigger item, companion)
+  // combination for this user — the finding disappears from all future runs.
+  const dismissFinding = async (rec: PreflightRecommendation) => {
+    setReport((current) =>
+      current
+        ? {
+            ...current,
+            recommendations: current.recommendations.filter(
+              (r) =>
+                !(
+                  r.ruleName === rec.ruleName &&
+                  r.triggerKey === rec.triggerKey &&
+                  r.missing === rec.missing
+                )
+            ),
+          }
+        : current
+    )
+    try {
+      await fetch('/api/tools/scope-check/dismiss', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ruleName: rec.ruleName,
+          triggerKey: rec.triggerKey,
+          companionLabel: rec.missing,
+        }),
+      })
+    } catch {
+      setError('Could not save the dismissal — it may reappear next run')
+    }
+  }
 
   const setRuleStatus = async (id: string, status: string) => {
     const previous = rules
@@ -356,15 +390,24 @@ export default function ScopeCheckTool() {
                               Triggered by: {rec.triggeredBy}
                             </p>
                           </div>
-                          <span
-                            className={`ml-auto flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold uppercase ${
-                              rec.priority === 'critical'
-                                ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-                            }`}
-                          >
-                            {rec.priority}
-                          </span>
+                          <div className="ml-auto flex-shrink-0 flex items-center gap-2">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-semibold uppercase ${
+                                rec.priority === 'critical'
+                                  ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                  : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                              }`}
+                            >
+                              {rec.priority}
+                            </span>
+                            <button
+                              onClick={() => dismissFinding(rec)}
+                              title="Never flag this item/companion combination again"
+                              className="px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                            >
+                              Doesn&apos;t apply
+                            </button>
+                          </div>
                         </div>
                       </li>
                     ))}

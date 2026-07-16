@@ -53,6 +53,8 @@ export interface ScopeRecommendation {
   reason: string
   /** Description of the item that triggered the rule. */
   triggeredBy: string
+  /** Stable key of the trigger item, for "doesn't apply" dismissals. */
+  triggerKey: string
   suggestedQty: number | null
   suggestedUnit: string | null
 }
@@ -155,6 +157,16 @@ function normalized(text: string): string {
   return text.toLowerCase()
 }
 
+/** Stable identity for a trigger item: catalog code, else normalized text. */
+export function triggerKeyFor(item: ParsedLineItem): string {
+  return item.catalog?.code ?? item.description.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 120)
+}
+
+/** Key under which a specific finding can be dismissed ("doesn't apply"). */
+export function dismissalKey(ruleName: string, triggerKey: string, companionLabel: string): string {
+  return `${ruleName}::${triggerKey}::${companionLabel}`
+}
+
 export function itemMatchesTrigger(item: ParsedLineItem, trigger: RuleTrigger): boolean {
   const description = normalized(item.description)
   if (trigger.excludeKeywords?.some((k) => description.includes(k))) return false
@@ -191,7 +203,9 @@ function suggestedQty(basis: SurfaceBasis | undefined, dims: RoomDimensions | nu
  */
 export function evaluateScopeRules(
   doc: ParsedDocument,
-  rules: ScopeRuleDef[]
+  rules: ScopeRuleDef[],
+  /** dismissalKey() strings the user has marked "doesn't apply". */
+  dismissed: Set<string> = new Set()
 ): ScopeRecommendation[] {
   const active = rules.filter((rule) => rule.status === 'approved')
   const dimsByRoom = new Map(doc.rooms.map((room) => [room.name, room.dimensions ?? null]))
@@ -207,8 +221,10 @@ export function evaluateScopeRules(
     for (const rule of active) {
       const triggerItem = items.find((item) => itemMatchesTrigger(item, rule.trigger))
       if (!triggerItem) continue
+      const triggerKey = triggerKeyFor(triggerItem)
       for (const companion of rule.companions) {
         if (companionPresent(items, companion)) continue
+        if (dismissed.has(dismissalKey(rule.name, triggerKey, companion.label))) continue
         recommendations.push({
           room,
           ruleName: rule.name,
@@ -216,6 +232,7 @@ export function evaluateScopeRules(
           missing: companion.label,
           reason: rule.reason,
           triggeredBy: triggerItem.description,
+          triggerKey,
           suggestedQty: suggestedQty(companion.qtyBasis, dimsByRoom.get(room) ?? null),
           suggestedUnit: companion.unit ?? null,
         })

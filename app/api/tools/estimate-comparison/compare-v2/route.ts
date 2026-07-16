@@ -14,7 +14,7 @@ import { formatCents, parseEstimateFile, ParseOutcome } from '@/lib/estimate-eng
 import { matchDocuments, roomRollups } from '@/lib/estimate-engine/match'
 import { persistEstimateDocument } from '@/lib/estimate-db'
 import { evaluateScopeRules } from '@/lib/scope-check/rules'
-import { loadScopeRules } from '@/lib/scope-check/rule-store'
+import { loadDismissals, loadScopeRules } from '@/lib/scope-check/rule-store'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,7 +43,11 @@ export async function POST(request: NextRequest) {
     const carrierDoc = carrierOutcome.document!
     const result = matchDocuments(mineDoc, carrierDoc)
     const rollups = roomRollups(mineDoc, carrierDoc)
-    const recommendations = evaluateScopeRules(mineDoc, await loadScopeRules())
+    const recommendations = evaluateScopeRules(
+      mineDoc,
+      await loadScopeRules(),
+      await loadDismissals(session.user.id)
+    )
 
     let persisted = false
     try {
