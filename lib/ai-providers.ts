@@ -44,8 +44,14 @@ const DEFAULT_MODELS: Record<AIProvider, { small: string; large: string }> = {
   google: { small: 'gemini-2.5-flash', large: 'gemini-2.5-pro' },
 }
 
+/** A real key, not an unpasted placeholder from .env scaffolding. */
+function usableKey(value: string | undefined): boolean {
+  const key = value?.trim() ?? ''
+  return key.length >= 16 && !/paste|your-key|xxxx/i.test(key)
+}
+
 export function availableProviders(): AIProvider[] {
-  return (Object.keys(KEY_ENVS) as AIProvider[]).filter((p) => !!process.env[KEY_ENVS[p]]?.trim())
+  return (Object.keys(KEY_ENVS) as AIProvider[]).filter((p) => usableKey(process.env[KEY_ENVS[p]]))
 }
 
 /** Resolve provider+model for a task from env, falling back to any usable provider. */
@@ -73,7 +79,7 @@ export async function completeText(request: CompletionRequest): Promise<Completi
     return { text: '', provider: 'openai', model: '', ms: 0, error: 'No AI provider API key configured' }
   }
   const key = process.env[KEY_ENVS[provider]]?.trim()
-  if (!key) {
+  if (!key || !usableKey(key)) {
     return { text: '', provider, model: '', ms: 0, error: `${KEY_ENVS[provider]} not set` }
   }
   const model = request.model ?? DEFAULT_MODELS[provider].small
