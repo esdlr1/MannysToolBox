@@ -6,6 +6,9 @@ const XACTIMATE_MARKERS = [
   /\bCONTINUED\s*-\s/,
   /QUANTITY\s+UNIT\s+PRICE/i,
   /DEPREC\.?\s+ACV/i,
+  /Price List:/i,
+  /DESCRIPTION\s+QTY\b/i,
+  /Line\s+Item\s+Totals?:/i,
 ]
 
 const SYMBILITY_MARKERS = [
@@ -20,8 +23,8 @@ const SYMBILITY_MARKERS = [
  */
 export function detectFormat(pages: PdfPage[]): DocumentFormat {
   const text = pages
-    .slice(0, 3)
-    .concat(pages.slice(-2))
+    .slice(0, 5)
+    .concat(pages.slice(-3))
     .flatMap((page) => page.lines.map((line) => line.text))
     .join('\n')
 
