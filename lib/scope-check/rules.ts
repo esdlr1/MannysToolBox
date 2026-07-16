@@ -68,7 +68,10 @@ export const SEED_RULES: ScopeRuleDef[] = [
     name: 'drywall-replacement-needs-finishing',
     trigger: {
       keywords: ['drywall', 'sheetrock', 'gypsum'],
-      excludeKeywords: ['taped', 'ready for paint', 'texture', 'labor minimum'],
+      // 'per lf': Xactimate's per-LF drywall repair items (e.g. 1/2" drywall
+      // per LF - up to 2'/4' tall) already include tape, finish, and texture
+      // (taught by Manny, 2026-07-15 — Jordan Crawley false positive).
+      excludeKeywords: ['taped', 'ready for paint', 'texture', 'labor minimum', 'per lf'],
     },
     companions: [
       { label: 'Drywall tape & joint compound (finish)', keywords: ['tape', 'mud', 'joint compound', 'taped'] },

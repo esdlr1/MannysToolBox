@@ -13,7 +13,8 @@ import { prisma } from '@/lib/prisma'
 import { formatCents, parseEstimateFile, ParseOutcome } from '@/lib/estimate-engine'
 import { matchDocuments, roomRollups } from '@/lib/estimate-engine/match'
 import { persistEstimateDocument } from '@/lib/estimate-db'
-import { SEED_RULES, evaluateScopeRules } from '@/lib/scope-check/rules'
+import { evaluateScopeRules } from '@/lib/scope-check/rules'
+import { loadScopeRules } from '@/lib/scope-check/rule-store'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
     const carrierDoc = carrierOutcome.document!
     const result = matchDocuments(mineDoc, carrierDoc)
     const rollups = roomRollups(mineDoc, carrierDoc)
-    const recommendations = evaluateScopeRules(mineDoc, await loadRules())
+    const recommendations = evaluateScopeRules(mineDoc, await loadScopeRules())
 
     let persisted = false
     try {
@@ -165,24 +166,4 @@ async function parseSide(
     ]
   }
   return [outcome, null]
-}
-
-async function loadRules() {
-  try {
-    const rows = await prisma.scopeRule.findMany({ where: { status: 'approved' } })
-    if (rows.length > 0) {
-      return rows.map((row) => ({
-        name: row.name,
-        trigger: row.trigger as unknown as (typeof SEED_RULES)[number]['trigger'],
-        companions: row.companions as unknown as (typeof SEED_RULES)[number]['companions'],
-        priority: row.priority as (typeof SEED_RULES)[number]['priority'],
-        source: row.source as (typeof SEED_RULES)[number]['source'],
-        status: row.status as (typeof SEED_RULES)[number]['status'],
-        reason: row.reason,
-      }))
-    }
-  } catch (error) {
-    console.error('[Compare v2] Rule load failed, using seed set:', error)
-  }
-  return SEED_RULES
 }

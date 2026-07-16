@@ -7,7 +7,8 @@ import { existsSync } from 'fs'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { parseEstimateFile, formatCents } from '@/lib/estimate-engine'
-import { SEED_RULES, ScopeRuleDef, evaluateScopeRules } from '@/lib/scope-check/rules'
+import { evaluateScopeRules } from '@/lib/scope-check/rules'
+import { loadScopeRules } from '@/lib/scope-check/rule-store'
 
 export const dynamic = 'force-dynamic'
 
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
       console.error('[Scope Check] Corpus persistence failed:', persistError)
     }
 
-    const rules = await loadRules()
+    const rules = await loadScopeRules()
     const recommendations = evaluateScopeRules(document, rules)
 
     return NextResponse.json({
@@ -116,25 +117,4 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : 'Pre-flight failed'
     return NextResponse.json({ error: message }, { status: 500 })
   }
-}
-
-/** DB rules when the table is seeded; in-code seed set as fallback. */
-async function loadRules(): Promise<ScopeRuleDef[]> {
-  try {
-    const rows = await prisma.scopeRule.findMany()
-    if (rows.length > 0) {
-      return rows.map((row) => ({
-        name: row.name,
-        trigger: row.trigger as unknown as ScopeRuleDef['trigger'],
-        companions: row.companions as unknown as ScopeRuleDef['companions'],
-        priority: row.priority as ScopeRuleDef['priority'],
-        source: row.source as ScopeRuleDef['source'],
-        status: row.status as ScopeRuleDef['status'],
-        reason: row.reason,
-      }))
-    }
-  } catch (error) {
-    console.error('[Scope Check] Rule load failed, using seed set:', error)
-  }
-  return SEED_RULES
 }
