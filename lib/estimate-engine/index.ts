@@ -4,6 +4,7 @@ import { extractPositionedPages } from './extract-text'
 import { detectFormat } from './detect'
 import { parseXactimate } from './xactimate'
 import { reconcile } from './reconcile'
+import { enrichDocument } from './catalog'
 import { DocumentFormat, ParsedDocument, ReconciliationResult } from './types'
 
 export * from './types'
@@ -11,6 +12,13 @@ export { extractPositionedPages } from './extract-text'
 export { detectFormat } from './detect'
 export { parseXactimate } from './xactimate'
 export { reconcile, formatCents } from './reconcile'
+export {
+  enrichDocument,
+  normalizeDescription,
+  resolveDescription,
+  splitAction,
+  surfaceHintFromDescription,
+} from './catalog'
 
 export interface ParseOutcome {
   format: DocumentFormat
@@ -48,6 +56,7 @@ export async function parseEstimateFile(filePath: string): Promise<ParseOutcome>
 
   const document = parseXactimate(pages)
   const reconciliation = reconcile(document)
+  enrichDocument(document)
   return {
     format,
     document,
