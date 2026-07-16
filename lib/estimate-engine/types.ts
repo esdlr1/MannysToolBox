@@ -25,6 +25,36 @@ export interface PdfPage {
   lines: TextLine[]
 }
 
+/** A sketch surface a quantity can be calculated from (Xactimate F/C/W vars). */
+export type SurfaceBasis =
+  | 'walls'
+  | 'ceiling'
+  | 'floor'
+  | 'walls_ceiling'
+  | 'flooring_sy'
+  | 'floor_perimeter'
+  | 'ceiling_perimeter'
+
+/** Action implied by the printed description prefix (R&R, Remove, ...). */
+export type ItemAction =
+  | 'remove_replace'
+  | 'remove'
+  | 'replace'
+  | 'install'
+  | 'detach_reset'
+  | 'material_only'
+
+/** Catalog enrichment attached to a parsed item (see catalog.ts). */
+export interface CatalogResolution {
+  /** Canonical Xactimate code recovered from the description. */
+  code: string
+  /** Trade category (RFG, PNT, PLM, ...). */
+  category: string | null
+  /** The catalog's unit for this code — mismatch with the parsed unit is a red flag. */
+  unit: string | null
+  method: 'exact' | 'action-stripped' | 'fuzzy'
+}
+
 /** Money values are stored in cents to keep reconciliation exact. */
 export interface ParsedLineItem {
   /** Line number as printed in the estimate (unique within the document). */
@@ -41,12 +71,36 @@ export interface ParsedLineItem {
   rcvCents: number
   depreciationCents: number
   acvCents: number
+  /** Action implied by the description prefix (R&R, Remove, ...), if any. */
+  action?: ItemAction | null
+  /** Catalog resolution of the description to a canonical code, if found. */
+  catalog?: CatalogResolution | null
+  /** Surface named in the description (walls / ceiling / floor words). */
+  surfaceHint?: SurfaceBasis | null
+  /**
+   * Sketch surface whose measurement equals this quantity. Floor and ceiling
+   * SF are often identical; the description word breaks the tie, and
+   * 'floor_or_ceiling' records the ambiguous case.
+   */
+  measurementBasis?: SurfaceBasis | 'floor_or_ceiling' | null
+}
+
+/** Surface measurements from a section's sketch block, summed with subrooms. */
+export interface RoomDimensions {
+  wallsSf: number | null
+  ceilingSf: number | null
+  floorSf: number | null
+  wallsCeilingSf: number | null
+  flooringSy: number | null
+  floorPerimeterLf: number | null
+  ceilingPerimeterLf: number | null
 }
 
 /** A room/area section with the totals printed in the PDF for that section. */
 export interface ParsedRoom {
   name: string
   printedTotalRcvCents: number | null
+  dimensions?: RoomDimensions | null
 }
 
 export interface PrintedTotals {

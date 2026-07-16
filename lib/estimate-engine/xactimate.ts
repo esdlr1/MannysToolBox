@@ -21,6 +21,7 @@ import {
   ParsedLineItem,
   ParsedRoom,
   PdfPage,
+  RoomDimensions,
   TextLine,
 } from './types'
 import { isMoneyToken, parseMoneyCents, parseQuantity, tokenize } from './numbers'
@@ -46,8 +47,49 @@ const NOISE_RE =
 /** Sketch/dimension text: feet-inch marks or area/length measure tokens. */
 const DIMENSION_RE = /\d\s*['"]|\b(SF|LF|SY|SQ)\b/
 
+/** Sketch-block surface measurements (summed across a room's subrooms). */
+const MEASURE_RES: { re: RegExp; key: keyof RoomDimensions }[] = [
+  { re: /([\d,]+\.?\d*)\s*SF Walls & Ceiling/g, key: 'wallsCeilingSf' },
+  { re: /([\d,]+\.?\d*)\s*SF Walls(?!\s*&)/g, key: 'wallsSf' },
+  { re: /([\d,]+\.?\d*)\s*SF Ceiling/g, key: 'ceilingSf' },
+  { re: /([\d,]+\.?\d*)\s*SF Floor\b/g, key: 'floorSf' },
+  { re: /([\d,]+\.?\d*)\s*SY Floor(?:ing)?\b/g, key: 'flooringSy' },
+  { re: /([\d,]+\.?\d*)\s*LF Floor Perimeter/g, key: 'floorPerimeterLf' },
+  { re: /([\d,]+\.?\d*)\s*LF Ceil\.?\s*Perimeter/g, key: 'ceilingPerimeterLf' },
+]
+
+function emptyDimensions(): RoomDimensions {
+  return {
+    wallsSf: null,
+    ceilingSf: null,
+    floorSf: null,
+    wallsCeilingSf: null,
+    flooringSy: null,
+    floorPerimeterLf: null,
+    ceilingPerimeterLf: null,
+  }
+}
+
+/** Accumulate any sketch measurements on this line; true if any were found. */
+function scanDimensions(dims: RoomDimensions, text: string): boolean {
+  let found = false
+  for (const { re, key } of MEASURE_RES) {
+    re.lastIndex = 0
+    let match: RegExpExecArray | null
+    while ((match = re.exec(text)) !== null) {
+      const value = Number.parseFloat(match[1].replace(/,/g, ''))
+      if (Number.isNaN(value)) continue
+      dims[key] = (dims[key] ?? 0) + value
+      found = true
+    }
+  }
+  return found
+}
+
 interface ParserState {
   calibration: ColumnCalibration | null
+  /** Sketch measurements accumulated since the last section close. */
+  dims: RoomDimensions
   /** Items parsed since the last section close, awaiting a room name. */
   buffered: ParsedLineItem[]
   /** Occurrences per section name, for unique instance names. */
@@ -64,6 +106,7 @@ interface ParserState {
 export function parseXactimate(pages: PdfPage[]): ParsedDocument {
   const state: ParserState = {
     calibration: null,
+    dims: emptyDimensions(),
     buffered: [],
     nameCounts: new Map(),
     rooms: [],
@@ -99,6 +142,11 @@ function consumeLine(state: ParserState, line: TextLine): void {
   const header = detectHeaderRow(line)
   if (header) {
     state.calibration = header
+    state.lastItem = null
+    return
+  }
+
+  if (scanDimensions(state.dims, text)) {
     state.lastItem = null
     return
   }
@@ -165,7 +213,8 @@ function flushBufferedItems(
   state.nameCounts.set(baseName.toLowerCase(), count)
   const name = count === 1 ? baseName : `${baseName} (#${count})`
 
-  state.rooms.push({ name, printedTotalRcvCents: printedRcvCents })
+  state.rooms.push({ name, printedTotalRcvCents: printedRcvCents, dimensions: state.dims })
+  state.dims = emptyDimensions()
   for (const item of state.buffered) {
     item.room = name
     state.items.push(item)

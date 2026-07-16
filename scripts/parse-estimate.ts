@@ -53,6 +53,34 @@ async function main(): Promise<void> {
     )
   }
 
+  const items = document.lineItems
+  const resolved = items.filter((i) => i.catalog)
+  const exact = resolved.filter((i) => i.catalog?.method === 'exact').length
+  const stripped = resolved.filter((i) => i.catalog?.method === 'action-stripped').length
+  const unitMismatch = resolved.filter(
+    (i) => i.catalog?.unit && i.catalog.unit !== i.unit
+  ).length
+  const withBasis = items.filter((i) => i.measurementBasis).length
+  const pct = (n: number, d: number): string => (d === 0 ? '0%' : `${Math.round((n / d) * 100)}%`)
+  console.log('\ncatalog enrichment:')
+  console.log(
+    `  codes resolved:  ${resolved.length}/${items.length} (${pct(resolved.length, items.length)}) — ${exact} exact, ${stripped} action-stripped`
+  )
+  console.log(`  unit mismatches: ${unitMismatch} (parsed unit ≠ catalog unit)`)
+  console.log(
+    `  qty ↔ sketch:    ${withBasis}/${items.length} (${pct(withBasis, items.length)}) quantities attributed to a sketch surface`
+  )
+
+  if (args.includes('--unresolved')) {
+    const unresolvedDescriptions = new Set(
+      items.filter((i) => !i.catalog).map((i) => i.description)
+    )
+    console.log('\nunresolved descriptions:')
+    for (const description of Array.from(unresolvedDescriptions).slice(0, 40)) {
+      console.log(`  - ${description}`)
+    }
+  }
+
   if (args.includes('--json')) {
     console.log('\n' + JSON.stringify(document, null, 2))
   }
