@@ -12,6 +12,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { formatCents, parseEstimateFile, ParseOutcome } from '@/lib/estimate-engine'
 import { buildSynonymCanon, matchDocuments, roomRollups } from '@/lib/estimate-engine/match'
+import { buildRoomCanon, inferRoomPairs, pairedRoomLabels } from '@/lib/estimate-engine/room-pairs'
 import { aiExtractDocument } from '@/lib/estimate-engine/ai-extract'
 import { suggestPairings } from '@/lib/estimate-engine/suggest'
 import { persistEstimateDocument } from '@/lib/estimate-db'
@@ -43,10 +44,22 @@ export async function POST(request: NextRequest) {
 
     const mineDoc = mineOutcome.document!
     const carrierDoc = carrierOutcome.document!
-    const result = matchDocuments(mineDoc, carrierDoc, {
-      synonymCanon: await loadSynonymCanon(),
+    const synonymCanon = await loadSynonymCanon()
+
+    // Pass 1: match on literal rooms; use the evidence to infer room pairs
+    // (renamed rooms), then re-match with confident pairs merged.
+    const firstPass = matchDocuments(mineDoc, carrierDoc, { synonymCanon })
+    const roomPairs = inferRoomPairs(mineDoc, carrierDoc, firstPass, await loadRoomAliases())
+    const merged = roomPairs.filter((p) => p.confidence !== 'suggested')
+    const roomCanon = buildRoomCanon(roomPairs)
+    const result =
+      merged.length > 0
+        ? matchDocuments(mineDoc, carrierDoc, { synonymCanon, roomCanon })
+        : firstPass
+    const rollups = roomRollups(mineDoc, carrierDoc, {
+      roomCanon,
+      labels: pairedRoomLabels(roomPairs),
     })
-    const rollups = roomRollups(mineDoc, carrierDoc)
 
     // AI proposes pairings for the leftovers; the user confirms in the UI.
     let suggestions: { mine: unknown; carrier: unknown; reason: string }[] = []
@@ -130,6 +143,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       comparisonId,
       suggestions,
+      roomPairs: merged,
+      roomSuggestions: roomPairs.filter((p) => p.confidence === 'suggested'),
       summary: {
         clientName: mineOutcome.metadata?.clientName ?? carrierOutcome.metadata?.clientName ?? null,
         claimNumber:
@@ -160,6 +175,16 @@ export async function POST(request: NextRequest) {
     console.error('[Compare v2] Error:', error)
     const message = error instanceof Error ? error.message : 'Comparison failed'
     return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
+/** User-confirmed room aliases (empty on DB issues). */
+async function loadRoomAliases(): Promise<{ a: string; b: string }[]> {
+  try {
+    return await prisma.roomAlias.findMany({ select: { a: true, b: true } })
+  } catch (error) {
+    console.error('[Compare v2] Room alias load failed:', error)
+    return []
   }
 }
 

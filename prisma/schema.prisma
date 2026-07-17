@@ -852,3 +852,14 @@ model DescriptionSynonym {
   @@unique([a, b])
   @@map("description_synonyms")
 }
+
+model RoomAlias {
+  id        String   @id @default(cuid())
+  // Normalized room names confirmed to be the same physical room
+  a         String
+  b         String
+  createdAt DateTime @default(now())
+
+  @@unique([a, b])
+  @@map("room_aliases")
+}
