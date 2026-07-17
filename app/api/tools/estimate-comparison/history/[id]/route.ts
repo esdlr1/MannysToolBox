@@ -1,38 +1,60 @@
-// Reopen a stored comparison: rebuild the full report from the corpus —
-// no re-upload, no re-parse. Scope Check recommendations are not stored
-// (room dimensions aren't persisted yet), so they're omitted on reopen.
+// Reopen a stored comparison: rebuild the report from the corpus (no
+// re-upload, no re-parse) using the SAME aggregation as a fresh comparison,
+// so reopened comparisons look identical to live ones. Scope Check
+// recommendations and room-pair suggestions aren't stored (dimensions/AI are
+// not persisted), so they're omitted on reopen.
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { formatCents } from '@/lib/estimate-engine'
-import { normalizeRoom } from '@/lib/estimate-engine/match'
+import { formatCents, ParsedDocument, ParsedLineItem } from '@/lib/estimate-engine'
+import { roomRollups } from '@/lib/estimate-engine/match'
+import { aggregateComparison } from '@/lib/estimate-engine/aggregate'
 
 export const dynamic = 'force-dynamic'
 
 interface StoredLine {
-  id: string
   lineNumber: number
   room: string
   code: string | null
   category: string | null
+  action: string | null
   description: string
   quantity: number
   unit: string
   unitPriceCents: number
+  taxCents: number
+  opCents: number
   rcvCents: number
+  depreciationCents: number
+  acvCents: number
 }
 
-function toReportItem(line: StoredLine) {
-  return {
+/** Rebuild a minimal ParsedDocument from stored line rows for aggregation. */
+function toDocument(lines: StoredLine[]): ParsedDocument {
+  const lineItems: ParsedLineItem[] = lines.map((line) => ({
     lineNumber: line.lineNumber,
     room: line.room,
+    code: line.code,
     description: line.description,
     quantity: line.quantity,
     unit: line.unit,
     unitPriceCents: line.unitPriceCents,
+    taxCents: line.taxCents,
+    opCents: line.opCents,
     rcvCents: line.rcvCents,
-    catalog: line.code ? { code: line.code, category: line.category } : null,
+    depreciationCents: line.depreciationCents,
+    acvCents: line.acvCents,
+    catalog: line.code ? { code: line.code, category: line.category, unit: null, method: 'exact' } : null,
+  }))
+  const roomNames = Array.from(new Set(lines.map((l) => l.room)))
+  return {
+    format: 'xactimate',
+    parseMethod: 'deterministic',
+    rooms: roomNames.map((name) => ({ name, printedTotalRcvCents: null })),
+    lineItems,
+    printedTotals: { grandRcvCents: null, grandAcvCents: null },
+    warnings: [],
   }
 }
 
@@ -43,10 +65,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const comparison = await prisma.estimateComparison.findUnique({
-      where: { id: params.id },
-      include: { matches: true },
-    })
+    const comparison = await prisma.estimateComparison.findUnique({ where: { id: params.id } })
     if (!comparison || comparison.userId !== session.user.id) {
       return NextResponse.json({ error: 'Comparison not found' }, { status: 404 })
     }
@@ -65,48 +84,10 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: 'Underlying documents were removed' }, { status: 404 })
     }
 
-    const mineById = new Map(mineDoc.lines.map((line) => [line.id, line]))
-    const carrierById = new Map(carrierDoc.lines.map((line) => [line.id, line]))
-
-    const pairs = []
-    const mineOnly = []
-    const carrierOnly = []
-    for (const match of comparison.matches) {
-      const mine = match.mineLineId ? mineById.get(match.mineLineId) : undefined
-      const carrier = match.carrierLineId ? carrierById.get(match.carrierLineId) : undefined
-      if (match.tier === 'mine-only') {
-        if (mine) mineOnly.push(toReportItem(mine))
-      } else if (match.tier === 'carrier-only') {
-        if (carrier) carrierOnly.push(toReportItem(carrier))
-      } else if (mine && carrier) {
-        pairs.push({
-          mine: toReportItem(mine),
-          carrier: toReportItem(carrier),
-          tier: match.tier,
-          qtyDelta: match.qtyDelta,
-          rcvDeltaCents: match.rcvDeltaCents,
-          unitPriceDeltaCents: mine.unitPriceCents - carrier.unitPriceCents,
-        })
-      }
-    }
-
-    const rollups = new Map<string, { room: string; mineRcvCents: number; carrierRcvCents: number; deltaRcvCents: number }>()
-    const addRollup = (lines: StoredLine[], side: 'mine' | 'carrier') => {
-      for (const line of lines) {
-        const key = normalizeRoom(line.room)
-        let rollup = rollups.get(key)
-        if (!rollup) {
-          rollup = { room: line.room, mineRcvCents: 0, carrierRcvCents: 0, deltaRcvCents: 0 }
-          rollups.set(key, rollup)
-        }
-        rollup[side === 'mine' ? 'mineRcvCents' : 'carrierRcvCents'] += line.rcvCents
-      }
-    }
-    addRollup(mineDoc.lines, 'mine')
-    addRollup(carrierDoc.lines, 'carrier')
-    const rollupList = Array.from(rollups.values())
-      .map((rollup) => ({ ...rollup, deltaRcvCents: rollup.mineRcvCents - rollup.carrierRcvCents }))
-      .sort((a, b) => b.deltaRcvCents - a.deltaRcvCents)
+    const mine = toDocument(mineDoc.lines)
+    const carrier = toDocument(carrierDoc.lines)
+    const agg = aggregateComparison(mine, carrier)
+    const rollups = roomRollups(mine, carrier)
 
     const lineSum = (lines: { rcvCents: number }[]): number =>
       lines.reduce((sum, line) => sum + line.rcvCents, 0)
@@ -135,16 +116,17 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
         deltaRcvCents: comparison.deltaRcvCents,
         gates: { mine: mineDoc.gatePassed, carrier: carrierDoc.gatePassed },
         counts: {
-          matched: comparison.matchedCount,
-          differences: pairs.filter((p) => p.rcvDeltaCents !== 0 || p.qtyDelta !== 0).length,
-          mineOnly: comparison.mineOnlyCount,
-          carrierOnly: comparison.carrierOnlyCount,
+          matched: agg.pairs.length,
+          differences: agg.pairs.filter((p) => p.rcvDeltaCents !== 0 || p.qtyDelta !== 0).length,
+          mineOnly: agg.mineOnly.length,
+          carrierOnly: agg.carrierOnly.length,
         },
       },
-      rollups: rollupList,
-      pairs,
-      mineOnly,
-      carrierOnly,
+      rollups,
+      pairs: agg.pairs,
+      mineOnly: agg.mineOnly,
+      carrierOnly: agg.carrierOnly,
+      actionMismatches: agg.actionMismatches,
       recommendations: [],
       persisted: true,
     })

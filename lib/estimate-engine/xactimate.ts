@@ -473,5 +473,10 @@ function appendDescription(state: ParserState, text: string): boolean {
 function isContinuationText(text: string): boolean {
   if (NOISE_RE.test(text) || DIMENSION_RE.test(text)) return false
   if (tokenize(text).some(isMoneyToken)) return false
+  // Page footers appear mid-line, not just at the start: "<ESTIMATE_NAME>
+  // <date> Page: N" (e.g. "EMILY=HERMESMEYER 6/29/2026 Page: 4"). Reject any
+  // line carrying a page marker or a date so it can't pollute a description.
+  if (/\bPage:?\s*\d+/i.test(text)) return false
+  if (/\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/.test(text)) return false
   return /[a-z]/.test(text)
 }
