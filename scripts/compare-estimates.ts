@@ -3,6 +3,7 @@
 import { formatCents, parseEstimateFile } from '../lib/estimate-engine'
 import { matchDocuments, roomRollups } from '../lib/estimate-engine/match'
 import { inferRoomPairs } from '../lib/estimate-engine/room-pairs'
+import { normalizeForComparison } from '../lib/estimate-engine/normalize'
 
 async function main(): Promise<void> {
   const [minePath, carrierPath] = process.argv.slice(2).filter((a) => !a.startsWith('--'))
@@ -28,7 +29,13 @@ async function main(): Promise<void> {
     )
   }
 
-  const result = matchDocuments(mine.document!, carrier.document!)
+  const norm = normalizeForComparison(mine.document!, carrier.document!)
+  if (norm.info.applied) {
+    console.log(
+      `\nO&P normalized: mine ×${norm.info.mineFactor.toFixed(3)}, carrier ×${norm.info.carrierFactor.toFixed(3)}`
+    )
+  }
+  const result = matchDocuments(norm.mine, norm.carrier)
   const byTier = new Map<string, number>()
   for (const pair of result.pairs) byTier.set(pair.tier, (byTier.get(pair.tier) ?? 0) + 1)
 
@@ -46,7 +53,7 @@ async function main(): Promise<void> {
     )
   }
 
-  const roomPairs = inferRoomPairs(mine.document!, carrier.document!, result, [])
+  const roomPairs = inferRoomPairs(norm.mine, norm.carrier, result, [])
   if (roomPairs.length > 0) {
     console.log('\nroom pairings inferred:')
     for (const p of roomPairs) {
@@ -57,7 +64,7 @@ async function main(): Promise<void> {
   }
 
   console.log('\nroom rollups:')
-  for (const rollup of roomRollups(mine.document!, carrier.document!).slice(0, 12)) {
+  for (const rollup of roomRollups(norm.mine, norm.carrier).slice(0, 12)) {
     console.log(
       `  ${rollup.room}: mine ${formatCents(rollup.mineRcvCents)} | carrier ${formatCents(rollup.carrierRcvCents)} | delta ${formatCents(rollup.deltaRcvCents)}`
     )
