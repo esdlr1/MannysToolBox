@@ -9,10 +9,59 @@ import bcrypt from 'bcryptjs'
  * The session (JWT) is the single source of truth for the whole app.
  * We do not re-prompt for password, use step-up auth, or require extra
  * verification for tools or pages — the moment they sign in, they're in.
+ *
+ * Each tool lives on its own subdomain (estimate-comparison.mannystoolbox.com,
+ * scope-check.mannystoolbox.com, ...). For one sign-in to cover all of them,
+ * the session cookie must be scoped to the parent domain (.mannystoolbox.com),
+ * not the single host it was set on. Otherwise every subdomain looks logged
+ * out and re-prompts.
  */
+
+/** Shared parent domain for cookies, derived from NEXTAUTH_URL (override with
+ *  COOKIE_DOMAIN). Undefined for localhost/IP → default host-only cookies. */
+function sharedCookieDomain(): string | undefined {
+  if (process.env.COOKIE_DOMAIN) return process.env.COOKIE_DOMAIN
+  const url = process.env.NEXTAUTH_URL
+  if (!url) return undefined
+  try {
+    const host = new URL(url).hostname
+    if (host === 'localhost' || /^[\d.]+$/.test(host)) return undefined
+    const parts = host.split('.')
+    if (parts.length < 2) return undefined
+    return '.' + parts.slice(-2).join('.') // e.g. www.mannystoolbox.com → .mannystoolbox.com
+  } catch {
+    return undefined
+  }
+}
+
+const cookieDomain = sharedCookieDomain()
+const secureCookies = (process.env.NEXTAUTH_URL ?? '').startsWith('https://')
+
+/**
+ * Custom cookie config only when a shared domain applies. Note: the CSRF
+ * cookie normally uses the __Host- prefix, which the spec forbids from
+ * carrying a domain — so on a shared domain it becomes __Secure- instead.
+ */
+const sharedCookies = cookieDomain
+  ? {
+      sessionToken: {
+        name: `${secureCookies ? '__Secure-' : ''}next-auth.session-token`,
+        options: { httpOnly: true, sameSite: 'lax' as const, path: '/', secure: secureCookies, domain: cookieDomain },
+      },
+      callbackUrl: {
+        name: `${secureCookies ? '__Secure-' : ''}next-auth.callback-url`,
+        options: { sameSite: 'lax' as const, path: '/', secure: secureCookies, domain: cookieDomain },
+      },
+      csrfToken: {
+        name: `${secureCookies ? '__Secure-' : ''}next-auth.csrf-token`,
+        options: { httpOnly: true, sameSite: 'lax' as const, path: '/', secure: secureCookies, domain: cookieDomain },
+      },
+    }
+  : undefined
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
+  ...(sharedCookies ? { cookies: sharedCookies } : {}),
   providers: [
     CredentialsProvider({
       name: 'Credentials',
