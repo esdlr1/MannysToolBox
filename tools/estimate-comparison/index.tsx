@@ -840,6 +840,7 @@ function RoomRow({ room, mine, carrier, delta, expanded, detail, onToggle }: Roo
             <DetailRow
               key={`m-${item.lineNumber}`}
               code={item.catalog?.code ?? null}
+              lineLabel={`L${item.lineNumber}`}
               description={item.description}
               mine={`${item.quantity} ${item.unit} · ${fmt(item.rcvCents)}`}
               carrier="—"
@@ -851,6 +852,7 @@ function RoomRow({ room, mine, carrier, delta, expanded, detail, onToggle }: Roo
             <DetailRow
               key={`c-${item.lineNumber}`}
               code={item.catalog?.code ?? null}
+              lineLabel={`carrier L${item.lineNumber}`}
               description={item.description}
               mine="—"
               carrier={`${item.quantity} ${item.unit} · ${fmt(item.rcvCents)}`}
@@ -862,6 +864,7 @@ function RoomRow({ room, mine, carrier, delta, expanded, detail, onToggle }: Roo
             <DetailRow
               key={`d-${i}`}
               code={pair.mine.catalog?.code ?? null}
+              lineLabel={`L${pair.mine.lineNumber}`}
               description={pair.mine.description}
               mine={`${pair.mine.quantity} ${pair.mine.unit} · ${fmt(pair.mine.rcvCents)}`}
               carrier={`${pair.carrier.quantity} ${pair.carrier.unit} · ${fmt(pair.carrier.rcvCents)}`}
@@ -895,6 +898,8 @@ function DetailHeaderRow({ label, show }: { label: string; show: boolean }) {
 
 interface DetailRowProps {
   code: string | null
+  /** Printed line number in the source PDF — distinguishes real duplicates. */
+  lineLabel: string
   description: string
   mine: string
   carrier: string
@@ -904,10 +909,11 @@ interface DetailRowProps {
 }
 
 /** Item row aligned to the parent table's MINE / CARRIER / DELTA columns. */
-function DetailRow({ code, description, mine, carrier, delta, highlightQty }: DetailRowProps) {
+function DetailRow({ code, lineLabel, description, mine, carrier, delta, highlightQty }: DetailRowProps) {
   return (
     <tr className="bg-gray-50/60 dark:bg-gray-900/40 border-t border-gray-100/70 dark:border-gray-800">
       <td className="px-5 py-1.5 pl-12">
+        <span className="text-[10px] font-mono text-gray-400 dark:text-gray-500 mr-1.5">{lineLabel}</span>
         <span className="text-xs font-mono text-red-600 mr-2">{code ?? '–'}</span>
         <span className="text-[13px] text-gray-800 dark:text-gray-200">
           {description}
