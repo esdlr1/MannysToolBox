@@ -86,8 +86,36 @@ function scanDimensions(dims: RoomDimensions, text: string): boolean {
   return found
 }
 
+/** Summary-page rows ("Summary for AA-Dwelling"). Order matters: more
+ *  specific labels first. Values are summed across coverage summaries. */
+const SUMMARY_ROWS: { re: RegExp; key: SummaryKey }[] = [
+  { re: /^Total Recoverable Depreciation\b/i, key: 'skip' },
+  { re: /^Net Claim if Depreciation\b/i, key: 'skip' },
+  { re: /^Net Claim\b/i, key: 'netClaimCents' },
+  { re: /^(Material\s+)?Sales Tax\b/i, key: 'salesTaxCents' },
+  { re: /^(General Contractor\s+)?Overhead\b/i, key: 'overheadCents' },
+  { re: /^(General Contractor\s+)?Profit\b/i, key: 'profitCents' },
+  { re: /^Replacement Cost Value\b/i, key: 'summaryRcvCents' },
+  { re: /^Less Depreciation\b/i, key: 'depreciationCents' },
+  { re: /^Actual Cash Value\b/i, key: 'summaryAcvCents' },
+  { re: /^Less Deductible\b/i, key: 'deductibleCents' },
+]
+type SummaryKey =
+  | 'salesTaxCents'
+  | 'overheadCents'
+  | 'profitCents'
+  | 'summaryRcvCents'
+  | 'depreciationCents'
+  | 'summaryAcvCents'
+  | 'deductibleCents'
+  | 'netClaimCents'
+  | 'skip'
+
 interface ParserState {
   calibration: ColumnCalibration | null
+  summary: Partial<Record<Exclude<SummaryKey, 'skip'>, number>>
+  /** Inside a "Summary for ..." block (recap pages reset it). */
+  inSummary: boolean
   /** Sketch measurements accumulated since the last section close. */
   dims: RoomDimensions
   /** Items parsed since the last section close, awaiting a room name. */
@@ -106,6 +134,8 @@ interface ParserState {
 export function parseXactimate(pages: PdfPage[]): ParsedDocument {
   const state: ParserState = {
     calibration: null,
+    summary: {},
+    inSummary: false,
     dims: emptyDimensions(),
     buffered: [],
     nameCounts: new Map(),
@@ -130,9 +160,40 @@ export function parseXactimate(pages: PdfPage[]): ParsedDocument {
     parseMethod: 'deterministic',
     rooms: state.rooms,
     lineItems: state.items,
-    printedTotals: { grandRcvCents: state.grandRcvCents, grandAcvCents: null },
+    printedTotals: {
+      grandRcvCents: state.grandRcvCents,
+      grandAcvCents: null,
+      salesTaxCents: state.summary.salesTaxCents ?? null,
+      overheadCents: state.summary.overheadCents ?? null,
+      profitCents: state.summary.profitCents ?? null,
+      summaryRcvCents: state.summary.summaryRcvCents ?? null,
+      depreciationCents: state.summary.depreciationCents ?? null,
+      summaryAcvCents: state.summary.summaryAcvCents ?? null,
+      deductibleCents: state.summary.deductibleCents ?? null,
+      netClaimCents: state.summary.netClaimCents ?? null,
+    },
     warnings: state.warnings,
   }
+}
+
+/**
+ * Summary-page rows: label + trailing amount; sums across coverages.
+ * Real rows are short ("Replacement Cost Value $16,244.15"); customer-copy
+ * narrative paragraphs that BEGIN with the same labels are rejected by the
+ * token-count guard and the amount-is-last-token requirement.
+ */
+function scanSummaryRow(state: ParserState, text: string): boolean {
+  for (const { re, key } of SUMMARY_ROWS) {
+    if (!re.test(text)) continue
+    const tokens = tokenize(text)
+    if (tokens.length > 12) return false
+    if (key === 'skip') return true
+    const last = tokens[tokens.length - 1]
+    if (!isMoneyToken(last)) return false
+    state.summary[key] = (state.summary[key] ?? 0) + parseMoneyCents(last)
+    return true
+  }
+  return false
 }
 
 function consumeLine(state: ParserState, line: TextLine): void {
@@ -145,6 +206,18 @@ function consumeLine(state: ParserState, line: TextLine): void {
     state.lastItem = null
     return
   }
+
+  if (/^Summary for\b/i.test(text)) {
+    state.inSummary = true
+    state.lastItem = null
+    return
+  }
+  if (/^Recap\b/i.test(text)) {
+    state.inSummary = false
+    state.lastItem = null
+    return
+  }
+  if (state.inSummary && scanSummaryRow(state, text)) return
 
   if (scanDimensions(state.dims, text)) {
     state.lastItem = null

@@ -81,6 +81,20 @@ export async function POST(request: NextRequest) {
       await loadDismissals(session.user.id)
     )
 
+    // Headline totals compare RCV to RCV: some layouts add sales tax and O&P
+    // only on the summary page, so the summary RCV (when present and sane) is
+    // the true estimate value — not the line-item sum.
+    const displayRcv = (
+      totals: { summaryRcvCents?: number | null },
+      lineSumCents: number
+    ): number =>
+      totals.summaryRcvCents != null && totals.summaryRcvCents >= lineSumCents
+        ? totals.summaryRcvCents
+        : lineSumCents
+    const mineDisplayCents = displayRcv(mineDoc.printedTotals, result.totals.mineRcvCents)
+    const carrierDisplayCents = displayRcv(carrierDoc.printedTotals, result.totals.carrierRcvCents)
+    const displayDeltaCents = mineDisplayCents - carrierDisplayCents
+
     let persisted = false
     let comparisonId: string | null = null
     try {
@@ -103,9 +117,9 @@ export async function POST(request: NextRequest) {
           carrierDocumentId: carrier.documentId,
           clientName: mineOutcome.metadata?.clientName ?? null,
           claimNumber: mineOutcome.metadata?.claimNumber ?? null,
-          mineRcvCents: result.totals.mineRcvCents,
-          carrierRcvCents: result.totals.carrierRcvCents,
-          deltaRcvCents: result.totals.deltaRcvCents,
+          mineRcvCents: mineDisplayCents,
+          carrierRcvCents: carrierDisplayCents,
+          deltaRcvCents: displayDeltaCents,
           matchedCount: result.pairs.length,
           mineOnlyCount: result.mineOnly.length,
           carrierOnlyCount: result.carrierOnly.length,
@@ -145,14 +159,18 @@ export async function POST(request: NextRequest) {
       suggestions,
       roomPairs: merged,
       roomSuggestions: roomPairs.filter((p) => p.confidence === 'suggested'),
+      estimateSummaries: {
+        mine: { ...mineDoc.printedTotals, lineItemCents: result.totals.mineRcvCents },
+        carrier: { ...carrierDoc.printedTotals, lineItemCents: result.totals.carrierRcvCents },
+      },
       summary: {
         clientName: mineOutcome.metadata?.clientName ?? carrierOutcome.metadata?.clientName ?? null,
         claimNumber:
           mineOutcome.metadata?.claimNumber ?? carrierOutcome.metadata?.claimNumber ?? null,
-        mineTotal: formatCents(result.totals.mineRcvCents),
-        carrierTotal: formatCents(result.totals.carrierRcvCents),
-        delta: formatCents(result.totals.deltaRcvCents),
-        deltaRcvCents: result.totals.deltaRcvCents,
+        mineTotal: formatCents(mineDisplayCents),
+        carrierTotal: formatCents(carrierDisplayCents),
+        delta: formatCents(displayDeltaCents),
+        deltaRcvCents: displayDeltaCents,
         gates: {
           mine: mineOutcome.reconciliation!.ok,
           carrier: carrierOutcome.reconciliation!.ok,

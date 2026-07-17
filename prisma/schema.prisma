@@ -743,6 +743,8 @@ model EstimateDocument {
   roomCount     Int
   itemCount     Int
   warnings      Json?
+  // Summary-page figures (tax/O&P/RCV/ACV/net claim) as parsed
+  printedSummary Json?
   createdAt     DateTime @default(now())
 
   lines EstimateLine[]

@@ -67,11 +67,23 @@ interface RoomSuggestion {
   confidence: string
 }
 
+interface EstimateSummary {
+  lineItemCents?: number | null
+  salesTaxCents?: number | null
+  overheadCents?: number | null
+  profitCents?: number | null
+  summaryRcvCents?: number | null
+  depreciationCents?: number | null
+  summaryAcvCents?: number | null
+  netClaimCents?: number | null
+}
+
 interface CompareReport {
   comparisonId?: string | null
   suggestions?: Suggestion[]
   roomPairs?: RoomSuggestion[]
   roomSuggestions?: RoomSuggestion[]
+  estimateSummaries?: { mine: EstimateSummary; carrier: EstimateSummary }
   summary: {
     clientName: string | null
     claimNumber: string | null
@@ -607,6 +619,10 @@ export default function EstimateComparisonTool() {
               </div>
             </div>
 
+            {report.estimateSummaries && (
+              <EstimateTotalsCard summaries={report.estimateSummaries} />
+            )}
+
             {(report.roomSuggestions?.length ?? 0) > 0 && (
               <div className="bg-white dark:bg-gray-800/50 rounded-2xl border border-blue-200 dark:border-blue-800/50 p-5">
                 <h2 className="font-semibold text-gray-900 dark:text-white mb-1">
@@ -863,6 +879,71 @@ export default function EstimateComparisonTool() {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+const SUMMARY_ROW_DEFS: { label: string; key: keyof EstimateSummary; bold?: boolean }[] = [
+  { label: 'Line item total', key: 'lineItemCents' },
+  { label: 'Sales tax', key: 'salesTaxCents' },
+  { label: 'Overhead', key: 'overheadCents' },
+  { label: 'Profit', key: 'profitCents' },
+  { label: 'Replacement Cost Value (RCV)', key: 'summaryRcvCents', bold: true },
+  { label: 'Depreciation', key: 'depreciationCents' },
+  { label: 'Actual Cash Value (ACV)', key: 'summaryAcvCents' },
+  { label: 'Net claim', key: 'netClaimCents' },
+]
+
+/** Side-by-side summary-page math: line items → tax/O&P → RCV → ACV. */
+function EstimateTotalsCard({
+  summaries,
+}: {
+  summaries: { mine: EstimateSummary; carrier: EstimateSummary }
+}) {
+  const rows = SUMMARY_ROW_DEFS.filter(
+    ({ key }) => summaries.mine[key] != null || summaries.carrier[key] != null
+  )
+  if (rows.length <= 1) return null
+  return (
+    <div className="bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
+      <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-700 font-semibold text-gray-900 dark:text-white">
+        Estimate totals (summary pages)
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[520px]">
+          <thead>
+            <tr className="text-left text-xs uppercase text-gray-500 dark:text-gray-400">
+              <th className="px-5 py-2"></th>
+              <th className="px-5 py-2 text-right">Mine</th>
+              <th className="px-5 py-2 text-right">Carrier</th>
+              <th className="px-5 py-2 text-right">Delta</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ label, key, bold }) => {
+              const mine = summaries.mine[key]
+              const carrier = summaries.carrier[key]
+              const delta = mine != null && carrier != null ? carrier - mine : null
+              return (
+                <tr key={key} className="border-t border-gray-100 dark:border-gray-700/50">
+                  <td className={`px-5 py-1.5 ${bold ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                    {label}
+                  </td>
+                  <td className={`px-5 py-1.5 text-right tabular-nums ${bold ? 'font-semibold' : ''}`}>
+                    {mine != null ? fmt(mine) : '—'}
+                  </td>
+                  <td className={`px-5 py-1.5 text-right tabular-nums ${bold ? 'font-semibold' : ''}`}>
+                    {carrier != null ? fmt(carrier) : '—'}
+                  </td>
+                  <td className={`px-5 py-1.5 text-right tabular-nums font-semibold ${delta != null ? deltaClass(delta) : 'text-gray-300'}`}>
+                    {delta != null ? fmt(delta) : ''}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   )

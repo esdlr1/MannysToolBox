@@ -45,6 +45,21 @@ async function main(): Promise<void> {
   for (const message of reconciliation.messages) console.log(`  ! ${message}`)
   for (const warning of document.warnings) console.log(`  ~ ${warning}`)
 
+  const pt = document.printedTotals
+  if (pt.summaryRcvCents != null || pt.salesTaxCents != null) {
+    console.log('\nsummary page:')
+    const row = (label: string, cents: number | null | undefined): void => {
+      if (cents != null) console.log(`  ${label}: ${formatCents(cents)}`)
+    }
+    row('sales tax', pt.salesTaxCents)
+    row('overhead', pt.overheadCents)
+    row('profit', pt.profitCents)
+    row('RCV', pt.summaryRcvCents)
+    row('depreciation', pt.depreciationCents)
+    row('ACV', pt.summaryAcvCents)
+    row('net claim', pt.netClaimCents)
+  }
+
   console.log('\nper-room:')
   for (const room of reconciliation.rooms) {
     const printed = room.printedRcvCents === null ? 'no printed total' : formatCents(room.printedRcvCents)

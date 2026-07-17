@@ -33,6 +33,7 @@ export async function persistEstimateDocument(
       roomCount: document.rooms.length,
       itemCount: document.lineItems.length,
       warnings: document.warnings,
+      printedSummary: JSON.parse(JSON.stringify(document.printedTotals)),
       lines: {
         create: document.lineItems.map((item) => ({
           lineNumber: item.lineNumber,
