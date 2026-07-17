@@ -107,6 +107,21 @@ export interface PrintedTotals {
   /** "Line Item Totals" RCV as printed in the document. */
   grandRcvCents: number | null
   grandAcvCents: number | null
+  /**
+   * Summary-page figures (Xactimate "Summary for ..." page). In some report
+   * styles sales tax and O&P are NOT in the line items — they're added here
+   * to reach the true Replacement Cost Value. Summed across coverages when
+   * an estimate prints several summaries.
+   */
+  salesTaxCents?: number | null
+  overheadCents?: number | null
+  profitCents?: number | null
+  /** True estimate RCV including estimate-level tax and O&P. */
+  summaryRcvCents?: number | null
+  depreciationCents?: number | null
+  summaryAcvCents?: number | null
+  deductibleCents?: number | null
+  netClaimCents?: number | null
 }
 
 export interface ParsedDocument {

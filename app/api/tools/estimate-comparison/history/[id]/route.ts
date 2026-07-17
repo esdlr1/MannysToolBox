@@ -108,7 +108,24 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       .map((rollup) => ({ ...rollup, deltaRcvCents: rollup.mineRcvCents - rollup.carrierRcvCents }))
       .sort((a, b) => b.deltaRcvCents - a.deltaRcvCents)
 
+    const lineSum = (lines: { rcvCents: number }[]): number =>
+      lines.reduce((sum, line) => sum + line.rcvCents, 0)
+    const estimateSummaries =
+      mineDoc.printedSummary || carrierDoc.printedSummary
+        ? {
+            mine: {
+              ...((mineDoc.printedSummary as Record<string, unknown>) ?? {}),
+              lineItemCents: lineSum(mineDoc.lines),
+            },
+            carrier: {
+              ...((carrierDoc.printedSummary as Record<string, unknown>) ?? {}),
+              lineItemCents: lineSum(carrierDoc.lines),
+            },
+          }
+        : undefined
+
     return NextResponse.json({
+      estimateSummaries,
       summary: {
         clientName: comparison.clientName,
         claimNumber: comparison.claimNumber,
