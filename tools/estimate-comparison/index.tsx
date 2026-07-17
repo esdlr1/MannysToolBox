@@ -26,6 +26,8 @@ import {
 
 interface LineItem {
   lineNumber: number
+  /** All printed lines aggregated into this row (duplicates collapse). */
+  lineNumbers?: number[]
   room: string
   description: string
   quantity: number
@@ -34,6 +36,9 @@ interface LineItem {
   rcvCents: number
   catalog?: { code: string; category: string | null } | null
 }
+
+const lineLabel = (item: LineItem, prefix = ''): string =>
+  (item.lineNumbers ?? [item.lineNumber]).map((n) => `${prefix}L${n}`).join('+')
 
 interface Pair {
   mine: LineItem
@@ -143,10 +148,8 @@ const roomKey = (room: string): string =>
   room.toLowerCase().replace(/\s*\(#\d+\)$/, '').replace(/\s+/g, ' ').trim()
 
 const TIER_LABELS: Record<string, string> = {
-  'code-room': 'exact',
-  code: 'code (room moved)',
-  'description-room': 'description',
-  description: 'description (room moved)',
+  room: 'matched',
+  moved: 'matched (room moved)',
   'ai-confirmed': 'confirmed by you',
 }
 
@@ -1003,7 +1006,7 @@ function RoomRow({ room, mine, carrier, delta, expanded, detail, onToggle }: Roo
             <DetailRow
               key={`m-${item.lineNumber}`}
               code={item.catalog?.code ?? null}
-              lineLabel={`L${item.lineNumber}`}
+              lineLabel={lineLabel(item)}
               description={item.description}
               mine={`${item.quantity} ${item.unit} · ${fmt(item.rcvCents)}`}
               carrier="—"
@@ -1015,7 +1018,7 @@ function RoomRow({ room, mine, carrier, delta, expanded, detail, onToggle }: Roo
             <DetailRow
               key={`c-${item.lineNumber}`}
               code={item.catalog?.code ?? null}
-              lineLabel={`carrier L${item.lineNumber}`}
+              lineLabel={lineLabel(item, 'carrier ')}
               description={item.description}
               mine="—"
               carrier={`${item.quantity} ${item.unit} · ${fmt(item.rcvCents)}`}
@@ -1027,7 +1030,7 @@ function RoomRow({ room, mine, carrier, delta, expanded, detail, onToggle }: Roo
             <DetailRow
               key={`d-${i}`}
               code={pair.mine.catalog?.code ?? null}
-              lineLabel={`L${pair.mine.lineNumber}`}
+              lineLabel={lineLabel(pair.mine)}
               description={pair.mine.description}
               mine={`${pair.mine.quantity} ${pair.mine.unit} · ${fmt(pair.mine.rcvCents)}`}
               carrier={`${pair.carrier.quantity} ${pair.carrier.unit} · ${fmt(pair.carrier.rcvCents)}`}

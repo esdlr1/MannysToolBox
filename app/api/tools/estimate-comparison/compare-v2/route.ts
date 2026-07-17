@@ -13,6 +13,8 @@ import { prisma } from '@/lib/prisma'
 import { formatCents, parseEstimateFile, ParseOutcome } from '@/lib/estimate-engine'
 import { buildSynonymCanon, matchDocuments, roomRollups } from '@/lib/estimate-engine/match'
 import { buildRoomCanon, inferRoomPairs, pairedRoomLabels } from '@/lib/estimate-engine/room-pairs'
+import { AggregatedItem, aggregateComparison } from '@/lib/estimate-engine/aggregate'
+import { ParsedLineItem } from '@/lib/estimate-engine'
 import { aiExtractDocument } from '@/lib/estimate-engine/ai-extract'
 import { suggestPairings } from '@/lib/estimate-engine/suggest'
 import { persistEstimateDocument } from '@/lib/estimate-db'
@@ -61,12 +63,22 @@ export async function POST(request: NextRequest) {
       labels: pairedRoomLabels(roomPairs),
     })
 
-    // AI proposes pairings for the leftovers; the user confirms in the UI.
+    // The report view aggregates same-item lines per room (duplicates
+    // collapse; partial coverage reads as a quantity delta).
+    const agg = aggregateComparison(mineDoc, carrierDoc, {
+      synonymCanon,
+      roomCanon: merged.length > 0 ? roomCanon : undefined,
+    })
+
+    // AI proposes pairings for the aggregated leftovers; user confirms in UI.
     let suggestions: { mine: unknown; carrier: unknown; reason: string }[] = []
     try {
-      const proposed = await suggestPairings(result.mineOnly, result.carrierOnly)
-      const mineByNumber = new Map(result.mineOnly.map((item) => [item.lineNumber, item]))
-      const carrierByNumber = new Map(result.carrierOnly.map((item) => [item.lineNumber, item]))
+      const proposed = await suggestPairings(
+        agg.mineOnly.map(pseudoLine),
+        agg.carrierOnly.map(pseudoLine)
+      )
+      const mineByNumber = new Map(agg.mineOnly.map((item) => [item.lineNumber, item]))
+      const carrierByNumber = new Map(agg.carrierOnly.map((item) => [item.lineNumber, item]))
       suggestions = proposed.map((s) => ({
         mine: mineByNumber.get(s.mineLineNumber),
         carrier: carrierByNumber.get(s.carrierLineNumber),
@@ -176,16 +188,16 @@ export async function POST(request: NextRequest) {
           carrier: carrierOutcome.reconciliation!.ok,
         },
         counts: {
-          matched: result.pairs.length,
-          differences: result.pairs.filter((p) => p.rcvDeltaCents !== 0 || p.qtyDelta !== 0).length,
-          mineOnly: result.mineOnly.length,
-          carrierOnly: result.carrierOnly.length,
+          matched: agg.pairs.length,
+          differences: agg.pairs.filter((p) => p.rcvDeltaCents !== 0 || p.qtyDelta !== 0).length,
+          mineOnly: agg.mineOnly.length,
+          carrierOnly: agg.carrierOnly.length,
         },
       },
       rollups,
-      pairs: result.pairs,
-      mineOnly: result.mineOnly,
-      carrierOnly: result.carrierOnly,
+      pairs: agg.pairs,
+      mineOnly: agg.mineOnly,
+      carrierOnly: agg.carrierOnly,
       recommendations,
       persisted,
     })
@@ -193,6 +205,24 @@ export async function POST(request: NextRequest) {
     console.error('[Compare v2] Error:', error)
     const message = error instanceof Error ? error.message : 'Comparison failed'
     return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
+
+/** Minimal line shape for the suggestion engine from an aggregated group. */
+function pseudoLine(item: AggregatedItem): ParsedLineItem {
+  return {
+    lineNumber: item.lineNumber,
+    room: item.room,
+    code: null,
+    description: item.description,
+    quantity: item.quantity,
+    unit: item.unit,
+    unitPriceCents: item.unitPriceCents,
+    taxCents: 0,
+    opCents: 0,
+    rcvCents: item.rcvCents,
+    depreciationCents: 0,
+    acvCents: item.rcvCents,
   }
 }
 
