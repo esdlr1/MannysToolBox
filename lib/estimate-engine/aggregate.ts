@@ -10,6 +10,14 @@
 import { ParsedDocument, ParsedLineItem } from './types'
 import { actionGroup, baseDescription, normalizeRoom } from './match'
 
+export interface ActionMismatch {
+  mine: AggregatedItem
+  carrier: AggregatedItem
+  /** actionGroup values, e.g. 'replace' vs 'install'. */
+  mineAction: string
+  carrierAction: string
+}
+
 export interface AggregatedItem {
   /** Printed line numbers contributing to this group (sorted). */
   lineNumbers: number[]
@@ -23,6 +31,8 @@ export interface AggregatedItem {
   unitPriceCents: number
   rcvCents: number
   catalog: { code: string; category: string | null } | null
+  /** Action class of the group (actionGroup value). */
+  action: string
 }
 
 export interface AggregatedPair {
@@ -38,6 +48,12 @@ export interface AggregatedComparison {
   pairs: AggregatedPair[]
   mineOnly: AggregatedItem[]
   carrierOnly: AggregatedItem[]
+  /**
+   * Same item, same room, DIFFERENT action class — e.g. our full "Vanity"
+   * (replace) vs carrier's "Install Vanity" (labor only). Scope differences,
+   * not price differences (taught by Manny, 2026-07-16).
+   */
+  actionMismatches: ActionMismatch[]
 }
 
 export interface AggregateOptions {
@@ -45,12 +61,18 @@ export interface AggregateOptions {
   roomCanon?: (roomKey: string) => string
 }
 
-function itemKey(item: ParsedLineItem, options: AggregateOptions): string {
+/** Item identity WITHOUT the action class (used to spot scope mismatches). */
+function baseIdentity(item: ParsedLineItem, options: AggregateOptions): string {
   if (item.catalog) return `code::${item.catalog.code}`
   const desc = options.synonymCanon
     ? options.synonymCanon(baseDescription(item))
     : baseDescription(item)
-  return `desc::${actionGroup(item)}::${desc}`
+  return `desc::${desc}`
+}
+
+/** Full identity: action classes never cross-match (different work & money). */
+function itemKey(item: ParsedLineItem, options: AggregateOptions): string {
+  return `${actionGroup(item)}::${baseIdentity(item, options)}`
 }
 
 function roomOf(item: ParsedLineItem, options: AggregateOptions): string {
@@ -92,6 +114,7 @@ function toAggregated(items: ParsedLineItem[]): AggregatedItem {
           : first.unitPriceCents,
     rcvCents,
     catalog: first.catalog ? { code: first.catalog.code, category: first.catalog.category } : null,
+    action: actionGroup(first),
   }
 }
 
@@ -162,5 +185,63 @@ export function aggregateComparison(
     if (!usedCarrier.has(key)) carrierOnly.push(toAggregated(group.items))
   }
 
-  return { pairs, mineOnly, carrierOnly }
+  // Scope mismatches: leftover groups sharing room + base identity but a
+  // different action class. Presented as their own category — the carrier
+  // wrote a different scope of work for the same item.
+  const actionMismatches: ActionMismatch[] = []
+  const mineOnlyKept: AggregatedItem[] = []
+  const carrierLeftByBase = new Map<string, AggregatedItem[]>()
+  const baseOf = (item: AggregatedItem): string => {
+    const identity = item.catalog
+      ? `code::${item.catalog.code}`
+      : `desc::${options.synonymCanon?.(baseDescription(asLine(item))) ?? baseDescription(asLine(item))}`
+    return `${normalizeRoom(item.room)}::${identity}`
+  }
+  for (const item of carrierOnly) {
+    const base = baseOf(item)
+    const list = carrierLeftByBase.get(base)
+    if (list) list.push(item)
+    else carrierLeftByBase.set(base, [item])
+  }
+  const takenCarrier = new Set<AggregatedItem>()
+  for (const item of mineOnly) {
+    const candidates = carrierLeftByBase.get(baseOf(item))
+    const counterpart = candidates?.find((c) => !takenCarrier.has(c) && c.action !== item.action)
+    if (counterpart) {
+      takenCarrier.add(counterpart)
+      actionMismatches.push({
+        mine: item,
+        carrier: counterpart,
+        mineAction: item.action,
+        carrierAction: counterpart.action,
+      })
+    } else {
+      mineOnlyKept.push(item)
+    }
+  }
+
+  return {
+    pairs,
+    mineOnly: mineOnlyKept,
+    carrierOnly: carrierOnly.filter((item) => !takenCarrier.has(item)),
+    actionMismatches,
+  }
+}
+
+/** Minimal line view of an aggregated item (for identity helpers). */
+function asLine(item: AggregatedItem): ParsedLineItem {
+  return {
+    lineNumber: item.lineNumber,
+    room: item.room,
+    code: null,
+    description: item.description,
+    quantity: item.quantity,
+    unit: item.unit,
+    unitPriceCents: item.unitPriceCents,
+    taxCents: 0,
+    opCents: 0,
+    rcvCents: item.rcvCents,
+    depreciationCents: 0,
+    acvCents: item.rcvCents,
+  }
 }
