@@ -83,9 +83,26 @@ interface EstimateSummary {
   netClaimCents?: number | null
 }
 
+interface ActionMismatch {
+  mine: LineItem
+  carrier: LineItem
+  mineAction: string
+  carrierAction: string
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  replace: 'replace (material + install)',
+  rr: 'remove & replace',
+  remove: 'remove only',
+  dr: 'detach & reset',
+  install: 'install only',
+  material: 'material only',
+}
+
 interface CompareReport {
   comparisonId?: string | null
   suggestions?: Suggestion[]
+  actionMismatches?: ActionMismatch[]
   roomPairs?: RoomSuggestion[]
   roomSuggestions?: RoomSuggestion[]
   estimateSummaries?: { mine: EstimateSummary; carrier: EstimateSummary }
@@ -106,7 +123,7 @@ interface CompareReport {
   recommendations: Recommendation[]
 }
 
-type Bucket = 'differences' | 'missing' | 'carrier-only' | 'matched'
+type Bucket = 'differences' | 'scope' | 'missing' | 'carrier-only' | 'matched'
 
 interface UploadedFile {
   id: string
@@ -171,19 +188,22 @@ export default function EstimateComparisonTool() {
   const roomDetails = useMemo(() => {
     const details = new Map<
       string,
-      { missing: LineItem[]; carrierOnly: LineItem[]; differs: Pair[]; equal: number }
+      { missing: LineItem[]; carrierOnly: LineItem[]; differs: Pair[]; scope: ActionMismatch[]; equal: number }
     >()
     if (!report) return details
     const bucket = (key: string) => {
       let d = details.get(key)
       if (!d) {
-        d = { missing: [], carrierOnly: [], differs: [], equal: 0 }
+        d = { missing: [], carrierOnly: [], differs: [], scope: [], equal: 0 }
         details.set(key, d)
       }
       return d
     }
     for (const item of report.mineOnly) bucket(roomKey(item.room)).missing.push(item)
     for (const item of report.carrierOnly) bucket(roomKey(item.room)).carrierOnly.push(item)
+    for (const mismatch of report.actionMismatches ?? []) {
+      bucket(roomKey(mismatch.mine.room)).scope.push(mismatch)
+    }
     for (const pair of report.pairs) {
       const d = bucket(roomKey(pair.mine.room))
       if (pair.rcvDeltaCents !== 0 || pair.qtyDelta !== 0) d.differs.push(pair)
@@ -800,6 +820,7 @@ export default function EstimateComparisonTool() {
                 {(
                   [
                     ['differences', `Differences (${report.summary.counts.differences})`],
+                    ['scope', `Scope differs (${report.actionMismatches?.length ?? 0})`],
                     ['missing', `Missing from carrier's (${report.summary.counts.mineOnly})`],
                     ['carrier-only', `Only in carrier's (${report.summary.counts.carrierOnly})`],
                     ['matched', 'Matched, equal'],
@@ -857,6 +878,37 @@ export default function EstimateComparisonTool() {
                       </p>
                     </li>
                   ))}
+                {bucket === 'scope' &&
+                  (report.actionMismatches ?? []).map((mismatch, i) => (
+                    <li key={i} className="px-5 py-3">
+                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <span className="text-xs font-mono text-red-600">
+                          {mismatch.mine.catalog?.code ?? '—'}
+                        </span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {mismatch.mine.description}
+                        </span>
+                        <span className="text-xs text-gray-400">{mismatch.mine.room}</span>
+                        <span
+                          className={`ml-auto tabular-nums font-semibold ${deltaClass(shortfallCents(mismatch.mine.rcvCents - mismatch.carrier.rcvCents))}`}
+                        >
+                          {fmt(shortfallCents(mismatch.mine.rcvCents - mismatch.carrier.rcvCents))}
+                        </span>
+                      </div>
+                      <p className="text-xs mt-1 tabular-nums">
+                        <span className="text-gray-600 dark:text-gray-300">
+                          mine: <b>{ACTION_LABELS[mismatch.mineAction] ?? mismatch.mineAction}</b> —{' '}
+                          {mismatch.mine.quantity} {mismatch.mine.unit} · {fmt(mismatch.mine.rcvCents)}
+                        </span>
+                        <span className="mx-2 text-gray-300">|</span>
+                        <span className="text-amber-700 dark:text-amber-400">
+                          carrier: <b>{ACTION_LABELS[mismatch.carrierAction] ?? mismatch.carrierAction}</b>{' '}
+                          — {mismatch.carrier.quantity} {mismatch.carrier.unit} ·{' '}
+                          {fmt(mismatch.carrier.rcvCents)} ({mismatch.carrier.description})
+                        </span>
+                      </p>
+                    </li>
+                  ))}
                 {(bucket === 'missing' || bucket === 'carrier-only') &&
                   visibleSingles.map((item, i) => (
                     <li key={i} className="px-5 py-3">
@@ -870,9 +922,11 @@ export default function EstimateComparisonTool() {
                       </div>
                     </li>
                   ))}
-                {((bucket === 'differences' || bucket === 'matched')
-                  ? visiblePairs.length
-                  : visibleSingles.length) === 0 && (
+                {(bucket === 'scope'
+                  ? (report.actionMismatches?.length ?? 0)
+                  : bucket === 'differences' || bucket === 'matched'
+                    ? visiblePairs.length
+                    : visibleSingles.length) === 0 && (
                   <li className="px-5 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                     <FileText className="w-6 h-6 mx-auto mb-2 opacity-50" />
                     Nothing in this bucket{search ? ' matching your search' : ''}.
@@ -956,6 +1010,7 @@ interface RoomDetail {
   missing: LineItem[]
   carrierOnly: LineItem[]
   differs: Pair[]
+  scope: ActionMismatch[]
   equal: number
 }
 
@@ -972,7 +1027,11 @@ interface RoomRowProps {
 
 function RoomRow({ room, mine, carrier, delta, expanded, detail, onToggle }: RoomRowProps) {
   const hasDetail =
-    !!detail && (detail.missing.length > 0 || detail.carrierOnly.length > 0 || detail.differs.length > 0)
+    !!detail &&
+    (detail.missing.length > 0 ||
+      detail.carrierOnly.length > 0 ||
+      detail.differs.length > 0 ||
+      detail.scope.length > 0)
   return (
     <>
       <tr
@@ -1023,6 +1082,18 @@ function RoomRow({ room, mine, carrier, delta, expanded, detail, onToggle }: Roo
               mine="—"
               carrier={`${item.quantity} ${item.unit} · ${fmt(item.rcvCents)}`}
               delta={item.rcvCents}
+            />
+          ))}
+          <DetailHeaderRow label={`Same item, different scope of work (${detail.scope.length})`} show={detail.scope.length > 0} />
+          {detail.scope.map((mismatch, i) => (
+            <DetailRow
+              key={`s-${i}`}
+              code={mismatch.mine.catalog?.code ?? null}
+              lineLabel={lineLabel(mismatch.mine)}
+              description={`${mismatch.mine.description} — mine: ${ACTION_LABELS[mismatch.mineAction] ?? mismatch.mineAction} vs carrier: ${ACTION_LABELS[mismatch.carrierAction] ?? mismatch.carrierAction}`}
+              mine={`${mismatch.mine.quantity} ${mismatch.mine.unit} · ${fmt(mismatch.mine.rcvCents)}`}
+              carrier={`${mismatch.carrier.quantity} ${mismatch.carrier.unit} · ${fmt(mismatch.carrier.rcvCents)}`}
+              delta={shortfallCents(mismatch.mine.rcvCents - mismatch.carrier.rcvCents)}
             />
           ))}
           <DetailHeaderRow label={`Same item, different numbers (${detail.differs.length})`} show={detail.differs.length > 0} />

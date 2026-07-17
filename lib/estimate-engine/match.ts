@@ -50,11 +50,16 @@ export function baseDescription(item: ParsedLineItem): string {
 }
 
 /**
- * Action compatibility class. R&R (remove AND replace) is different work —
- * and different money — from a remove-only or a detach & reset line, so
- * description-based matching must never pair across classes. Plain items,
- * installs, and replacements share one class (a bare Xactimate item implies
- * install/replace).
+ * Action compatibility class (taught by Manny, 2026-07-16). Each class is
+ * different work and different money and must NEVER cross-match:
+ *   replace  — bare item or "Replace X": material + install (full replace)
+ *   rr       — R&R: remove + full replace
+ *   remove   — demo only
+ *   dr       — detach & reset
+ *   install  — "Install X": labor-only install (no material)
+ *   material — material only (no labor)
+ * A carrier's "Install Vanity" against our bare "Vanity" is a SCOPE
+ * difference (they didn't pay for the vanity), not a price difference.
  */
 export function actionGroup(item: ParsedLineItem): string {
   switch (splitAction(item.description).action) {
@@ -64,9 +69,22 @@ export function actionGroup(item: ParsedLineItem): string {
       return 'rr'
     case 'detach_reset':
       return 'dr'
-    default:
+    case 'install':
       return 'install'
+    case 'material_only':
+      return 'material'
+    default:
+      return 'replace'
   }
+}
+
+export const ACTION_GROUP_LABELS: Record<string, string> = {
+  replace: 'replace (material + install)',
+  rr: 'remove & replace',
+  remove: 'remove only',
+  dr: 'detach & reset',
+  install: 'install only',
+  material: 'material only',
 }
 
 /**
@@ -108,9 +126,13 @@ export function matchDocuments(
   const tierKeys: { tier: MatchTier; key: (item: ParsedLineItem) => string | null }[] = [
     {
       tier: 'code-room',
-      key: (item) => (item.catalog ? `${item.catalog.code}::${roomOf(item)}` : null),
+      key: (item) =>
+        item.catalog ? `${item.catalog.code}::${actionGroup(item)}::${roomOf(item)}` : null,
     },
-    { tier: 'code', key: (item) => item.catalog?.code ?? null },
+    {
+      tier: 'code',
+      key: (item) => (item.catalog ? `${item.catalog.code}::${actionGroup(item)}` : null),
+    },
     {
       tier: 'description-room',
       key: (item) => `${actionGroup(item)}::${desc(item)}::${roomOf(item)}`,

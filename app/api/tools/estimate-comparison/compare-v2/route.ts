@@ -198,6 +198,7 @@ export async function POST(request: NextRequest) {
       pairs: agg.pairs,
       mineOnly: agg.mineOnly,
       carrierOnly: agg.carrierOnly,
+      actionMismatches: agg.actionMismatches,
       recommendations,
       persisted,
     })
