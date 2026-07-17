@@ -834,76 +834,100 @@ function RoomRow({ room, mine, carrier, delta, expanded, detail, onToggle }: Roo
         </td>
       </tr>
       {expanded && detail && (
-        <tr className="border-t border-gray-100 dark:border-gray-700/50 bg-gray-50/60 dark:bg-gray-900/40">
-          <td colSpan={4} className="px-5 py-3">
-            <div className="space-y-3">
-              <RoomDetailSection
-                title={`In mine, not in carrier's (${detail.missing.length})`}
-                items={detail.missing.map((item) => ({
-                  key: `m-${item.lineNumber}`,
-                  code: item.catalog?.code ?? null,
-                  text: item.description,
-                  qty: `${item.quantity} ${item.unit}`,
-                  amount: -item.rcvCents,
-                }))}
-              />
-              <RoomDetailSection
-                title={`In carrier's, not in mine (${detail.carrierOnly.length})`}
-                items={detail.carrierOnly.map((item) => ({
-                  key: `c-${item.lineNumber}`,
-                  code: item.catalog?.code ?? null,
-                  text: item.description,
-                  qty: `${item.quantity} ${item.unit}`,
-                  amount: item.rcvCents,
-                }))}
-              />
-              <RoomDetailSection
-                title={`Same item, different numbers (${detail.differs.length})`}
-                items={detail.differs.map((pair, i) => ({
-                  key: `d-${i}`,
-                  code: pair.mine.catalog?.code ?? null,
-                  text: `${pair.mine.description} — mine ${pair.mine.quantity} ${pair.mine.unit} ${fmt(pair.mine.rcvCents)} vs carrier ${pair.carrier.quantity} ${pair.carrier.unit} ${fmt(pair.carrier.rcvCents)}`,
-                  qty: '',
-                  amount: shortfallCents(pair.rcvDeltaCents),
-                }))}
-              />
-              {detail.equal > 0 && (
-                <p className="text-xs text-gray-400 dark:text-gray-500">
-                  {detail.equal} matched item{detail.equal === 1 ? '' : 's'} with no differences
-                </p>
-              )}
-            </div>
-          </td>
-        </tr>
+        <>
+          <DetailHeaderRow label={`In mine, not in carrier's (${detail.missing.length})`} show={detail.missing.length > 0} />
+          {detail.missing.map((item) => (
+            <DetailRow
+              key={`m-${item.lineNumber}`}
+              code={item.catalog?.code ?? null}
+              description={item.description}
+              mine={`${item.quantity} ${item.unit} · ${fmt(item.rcvCents)}`}
+              carrier="—"
+              delta={-item.rcvCents}
+            />
+          ))}
+          <DetailHeaderRow label={`In carrier's, not in mine (${detail.carrierOnly.length})`} show={detail.carrierOnly.length > 0} />
+          {detail.carrierOnly.map((item) => (
+            <DetailRow
+              key={`c-${item.lineNumber}`}
+              code={item.catalog?.code ?? null}
+              description={item.description}
+              mine="—"
+              carrier={`${item.quantity} ${item.unit} · ${fmt(item.rcvCents)}`}
+              delta={item.rcvCents}
+            />
+          ))}
+          <DetailHeaderRow label={`Same item, different numbers (${detail.differs.length})`} show={detail.differs.length > 0} />
+          {detail.differs.map((pair, i) => (
+            <DetailRow
+              key={`d-${i}`}
+              code={pair.mine.catalog?.code ?? null}
+              description={pair.mine.description}
+              mine={`${pair.mine.quantity} ${pair.mine.unit} · ${fmt(pair.mine.rcvCents)}`}
+              carrier={`${pair.carrier.quantity} ${pair.carrier.unit} · ${fmt(pair.carrier.rcvCents)}`}
+              delta={shortfallCents(pair.rcvDeltaCents)}
+              highlightQty={pair.qtyDelta !== 0}
+            />
+          ))}
+          {detail.equal > 0 && (
+            <tr className="bg-gray-50/60 dark:bg-gray-900/40">
+              <td colSpan={4} className="px-5 py-2 pl-12 text-xs text-gray-400 dark:text-gray-500">
+                {detail.equal} matched item{detail.equal === 1 ? '' : 's'} with no differences
+              </td>
+            </tr>
+          )}
+        </>
       )}
     </>
   )
 }
 
-function RoomDetailSection({
-  title,
-  items,
-}: {
-  title: string
-  items: { key: string; code: string | null; text: string; qty: string; amount: number }[]
-}) {
-  if (items.length === 0) return null
+function DetailHeaderRow({ label, show }: { label: string; show: boolean }) {
+  if (!show) return null
   return (
-    <div>
-      <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-1">{title}</p>
-      <ul className="space-y-1">
-        {items.map((item) => (
-          <li key={item.key} className="flex items-baseline gap-2 text-sm">
-            <span className="text-xs font-mono text-red-600 flex-shrink-0">{item.code ?? '—'}</span>
-            <span className="text-gray-800 dark:text-gray-200 min-w-0">{item.text}</span>
-            {item.qty && <span className="text-xs text-gray-400 flex-shrink-0">{item.qty}</span>}
-            <span className={`ml-auto tabular-nums text-sm font-medium flex-shrink-0 ${deltaClass(item.amount)}`}>
-              {fmt(item.amount)}
+    <tr className="bg-gray-100/80 dark:bg-gray-800/70">
+      <td colSpan={4} className="px-5 py-1.5 pl-12 text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        {label}
+      </td>
+    </tr>
+  )
+}
+
+interface DetailRowProps {
+  code: string | null
+  description: string
+  mine: string
+  carrier: string
+  /** carrier − mine for this line: negative = carrier short (red). */
+  delta: number
+  highlightQty?: boolean
+}
+
+/** Item row aligned to the parent table's MINE / CARRIER / DELTA columns. */
+function DetailRow({ code, description, mine, carrier, delta, highlightQty }: DetailRowProps) {
+  return (
+    <tr className="bg-gray-50/60 dark:bg-gray-900/40 border-t border-gray-100/70 dark:border-gray-800">
+      <td className="px-5 py-1.5 pl-12">
+        <span className="text-xs font-mono text-red-600 mr-2">{code ?? '–'}</span>
+        <span className="text-[13px] text-gray-800 dark:text-gray-200">
+          {description}
+          {highlightQty && (
+            <span className="ml-2 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">
+              qty differs
             </span>
-          </li>
-        ))}
-      </ul>
-    </div>
+          )}
+        </span>
+      </td>
+      <td className="px-5 py-1.5 text-right tabular-nums text-[13px] text-gray-700 dark:text-gray-300 whitespace-nowrap">
+        {mine}
+      </td>
+      <td className="px-5 py-1.5 text-right tabular-nums text-[13px] text-gray-700 dark:text-gray-300 whitespace-nowrap">
+        {carrier}
+      </td>
+      <td className={`px-5 py-1.5 text-right tabular-nums text-[13px] font-semibold whitespace-nowrap ${deltaClass(delta)}`}>
+        {fmt(delta)}
+      </td>
+    </tr>
   )
 }
 
