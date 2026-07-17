@@ -2,6 +2,7 @@
 //   npm run compare:estimates -- "<mine.pdf>" "<carrier.pdf>"
 import { formatCents, parseEstimateFile } from '../lib/estimate-engine'
 import { matchDocuments, roomRollups } from '../lib/estimate-engine/match'
+import { inferRoomPairs } from '../lib/estimate-engine/room-pairs'
 
 async function main(): Promise<void> {
   const [minePath, carrierPath] = process.argv.slice(2).filter((a) => !a.startsWith('--'))
@@ -43,6 +44,16 @@ async function main(): Promise<void> {
     console.log(
       `  ${formatCents(pair.rcvDeltaCents)} [${pair.tier}] ${pair.mine.room}: ${pair.mine.description.slice(0, 60)}`
     )
+  }
+
+  const roomPairs = inferRoomPairs(mine.document!, carrier.document!, result, [])
+  if (roomPairs.length > 0) {
+    console.log('\nroom pairings inferred:')
+    for (const p of roomPairs) {
+      console.log(
+        `  [${p.confidence}] "${p.mineRoom}" ↔ "${p.carrierRoom}" — ${p.sharedItems} shared items${p.geometry ? `, ${p.geometry}` : ''}`
+      )
+    }
   }
 
   console.log('\nroom rollups:')

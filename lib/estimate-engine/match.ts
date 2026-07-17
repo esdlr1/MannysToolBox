@@ -92,6 +92,8 @@ export function buildSynonymCanon(pairs: { a: string; b: string }[]): (desc: str
 export interface MatchOptions {
   /** Maps a normalized base description to its synonym-group canonical form. */
   synonymCanon?: (desc: string) => string
+  /** Maps a normalized room key to its paired-room canonical key. */
+  roomCanon?: (roomKey: string) => string
 }
 
 export function matchDocuments(
@@ -100,16 +102,18 @@ export function matchDocuments(
   options: MatchOptions = {}
 ): MatchResult {
   const canon = options.synonymCanon ?? ((desc: string) => desc)
+  const roomOf = (item: ParsedLineItem): string =>
+    options.roomCanon ? options.roomCanon(normalizeRoom(item.room)) : normalizeRoom(item.room)
   const desc = (item: ParsedLineItem): string => canon(baseDescription(item))
   const tierKeys: { tier: MatchTier; key: (item: ParsedLineItem) => string | null }[] = [
     {
       tier: 'code-room',
-      key: (item) => (item.catalog ? `${item.catalog.code}::${normalizeRoom(item.room)}` : null),
+      key: (item) => (item.catalog ? `${item.catalog.code}::${roomOf(item)}` : null),
     },
     { tier: 'code', key: (item) => item.catalog?.code ?? null },
     {
       tier: 'description-room',
-      key: (item) => `${actionGroup(item)}::${desc(item)}::${normalizeRoom(item.room)}`,
+      key: (item) => `${actionGroup(item)}::${desc(item)}::${roomOf(item)}`,
     },
     { tier: 'description', key: (item) => `${actionGroup(item)}::${desc(item)}` },
   ]
@@ -175,14 +179,24 @@ export interface RoomRollup {
   deltaRcvCents: number
 }
 
-export function roomRollups(mine: ParsedDocument, carrier: ParsedDocument): RoomRollup[] {
+export function roomRollups(
+  mine: ParsedDocument,
+  carrier: ParsedDocument,
+  options: { roomCanon?: (roomKey: string) => string; labels?: Map<string, string> } = {}
+): RoomRollup[] {
   const rollups = new Map<string, RoomRollup>()
   const add = (items: ParsedLineItem[], side: 'mine' | 'carrier'): void => {
     for (const item of items) {
-      const key = normalizeRoom(item.room)
+      const raw = normalizeRoom(item.room)
+      const key = options.roomCanon ? options.roomCanon(raw) : raw
       let rollup = rollups.get(key)
       if (!rollup) {
-        rollup = { room: item.room, mineRcvCents: 0, carrierRcvCents: 0, deltaRcvCents: 0 }
+        rollup = {
+          room: options.labels?.get(key) ?? item.room,
+          mineRcvCents: 0,
+          carrierRcvCents: 0,
+          deltaRcvCents: 0,
+        }
         rollups.set(key, rollup)
       }
       if (side === 'mine') rollup.mineRcvCents += item.rcvCents

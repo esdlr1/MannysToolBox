@@ -59,9 +59,19 @@ interface Suggestion {
   reason: string
 }
 
+interface RoomSuggestion {
+  mineRoom: string
+  carrierRoom: string
+  sharedItems: number
+  geometry: string | null
+  confidence: string
+}
+
 interface CompareReport {
   comparisonId?: string | null
   suggestions?: Suggestion[]
+  roomPairs?: RoomSuggestion[]
+  roomSuggestions?: RoomSuggestion[]
   summary: {
     clientName: string | null
     claimNumber: string | null
@@ -303,6 +313,32 @@ export default function EstimateComparisonTool() {
     a.download = `comparison_${report.summary.claimNumber ?? 'estimate'}.csv`
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  // Room pairing suggestions: confirming stores a permanent alias (applies
+  // from the next comparison on); rejecting just dismisses the suggestion.
+  const resolveRoomSuggestion = async (suggestion: RoomSuggestion, confirmed: boolean) => {
+    setReport((current) =>
+      current
+        ? {
+            ...current,
+            roomSuggestions: (current.roomSuggestions ?? []).filter((s) => s !== suggestion),
+          }
+        : current
+    )
+    if (!confirmed) return
+    try {
+      await fetch('/api/tools/estimate-comparison/confirm-room', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mineRoom: suggestion.mineRoom,
+          carrierRoom: suggestion.carrierRoom,
+        }),
+      })
+    } catch {
+      setError('Could not save the room pairing')
+    }
   }
 
   // Review queue: confirming folds the AI-suggested pair into the report and
@@ -570,6 +606,52 @@ export default function EstimateComparisonTool() {
                 />
               </div>
             </div>
+
+            {(report.roomSuggestions?.length ?? 0) > 0 && (
+              <div className="bg-white dark:bg-gray-800/50 rounded-2xl border border-blue-200 dark:border-blue-800/50 p-5">
+                <h2 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  Same room? ({report.roomSuggestions!.length})
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                  These rooms look like the same space under different names. Confirming is remembered
+                  and merges them automatically from the next comparison on.
+                </p>
+                <ul className="space-y-2">
+                  {report.roomSuggestions!.map((suggestion, i) => (
+                    <li
+                      key={i}
+                      className="flex flex-wrap items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3"
+                    >
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {suggestion.mineRoom} <span className="text-gray-400">↔</span> {suggestion.carrierRoom}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {[
+                          suggestion.sharedItems > 0 ? `${suggestion.sharedItems} shared items` : null,
+                          suggestion.geometry,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </span>
+                      <div className="ml-auto flex gap-2">
+                        <button
+                          onClick={() => resolveRoomSuggestion(suggestion, true)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white"
+                        >
+                          Same room
+                        </button>
+                        <button
+                          onClick={() => resolveRoomSuggestion(suggestion, false)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        >
+                          Different
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {(report.suggestions?.length ?? 0) > 0 && (
               <div className="bg-white dark:bg-gray-800/50 rounded-2xl border border-amber-200 dark:border-amber-800/50 p-5">
