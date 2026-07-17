@@ -14,6 +14,7 @@ import { formatCents, parseEstimateFile, ParseOutcome } from '@/lib/estimate-eng
 import { buildSynonymCanon, matchDocuments, roomRollups } from '@/lib/estimate-engine/match'
 import { buildRoomCanon, inferRoomPairs, pairedRoomLabels } from '@/lib/estimate-engine/room-pairs'
 import { AggregatedItem, aggregateComparison } from '@/lib/estimate-engine/aggregate'
+import { normalizeForComparison } from '@/lib/estimate-engine/normalize'
 import { ParsedLineItem } from '@/lib/estimate-engine'
 import { aiExtractDocument } from '@/lib/estimate-engine/ai-extract'
 import { suggestPairings } from '@/lib/estimate-engine/suggest'
@@ -44,8 +45,13 @@ export async function POST(request: NextRequest) {
     )
     if (!carrierOutcome) return carrierError
 
-    const mineDoc = mineOutcome.document!
-    const carrierDoc = carrierOutcome.document!
+    // Normalize O&P treatment first: if one estimate bakes O&P into line
+    // items and the other adds it on the summary page, scale each to its own
+    // printed RCV so per-line/per-room deltas aren't skewed ~20% by O&P alone.
+    const { mine: mineDoc, carrier: carrierDoc, info: normalization } = normalizeForComparison(
+      mineOutcome.document!,
+      carrierOutcome.document!
+    )
     const synonymCanon = await loadSynonymCanon()
 
     // Pass 1: match on literal rooms; use the evidence to infer room pairs
@@ -171,6 +177,7 @@ export async function POST(request: NextRequest) {
       suggestions,
       roomPairs: merged,
       roomSuggestions: roomPairs.filter((p) => p.confidence === 'suggested'),
+      normalization,
       estimateSummaries: {
         mine: { ...mineDoc.printedTotals, lineItemCents: result.totals.mineRcvCents },
         carrier: { ...carrierDoc.printedTotals, lineItemCents: result.totals.carrierRcvCents },

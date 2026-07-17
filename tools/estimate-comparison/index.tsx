@@ -99,10 +99,17 @@ const ACTION_LABELS: Record<string, string> = {
   material: 'material only',
 }
 
+interface Normalization {
+  applied: boolean
+  mineFactor: number
+  carrierFactor: number
+}
+
 interface CompareReport {
   comparisonId?: string | null
   suggestions?: Suggestion[]
   actionMismatches?: ActionMismatch[]
+  normalization?: Normalization
   roomPairs?: RoomSuggestion[]
   roomSuggestions?: RoomSuggestion[]
   estimateSummaries?: { mine: EstimateSummary; carrier: EstimateSummary }
@@ -642,6 +649,18 @@ export default function EstimateComparisonTool() {
                 />
               </div>
             </div>
+
+            {report.normalization?.applied && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-4 text-sm text-blue-900 dark:text-blue-200">
+                <b>O&amp;P normalized for fair comparison.</b> These estimates apply overhead &amp;
+                profit differently — one bakes it into each line, the other adds it on the summary
+                page. Line items on each side are scaled to that estimate&apos;s own printed RCV
+                (mine ×{report.normalization.mineFactor.toFixed(3)}, carrier ×
+                {report.normalization.carrierFactor.toFixed(3)}) so per-room and per-line deltas
+                reflect real scope and price differences, not O&amp;P treatment. Uniform scaling is
+                an approximation.
+              </div>
+            )}
 
             {report.estimateSummaries && (
               <EstimateTotalsCard summaries={report.estimateSummaries} />

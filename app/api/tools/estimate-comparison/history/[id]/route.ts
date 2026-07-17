@@ -10,6 +10,7 @@ import { prisma } from '@/lib/prisma'
 import { formatCents, ParsedDocument, ParsedLineItem } from '@/lib/estimate-engine'
 import { roomRollups } from '@/lib/estimate-engine/match'
 import { aggregateComparison } from '@/lib/estimate-engine/aggregate'
+import { normalizeForComparison } from '@/lib/estimate-engine/normalize'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,7 +32,8 @@ interface StoredLine {
 }
 
 /** Rebuild a minimal ParsedDocument from stored line rows for aggregation. */
-function toDocument(lines: StoredLine[]): ParsedDocument {
+function toDocument(lines: StoredLine[], printedSummary: unknown): ParsedDocument {
+  const summary = (printedSummary ?? {}) as { summaryRcvCents?: number | null }
   const lineItems: ParsedLineItem[] = lines.map((line) => ({
     lineNumber: line.lineNumber,
     room: line.room,
@@ -53,7 +55,11 @@ function toDocument(lines: StoredLine[]): ParsedDocument {
     parseMethod: 'deterministic',
     rooms: roomNames.map((name) => ({ name, printedTotalRcvCents: null })),
     lineItems,
-    printedTotals: { grandRcvCents: null, grandAcvCents: null },
+    printedTotals: {
+      grandRcvCents: null,
+      grandAcvCents: null,
+      summaryRcvCents: summary.summaryRcvCents ?? null,
+    },
     warnings: [],
   }
 }
@@ -84,8 +90,9 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: 'Underlying documents were removed' }, { status: 404 })
     }
 
-    const mine = toDocument(mineDoc.lines)
-    const carrier = toDocument(carrierDoc.lines)
+    const rawMine = toDocument(mineDoc.lines, mineDoc.printedSummary)
+    const rawCarrier = toDocument(carrierDoc.lines, carrierDoc.printedSummary)
+    const { mine, carrier, info: normalization } = normalizeForComparison(rawMine, rawCarrier)
     const agg = aggregateComparison(mine, carrier)
     const rollups = roomRollups(mine, carrier)
 
@@ -107,6 +114,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
 
     return NextResponse.json({
       estimateSummaries,
+      normalization,
       summary: {
         clientName: comparison.clientName,
         claimNumber: comparison.claimNumber,
