@@ -167,6 +167,7 @@ const roomKey = (room: string): string =>
 const TIER_LABELS: Record<string, string> = {
   room: 'matched',
   moved: 'matched (room moved)',
+  near: 'matched (near — code/size differs)',
   'ai-confirmed': 'confirmed by you',
 }
 

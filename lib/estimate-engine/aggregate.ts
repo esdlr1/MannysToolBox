@@ -38,10 +38,46 @@ export interface AggregatedItem {
 export interface AggregatedPair {
   mine: AggregatedItem
   carrier: AggregatedItem
-  tier: 'room' | 'moved'
+  tier: 'room' | 'moved' | 'near'
   qtyDelta: number
   rcvDeltaCents: number
   unitPriceDeltaCents: number
+}
+
+const NEAR_STOPWORDS = new Set([
+  'the', 'and', 'for', 'with', 'per', 'from', 'only', 'coat', 'coats',
+  'standard', 'grade', 'misc', 'one', 'two', 'each', 'high', 'install',
+  'detach', 'reset', 'remove', 'replace', 'material',
+])
+
+/** Significant words of an item's description (≥4 chars, minus stopwords). */
+function significantWords(item: AggregatedItem): Set<string> {
+  return new Set(
+    baseDescription(asLine(item))
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w.length >= 4 && !NEAR_STOPWORDS.has(w))
+  )
+}
+
+/**
+ * Same physical item despite differing identity: same action class, room, and
+ * unit, quantity within 5%, and the shorter description's significant words
+ * are a subset of the longer's. Handles the case where one side resolved to a
+ * catalog code and the other didn't, or a size suffix differs ("Quarter round"
+ * vs "Quarter round - 3/4"") — taught by Manny, 2026-07-16.
+ */
+function nearSameItem(a: AggregatedItem, b: AggregatedItem): boolean {
+  if (a.action !== b.action) return false
+  if (normalizeRoom(a.room) !== normalizeRoom(b.room)) return false
+  if (a.unit !== b.unit) return false
+  const q = Math.max(a.quantity, b.quantity)
+  if (q > 0 && Math.abs(a.quantity - b.quantity) / q > 0.05) return false
+  const wa = significantWords(a)
+  const wb = significantWords(b)
+  if (wa.size === 0 || wb.size === 0) return false
+  const [small, large] = wa.size <= wb.size ? [wa, wb] : [wb, wa]
+  for (const w of small) if (!large.has(w)) return false
+  return true
 }
 
 export interface AggregatedComparison {
@@ -185,6 +221,30 @@ export function aggregateComparison(
     if (!usedCarrier.has(key)) carrierOnly.push(toAggregated(group.items))
   }
 
+  // Near-match pass: pair leftover groups that are clearly the same item
+  // (same action/room/unit, close quantity, description word-subset) even
+  // when one side has a catalog code and the other doesn't, or a size suffix
+  // differs. Otherwise same-item lines split into missing + carrier-only.
+  const carrierNearTaken = new Set<AggregatedItem>()
+  const mineAfterNear: AggregatedItem[] = []
+  for (const m of mineOnly) {
+    const c = carrierOnly.find((x) => !carrierNearTaken.has(x) && nearSameItem(m, x))
+    if (c) {
+      carrierNearTaken.add(c)
+      pairs.push({
+        mine: m,
+        carrier: c,
+        tier: 'near',
+        qtyDelta: Math.round((m.quantity - c.quantity) * 100) / 100,
+        rcvDeltaCents: m.rcvCents - c.rcvCents,
+        unitPriceDeltaCents: m.unitPriceCents - c.unitPriceCents,
+      })
+    } else {
+      mineAfterNear.push(m)
+    }
+  }
+  const carrierAfterNear = carrierOnly.filter((x) => !carrierNearTaken.has(x))
+
   // Scope mismatches: leftover groups sharing room + base identity but a
   // different action class. Presented as their own category — the carrier
   // wrote a different scope of work for the same item.
@@ -197,14 +257,14 @@ export function aggregateComparison(
       : `desc::${options.synonymCanon?.(baseDescription(asLine(item))) ?? baseDescription(asLine(item))}`
     return `${normalizeRoom(item.room)}::${identity}`
   }
-  for (const item of carrierOnly) {
+  for (const item of carrierAfterNear) {
     const base = baseOf(item)
     const list = carrierLeftByBase.get(base)
     if (list) list.push(item)
     else carrierLeftByBase.set(base, [item])
   }
   const takenCarrier = new Set<AggregatedItem>()
-  for (const item of mineOnly) {
+  for (const item of mineAfterNear) {
     const candidates = carrierLeftByBase.get(baseOf(item))
     const counterpart = candidates?.find((c) => !takenCarrier.has(c) && c.action !== item.action)
     if (counterpart) {
@@ -223,7 +283,7 @@ export function aggregateComparison(
   return {
     pairs,
     mineOnly: mineOnlyKept,
-    carrierOnly: carrierOnly.filter((item) => !takenCarrier.has(item)),
+    carrierOnly: carrierAfterNear.filter((item) => !takenCarrier.has(item)),
     actionMismatches,
   }
 }
