@@ -123,9 +123,11 @@ async function parseScanned(
     }
   }
   let document: ParsedDocument | null = null
+  let failure: string | null = null
   try {
     document = await ocrFallback(filePath)
   } catch (error) {
+    failure = error instanceof Error ? error.message : String(error)
     console.error('[estimate-engine] OCR failed:', error)
   }
   if (!document) {
@@ -134,7 +136,9 @@ async function parseScanned(
       document: null,
       reconciliation: null,
       metadata: null,
-      error: 'Could not read this scanned estimate — please try a clearer scan or a digital PDF.',
+      // Surface the actual stage that failed — a generic message makes this
+      // impossible to diagnose from the UI.
+      error: `Could not read this scanned estimate: ${failure ?? 'no line items were recognized'}.`,
     }
   }
   const reconciliation = reconcile(document)

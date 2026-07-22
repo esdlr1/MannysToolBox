@@ -69,13 +69,15 @@ export async function aiExtractFromImages(
 ): Promise<ParsedDocument | null> {
   const task = override ?? resolveTask('extract')
   if (!task) {
-    console.error('[AI OCR] no AI provider configured')
-    return null
+    throw new Error('no AI provider configured — set OPENAI_API_KEY (or another provider key)')
   }
-  if (images.length === 0) return null
+  if (images.length === 0) throw new Error('no pages to read')
 
   const merged: RawExtraction = { rooms: [], items: [], grandTotal: null }
+  const failures: string[] = []
+  let batches = 0
   for (let i = 0; i < images.length; i += OCR_PAGE_BATCH) {
+    batches++
     const batch = images.slice(i, i + OCR_PAGE_BATCH)
     const response = await completeText({
       provider: task.provider,
@@ -100,11 +102,18 @@ export async function aiExtractFromImages(
       maxTokens: 16000,
     })
     if (response.error || !response.text) {
-      console.error(`[AI OCR] pages ${batch[0].pageNumber}+ failed:`, response.error)
+      const detail = `pages ${batch[0].pageNumber}+ (${response.provider}/${response.model}): ${response.error ?? 'empty response'}`
+      console.error(`[AI OCR] ${detail}`)
+      failures.push(detail)
       continue
     }
     const parsed = parseJson(response.text)
-    if (!parsed) continue
+    if (!parsed) {
+      const detail = `pages ${batch[0].pageNumber}+: model returned unparseable output`
+      console.error(`[AI OCR] ${detail}`, response.text.slice(0, 200))
+      failures.push(detail)
+      continue
+    }
 
     merged.items!.push(...(parsed.items ?? []))
     for (const room of parsed.rooms ?? []) {
@@ -121,13 +130,21 @@ export async function aiExtractFromImages(
     }
   }
 
-  const doc = toDocument(merged)
-  if (doc) {
-    doc.parseMethod = 'ai-extraction'
-    doc.warnings = [
-      `Read by OCR from ${images.length} scanned page${images.length === 1 ? '' : 's'} — verified by the reconciliation gate`,
-    ]
+  if (failures.length === batches) {
+    throw new Error(`all ${batches} OCR request(s) failed — ${failures[0]}`)
   }
+  const doc = toDocument(merged)
+  if (!doc) {
+    throw new Error(
+      `model read no usable line items from ${images.length} page(s)` +
+        (failures.length ? ` (${failures.length} batch failure(s): ${failures[0]})` : '')
+    )
+  }
+  doc.parseMethod = 'ai-extraction'
+  doc.warnings = [
+    `Read by OCR from ${images.length} scanned page${images.length === 1 ? '' : 's'} — verified by the reconciliation gate`,
+    ...(failures.length ? [`${failures.length} page batch(es) could not be read`] : []),
+  ]
   return doc
 }
 
