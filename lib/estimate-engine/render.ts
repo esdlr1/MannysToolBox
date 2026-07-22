@@ -5,14 +5,30 @@
 // model read it; the reconciliation gate then verifies the numbers it
 // reported against the totals printed in the document itself.
 import { readFile } from 'fs/promises'
-import { dirname, join } from 'path'
+import { existsSync } from 'fs'
+import { join } from 'path'
 import { createCanvas } from '@napi-rs/canvas'
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf'
 
-/** Directory of pdf.js's bundled standard font data, resolved from the package. */
-function standardFontsDir(): string {
-  const pkg = require.resolve('pdfjs-dist/package.json')
-  return join(dirname(pkg), 'standard_fonts') + '/'
+/**
+ * Directory of pdf.js's bundled standard font data.
+ *
+ * Deliberately does NOT use require.resolve: webpack rewrites it at build time
+ * to return a numeric module ID, so path helpers crash in the production
+ * bundle ("The path argument must be of type string. Received type number").
+ * Probing the filesystem works in both dev and the built server, and returning
+ * undefined is safe — the option is optional, and scanned PDFs are images with
+ * no fonts to substitute anyway.
+ */
+function standardFontsDir(): string | undefined {
+  const candidates = [
+    join(process.cwd(), 'node_modules', 'pdfjs-dist', 'standard_fonts'),
+    join(process.cwd(), '..', 'node_modules', 'pdfjs-dist', 'standard_fonts'),
+  ]
+  for (const dir of candidates) {
+    if (existsSync(dir)) return dir + '/'
+  }
+  return undefined
 }
 
 /** Upscale factor: estimate tables need resolution to stay legible. */
@@ -57,6 +73,7 @@ export async function renderPdfPages(
 ): Promise<RenderedPage[]> {
   const buffer = await readFile(filePath)
   const canvasFactory = new NapiCanvasFactory()
+  const fontsDir = standardFontsDir()
   const doc = await pdfjs.getDocument({
     data: new Uint8Array(buffer),
     canvasFactory,
@@ -65,7 +82,8 @@ export async function renderPdfPages(
     disableFontFace: true,
     useSystemFonts: false,
     // Non-embedded fonts (Helvetica, Times) need pdf.js's bundled metrics.
-    standardFontDataUrl: standardFontsDir(),
+    // Omitted entirely when the directory can't be located.
+    ...(fontsDir ? { standardFontDataUrl: fontsDir } : {}),
   } as Parameters<typeof pdfjs.getDocument>[0]).promise
 
   const pages: RenderedPage[] = []
