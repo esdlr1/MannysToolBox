@@ -51,8 +51,9 @@ export async function extractPositionedPages(filePath: string): Promise<PdfPage[
     0
   )
   if (totalFragments === 0) {
+    // Tagged so the pipeline can route scanned documents to the OCR path.
     throw new Error(
-      'No text layer found — this looks like a scanned/image PDF. OCR is not supported yet; please export a digital PDF.'
+      'NO_TEXT_LAYER: no text layer found — this looks like a scanned/image PDF.'
     )
   }
 

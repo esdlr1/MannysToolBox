@@ -8,6 +8,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { parseEstimateFile, formatCents } from '@/lib/estimate-engine'
 import { aiExtractDocument } from '@/lib/estimate-engine/ai-extract'
+import { ocrEstimateFile } from '@/lib/estimate-engine/ocr'
 import { evaluateScopeRules } from '@/lib/scope-check/rules'
 import { loadDismissals, loadScopeRules } from '@/lib/scope-check/rule-store'
 
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const outcome = await parseEstimateFile(file.path, { aiFallback: aiExtractDocument })
+    const outcome = await parseEstimateFile(file.path, { aiFallback: aiExtractDocument, ocrFallback: ocrEstimateFile })
     if (!outcome.document || !outcome.reconciliation) {
       return NextResponse.json(
         { error: outcome.error ?? 'Could not parse this estimate', metadata: outcome.metadata },

@@ -42,15 +42,33 @@ export interface ParseOutcome {
 export type AiExtractFallback = (pages: import('./types').PdfPage[]) => Promise<ParsedDocument | null>
 
 /**
+ * OCR for scanned PDFs (no text layer): render pages to images and read them
+ * with a vision model. Injected by server routes so the core engine stays
+ * dependency-free for CLI/test use.
+ */
+export type OcrFallback = (filePath: string) => Promise<ParsedDocument | null>
+
+/** Thrown when a PDF has no text layer, so callers can route to OCR. */
+export const NO_TEXT_LAYER = 'NO_TEXT_LAYER'
+
+/**
  * Run detect → parse → reconcile for one PDF. Never returns a document that
  * failed the trust gate without saying so; the caller decides whether to fall
  * back to AI extraction (stage 3 of the design).
  */
 export async function parseEstimateFile(
   filePath: string,
-  opts?: { aiFallback?: AiExtractFallback }
+  opts?: { aiFallback?: AiExtractFallback; ocrFallback?: OcrFallback }
 ): Promise<ParseOutcome> {
-  const pages = await extractPositionedPages(filePath)
+  let pages: import('./types').PdfPage[]
+  try {
+    pages = await extractPositionedPages(filePath)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    if (!message.startsWith(NO_TEXT_LAYER)) throw error
+    // Scanned/image PDF: read it with OCR, still judged by the trust gate.
+    return await parseScanned(filePath, opts?.ocrFallback)
+  }
   const format = detectFormat(pages)
   const metadata = extractMetadata(pages)
 
@@ -86,6 +104,49 @@ export async function parseEstimateFile(
     reconciliation,
     metadata,
     error: reconciliation.ok ? null : 'Parse failed the reconciliation gate',
+  }
+}
+
+/** OCR path for scanned PDFs: images → vision extraction → reconciliation gate. */
+async function parseScanned(
+  filePath: string,
+  ocrFallback: OcrFallback | undefined
+): Promise<ParseOutcome> {
+  if (!ocrFallback) {
+    return {
+      format: 'unknown',
+      document: null,
+      reconciliation: null,
+      metadata: null,
+      error:
+        'This is a scanned/image PDF and OCR is unavailable here (no AI provider configured).',
+    }
+  }
+  let document: ParsedDocument | null = null
+  try {
+    document = await ocrFallback(filePath)
+  } catch (error) {
+    console.error('[estimate-engine] OCR failed:', error)
+  }
+  if (!document) {
+    return {
+      format: 'unknown',
+      document: null,
+      reconciliation: null,
+      metadata: null,
+      error: 'Could not read this scanned estimate — please try a clearer scan or a digital PDF.',
+    }
+  }
+  const reconciliation = reconcile(document)
+  enrichDocument(document)
+  return {
+    format: document.format,
+    document,
+    reconciliation,
+    metadata: null,
+    error: reconciliation.ok
+      ? null
+      : 'Scanned estimate read by OCR, but the figures do not reconcile against the printed totals — treat with caution.',
   }
 }
 

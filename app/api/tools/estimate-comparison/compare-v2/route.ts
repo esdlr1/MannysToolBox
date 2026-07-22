@@ -17,6 +17,7 @@ import { AggregatedItem, aggregateComparison } from '@/lib/estimate-engine/aggre
 import { normalizeForComparison } from '@/lib/estimate-engine/normalize'
 import { ParsedLineItem } from '@/lib/estimate-engine'
 import { aiExtractDocument } from '@/lib/estimate-engine/ai-extract'
+import { ocrEstimateFile } from '@/lib/estimate-engine/ocr'
 import { suggestPairings } from '@/lib/estimate-engine/suggest'
 import { persistEstimateDocument } from '@/lib/estimate-db'
 import { evaluateScopeRules } from '@/lib/scope-check/rules'
@@ -274,7 +275,7 @@ async function parseSide(
       ),
     ]
   }
-  const outcome = await parseEstimateFile(file.path, { aiFallback: aiExtractDocument })
+  const outcome = await parseEstimateFile(file.path, { aiFallback: aiExtractDocument, ocrFallback: ocrEstimateFile })
   if (!outcome.document || !outcome.reconciliation) {
     return [
       null,
