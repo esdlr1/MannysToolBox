@@ -54,6 +54,83 @@ export async function aiExtractDocument(
   return toDocument(parsed)
 }
 
+/** Pages sent per vision call — keeps each request within context limits. */
+const OCR_PAGE_BATCH = 4
+
+/**
+ * OCR path: read a SCANNED estimate from rendered page images. Same strict
+ * JSON contract and the same reconciliation gate afterwards — if the model
+ * misreads a figure, the parsed items won't sum to the document's own printed
+ * totals and the gate rejects it rather than shipping wrong numbers.
+ */
+export async function aiExtractFromImages(
+  images: { pageNumber: number; base64: string }[],
+  override?: { provider: AIProvider; model: string }
+): Promise<ParsedDocument | null> {
+  const task = override ?? resolveTask('extract')
+  if (!task) {
+    console.error('[AI OCR] no AI provider configured')
+    return null
+  }
+  if (images.length === 0) return null
+
+  const merged: RawExtraction = { rooms: [], items: [], grandTotal: null }
+  for (let i = 0; i < images.length; i += OCR_PAGE_BATCH) {
+    const batch = images.slice(i, i + OCR_PAGE_BATCH)
+    const response = await completeText({
+      provider: task.provider,
+      model: task.model,
+      system:
+        'You read scanned construction estimates from page images and extract their line items. ' +
+        'Return ONLY valid JSON, no prose, no code fences. Transcribe money values EXACTLY as printed ' +
+        '(2 decimals). Never invent items or amounts; omit anything you cannot read clearly.',
+      prompt:
+        `These are pages ${batch.map((b) => b.pageNumber).join(', ')} of an estimate. ` +
+        `Extract every line item you can read.\n` +
+        `JSON shape: {"rooms":[{"name":string,"printedTotal":number|null}],` +
+        `"items":[{"lineNumber":number,"room":string,"description":string,"quantity":number,"unit":string,` +
+        `"unitPrice":number,"tax":number,"op":number,"rcv":number,"depreciation":number,"acv":number}],` +
+        `"grandTotal":number|null}\n` +
+        `"rcv" is the line total (RCV or TOTAL column). "printedTotal" is the total printed for that ` +
+        `room's section ("Totals: <room>"). "grandTotal" is the estimate's line-item grand total if ` +
+        `shown on these pages. Use 0 for absent money columns. Rooms with no line items on these pages ` +
+        `should be omitted.`,
+      images: batch.map((b) => b.base64),
+      temperature: 0,
+      maxTokens: 16000,
+    })
+    if (response.error || !response.text) {
+      console.error(`[AI OCR] pages ${batch[0].pageNumber}+ failed:`, response.error)
+      continue
+    }
+    const parsed = parseJson(response.text)
+    if (!parsed) continue
+
+    merged.items!.push(...(parsed.items ?? []))
+    for (const room of parsed.rooms ?? []) {
+      if (!room.name) continue
+      const existing = merged.rooms!.find((r) => r.name === room.name)
+      if (existing) {
+        existing.printedTotal = existing.printedTotal ?? room.printedTotal ?? null
+      } else {
+        merged.rooms!.push(room)
+      }
+    }
+    if (merged.grandTotal == null && parsed.grandTotal != null) {
+      merged.grandTotal = parsed.grandTotal
+    }
+  }
+
+  const doc = toDocument(merged)
+  if (doc) {
+    doc.parseMethod = 'ai-extraction'
+    doc.warnings = [
+      `Read by OCR from ${images.length} scanned page${images.length === 1 ? '' : 's'} — verified by the reconciliation gate`,
+    ]
+  }
+  return doc
+}
+
 interface RawExtraction {
   rooms?: { name?: string; printedTotal?: number | null }[]
   items?: {

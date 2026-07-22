@@ -21,6 +21,8 @@ export interface CompletionRequest {
   maxTokens?: number
   provider?: AIProvider
   model?: string
+  /** Base64 PNG images (no data: prefix) for vision requests, e.g. OCR. */
+  images?: string[]
 }
 
 export interface CompletionResult {
@@ -115,6 +117,15 @@ async function postJson(url: string, headers: Record<string, string>, body: unkn
 
 const CALLERS: Record<AIProvider, Caller> = {
   openai: async (key, model, request) => {
+    const userContent = request.images?.length
+      ? [
+          { type: 'text', text: request.prompt },
+          ...request.images.map((b64) => ({
+            type: 'image_url',
+            image_url: { url: `data:image/png;base64,${b64}`, detail: 'high' },
+          })),
+        ]
+      : request.prompt
     const data = (await postJson(
       'https://api.openai.com/v1/chat/completions',
       { Authorization: `Bearer ${key}` },
@@ -124,7 +135,7 @@ const CALLERS: Record<AIProvider, Caller> = {
         max_tokens: request.maxTokens ?? 4000,
         messages: [
           ...(request.system ? [{ role: 'system', content: request.system }] : []),
-          { role: 'user', content: request.prompt },
+          { role: 'user', content: userContent },
         ],
       }
     )) as { choices?: { message?: { content?: string } }[] }
@@ -140,7 +151,20 @@ const CALLERS: Record<AIProvider, Caller> = {
         max_tokens: request.maxTokens ?? 4000,
         temperature: request.temperature ?? 0,
         ...(request.system ? { system: request.system } : {}),
-        messages: [{ role: 'user', content: request.prompt }],
+        messages: [
+          {
+            role: 'user',
+            content: request.images?.length
+              ? [
+                  ...request.images.map((b64) => ({
+                    type: 'image',
+                    source: { type: 'base64', media_type: 'image/png', data: b64 },
+                  })),
+                  { type: 'text', text: request.prompt },
+                ]
+              : request.prompt,
+          },
+        ],
       }
     )) as { content?: { type: string; text?: string }[] }
     return (data.content ?? [])
@@ -155,7 +179,16 @@ const CALLERS: Record<AIProvider, Caller> = {
       {},
       {
         ...(request.system ? { systemInstruction: { parts: [{ text: request.system }] } } : {}),
-        contents: [{ parts: [{ text: request.prompt }] }],
+        contents: [
+          {
+            parts: [
+              { text: request.prompt },
+              ...(request.images ?? []).map((b64) => ({
+                inline_data: { mime_type: 'image/png', data: b64 },
+              })),
+            ],
+          },
+        ],
         generationConfig: {
           temperature: request.temperature ?? 0,
           maxOutputTokens: request.maxTokens ?? 4000,
