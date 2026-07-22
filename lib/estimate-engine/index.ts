@@ -4,7 +4,7 @@ import { extractPositionedPages } from './extract-text'
 import { detectFormat } from './detect'
 import { parseXactimate } from './xactimate'
 import { parseSymbility } from './symbility'
-import { reconcile } from './reconcile'
+import { reconcile, formatCents } from './reconcile'
 import { enrichDocument } from './catalog'
 import { EstimateMetadata, extractMetadata } from './metadata'
 import { DocumentFormat, ParsedDocument, ReconciliationResult } from './types'
@@ -143,14 +143,35 @@ async function parseScanned(
   }
   const reconciliation = reconcile(document)
   enrichDocument(document)
+
+  // HARD GATE for OCR. Unlike a deterministic parse (whose numbers come from
+  // the document's own text), OCR figures are model-generated — if they don't
+  // reconcile against the printed totals we have no evidence they're right,
+  // so we refuse rather than render a confident, wrong report.
+  if (!reconciliation.ok) {
+    const computed = formatCents(reconciliation.computedGrandRcvCents)
+    const printed =
+      reconciliation.printedGrandRcvCents !== null
+        ? formatCents(reconciliation.printedGrandRcvCents)
+        : 'no printed total found'
+    return {
+      format: document.format,
+      document: null,
+      reconciliation,
+      metadata: null,
+      error:
+        `This scanned estimate could not be verified: OCR read ${computed} of line items but ` +
+        `the document's printed total is ${printed}. The figures are not trustworthy, so no ` +
+        `comparison was produced. Please supply a digital PDF for this estimate.`,
+    }
+  }
+
   return {
     format: document.format,
     document,
     reconciliation,
     metadata: null,
-    error: reconciliation.ok
-      ? null
-      : 'Scanned estimate read by OCR, but the figures do not reconcile against the printed totals — treat with caution.',
+    error: null,
   }
 }
 

@@ -87,16 +87,27 @@ export async function aiExtractFromImages(
         'Return ONLY valid JSON, no prose, no code fences. Transcribe money values EXACTLY as printed ' +
         '(2 decimals). Never invent items or amounts; omit anything you cannot read clearly.',
       prompt:
-        `These are pages ${batch.map((b) => b.pageNumber).join(', ')} of an estimate. ` +
-        `Extract every line item you can read.\n` +
+        `These are pages ${batch.map((b) => b.pageNumber).join(', ')} of an estimate.\n\n` +
+        `CRITICAL — two kinds of page exist, treat them differently:\n` +
+        `1. ITEMIZED pages: a table of NUMBERED line items with quantity, unit, and price columns. ` +
+        `Extract these as "items".\n` +
+        `2. RECAP / SUMMARY pages: titled "Recap by Room", "Recap by Category", "Recap by Coverage", ` +
+        `"Summary for", "Recap by Category with Depreciation", or showing area/room names with only a ` +
+        `dollar amount and a percentage. These REPEAT totals already counted on the itemized pages. ` +
+        `NEVER output them as "items" — doing so double-counts the whole estimate. From these pages ` +
+        `extract ONLY the totals into "grandTotal" and "summary".\n\n` +
         `JSON shape: {"rooms":[{"name":string,"printedTotal":number|null}],` +
         `"items":[{"lineNumber":number,"room":string,"description":string,"quantity":number,"unit":string,` +
         `"unitPrice":number,"tax":number,"op":number,"rcv":number,"depreciation":number,"acv":number}],` +
-        `"grandTotal":number|null}\n` +
-        `"rcv" is the line total (RCV or TOTAL column). "printedTotal" is the total printed for that ` +
-        `room's section ("Totals: <room>"). "grandTotal" is the estimate's line-item grand total if ` +
-        `shown on these pages. Use 0 for absent money columns. Rooms with no line items on these pages ` +
-        `should be omitted.`,
+        `"grandTotal":number|null,` +
+        `"summary":{"salesTax":number|null,"overhead":number|null,"profit":number|null,"rcv":number|null,` +
+        `"depreciation":number|null,"acv":number|null,"netClaim":number|null}|null}\n\n` +
+        `"rcv" on an item is its line total (RCV or TOTAL column). "printedTotal" is the total printed ` +
+        `for that room's section ("Totals: <room>") on an ITEMIZED page. "grandTotal" is the estimate's ` +
+        `line-item total (e.g. the "Total" or "O&P Items Subtotal" on a recap page, or "Line Item Totals"). ` +
+        `"summary" holds the summary-page figures (Overhead, Profit, tax, Replacement Cost Value, ` +
+        `Actual Cash Value, Net Claim) when shown. Use 0 for absent money columns on items; use null for ` +
+        `summary figures not shown on these pages. Omit rooms with no line items on these pages.`,
       images: batch.map((b) => b.base64),
       temperature: 0,
       maxTokens: 16000,
@@ -127,6 +138,14 @@ export async function aiExtractFromImages(
     }
     if (merged.grandTotal == null && parsed.grandTotal != null) {
       merged.grandTotal = parsed.grandTotal
+    }
+    if (parsed.summary) {
+      merged.summary = { ...(merged.summary ?? {}) }
+      for (const [key, value] of Object.entries(parsed.summary)) {
+        if (value != null && merged.summary[key as keyof typeof merged.summary] == null) {
+          merged.summary[key as keyof typeof merged.summary] = value as number
+        }
+      }
     }
   }
 
@@ -164,6 +183,15 @@ interface RawExtraction {
     acv?: number
   }[]
   grandTotal?: number | null
+  summary?: {
+    salesTax?: number | null
+    overhead?: number | null
+    profit?: number | null
+    rcv?: number | null
+    depreciation?: number | null
+    acv?: number | null
+    netClaim?: number | null
+  } | null
 }
 
 function parseJson(text: string): RawExtraction | null {
@@ -229,6 +257,13 @@ function toDocument(raw: RawExtraction): ParsedDocument | null {
       grandRcvCents:
         raw.grandTotal === null || raw.grandTotal === undefined ? null : cents(raw.grandTotal),
       grandAcvCents: null,
+      salesTaxCents: raw.summary?.salesTax != null ? cents(raw.summary.salesTax) : null,
+      overheadCents: raw.summary?.overhead != null ? cents(raw.summary.overhead) : null,
+      profitCents: raw.summary?.profit != null ? cents(raw.summary.profit) : null,
+      summaryRcvCents: raw.summary?.rcv != null ? cents(raw.summary.rcv) : null,
+      depreciationCents: raw.summary?.depreciation != null ? cents(raw.summary.depreciation) : null,
+      summaryAcvCents: raw.summary?.acv != null ? cents(raw.summary.acv) : null,
+      netClaimCents: raw.summary?.netClaim != null ? cents(raw.summary.netClaim) : null,
     },
     warnings: ['Extracted by AI (deterministic parse unavailable) — verified by the reconciliation gate'],
   }
